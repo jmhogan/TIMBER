@@ -75,8 +75,7 @@ RVec<double> isofunc(vector<float> muiso_pts, vector<float> muiso_etas, vector<v
 };
 
 // What is MET? it returns the corrections for met's transverse momentum and phi angle. 
-RVec<float> metfunc(correction::Correction::Ref& metptcorr, correction::Correction::Ref& metphicorr, 
-                    const float &met, const float &phi, const int &npvs, const unsigned int &run)
+RVec<float> metfunc(correction::Correction::Ref& metptcorr, correction::Correction::Ref& metphicorr, const float &met, const float &phi, const int &npvs, const unsigned int &run)
 //assigned types as per BtoTW git analyzer_RDF.cc
 {
    float floatrun = run;
@@ -90,9 +89,7 @@ RVec<float> metfunc(correction::Correction::Ref& metptcorr, correction::Correcti
 
 // IDK what this function does. What's HLT? seems to be calling a bunch of variables under HLT 
 // (electrons? and a muon correction)
-RVec<double> hltfunc(correction::Correction::Ref& muonhltcorr, vector<float> &elhlt_pts,
-                     vector<float> &elhlt_etas, vector<vector<float>> &elechltsfs, vector<vector<float>> &elechltuncs,
-                     <string> &yrstr, const float &pt, const float &eta, const bool &isEl)
+RVec<double> hltfunc(correction::Correction::Ref& muonhltcorr, vector<float> &elhlt_pts, vector<float> &elhlt_etas, vector<vector<float>> &elechltsfs, vector<vector<float>> &elechltuncs, string &yrstr, const float &pt, const float &eta, const bool &isEl)
 // I assumed hltfunc is a double type vector because of the definition of its return value below.
 {
     RVec<double> hlt;
@@ -110,3 +107,14 @@ RVec<double> hltfunc(correction::Correction::Ref& muonhltcorr, vector<float> &el
     return hlt;
  }; 
 
+// Jet veto function
+RVec<double> jetvetofunc(correction::Correction::Ref& jetvetocorr, const RVec<float> &eta, const RVec<float> &phi){
+  RVec<double> map;
+  for(unsigned int ijet = 0; ijet < eta.size(); ijet++){
+    float phitemp = phi.at(ijet);
+    if(phitemp < -3.14159) phitemp = -3.14159;
+    else if(phitemp > 3.14159) phitemp = 3.14159;
+    map.push_back(jetvetocorr->evaluate({"jetvetomap",eta.at(ijet),phitemp}));
+  }
+  return map;
+};
