@@ -18,6 +18,13 @@ num_threads = 1
 #file_name = 'root://cmsxrootd.fnal.gov//store/mc/RunIISummer20UL18NanoAODv9/TprimeTprime_M-1500_TuneCP5_13TeV-madgraph-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/40000/447AD74F-034B-FA42-AD05-CD476A98C43D.root'
 file_name = 'ourtestfile.root'
 
+#TODO isMC? isVV? isSig? etc.
+isMC = True
+'''if "/mc/" in file_name:
+  isMC = True
+else: 
+  isMC = False'''
+
 year = sys.argv[1] # first command line argument
 
 # Import the C++
@@ -47,9 +54,6 @@ print('==========================INITIALIZED ANALYZER========================')
 ROOT.gInterpreter.Declare('string year = "' + year + '";')
 
 debug = False
-
-#TODO isMC? isVV? isSig? etc.
-isMC = True
 
 # ------------------ Golden JSON Data ------------------
 # change the jsonfile path to somewhere they have it in TIMBER
@@ -104,13 +108,10 @@ auto muonidcorr = muoncorrset->at("NUM_MediumID_DEN_TrackerMuons");
 auto muonhltcorr = muoncorrset->at("NUM_Mu50_or_"+mutrig+"_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"); 
 auto metptcorr = metcorrset->at("pt_metphicorr_pfmet_mc");
 auto metphicorr = metcorrset->at("phi_metphicorr_pfmet_mc");
+if(!isMC) {
+  metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
+  metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); };
 """)
-
-
-# if(!isMC) {
-#	metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
-#	metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); };
-
 
 #from muonhltcorr => std::cout << "\t loaded muon trig" << std::endl; // REDO ME (Do we need to change something?)
 
@@ -248,10 +249,11 @@ metCuts.Add("Electron Triangle Cut", "isMu || corrMET_pt>((130/1.5)*DeltaPhi(lep
 
 # ------------------ Add scale factors and MC jet-based calcs ------------------
 #TODO could be a fatJetVar group
-#if isMC
-jVars.Add("leptonRecoSF", "recofunc(electroncorr, muoncorr, yrstr, lepton_pt, lepton_eta, isEl)")
-jVars.Add("leptonIDSF", "idfunc(muonidcorr,elid_pts,elid_etas,elecidsfs,elecidsfuncs,yrstr, lepton_pt, lepton_eta, isEl)") #at(0) 
-jVars.Add("leptonHLTSF", "hltfunc(muonhltcorr,elhlt_pts,elhlt_etas,elechltsfs,elechltuncs,yrstr, lepton_pt, lepton_eta, isEl)")
+if isMC:
+  jVars.Add("leptonRecoSF", "recofunc(electroncorr, muoncorr, yrstr, lepton_pt, lepton_eta, isEl)")
+  jVars.Add("leptonIDSF", "idfunc(muonidcorr,elid_pts,elid_etas,elecidsfs,elecidsfuncs,yrstr, lepton_pt, lepton_eta, isEl)") #at(0) 
+  jVars.Add("leptonIsoSF", "isofunc(muiso_pts,muiso_etas,muonisosfs,muonisosfunc,elid_pts,elid_etas,elecisosfs,elecisosfunc, lepton_pt, lepton_eta, isEl)")
+  jVars.Add("leptonHLTSF", "hltfunc(muonhltcorr,elhlt_pts,elhlt_etas,elechltsfs,elechltuncs,yrstr, lepton_pt, lepton_eta, isEl)")
 
 # ------------------ Post Preselection Analysis ------------------
 ppaVars = VarGroup('postPreSelectionAnalysisVars')
@@ -361,7 +363,7 @@ rframeVars.Add('VLQ_mass_avg', '(VLQ_mass_T+VLQ_mass_Tbar)*0.5')
 # -------------------------------------
 
 
-nodeToPlot = a.Apply([metCuts, gjsonVars, gjsonCuts, lVars, lCuts, jVars, jCuts, rframeVars])
+nodeToPlot = a.Apply([metVars, metCuts, gjsonVars, gjsonCuts, lVars, lCuts, jVars, jCuts, rframeVars])
 #nodeToPlot = a.Apply(metCuts)
 #a.Apply(lVars)
 #a.Apply(lCuts)
