@@ -53,7 +53,19 @@ RVec<float> assign_leps(bool isMu, bool isEl, RVec<int> &TPassMu, RVec<int> &TPa
 };
     
 // ---- Clean Jets Function ----
-RVec<RVec<float>> cleanJets(RVec<TLorentzVector> &jt_p4, RVec<float> &jt_rf, RVec<TLorentzVector> &mu_p4, RVec<int> mu_jetid, RVec<TLorentzVector> &el_p4, RVec<int> &el_jetid)
+
+RVec<RVec<float>> cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc, 
+                            const RVec<TLorentzVector> &jt_p4, const RVec<float> &jt_rf, const RVec<float> &jt_murf, 
+                            const RVec<float> &jt_area, const RVec<float> &jt_em, const RVec<int> &jt_id, 
+                            const RVec<TLorentzVector> &genjt_p4, const RVec<int> &jt_genidx, const RVec<TLorentzVector> &mu_p4, 
+                            const RVec<int> mu_jetid, const RVec<TLorentzVector> &el_p4, const RVec<int> &el_jetid, const float &rho, 
+                            const float &met, const float &phi) 
+
+{
+
+RVec<float> cleanJets(RVec<TLorentzVector> &jt_p4, RVec<float> &jt_rf, RVec<TLorentzVector> &mu_p4, RVec<int> mu_jetid, RVec<TLorentzVector> &el_p4, 
+           RVec<int> &el_jetid);
+
 {
   // This one is intended to read in jets that have NOT been filtered yet, for connection with JetIdx
   // No filtering will happen and no reordering will happen, just sending back new 4-vec and raw factor
