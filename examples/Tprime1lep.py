@@ -110,7 +110,6 @@ auto muonhltcorr = muoncorrset->at("NUM_Mu50_or_"+mutrig+"_DEN_CutBasedIdGlobalH
 auto jetvetocorr = jetvetocorrset->at("Summer19UL"+yr+"_V1");
 auto metptcorr = metcorrset->at("pt_metphicorr_pfmet_mc");
 auto metphicorr = metcorrset->at("phi_metphicorr_pfmet_mc");
-
 //if (!isMC) {
 //  metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
 //  metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); };
@@ -234,6 +233,12 @@ jCuts.Add('3 AK8s Pass', 'NFatJets_central > 2')    # need to ensure three jets 
 
 
 # -----------------------------MET Selection--------------------------------------------------------- 
+
+#  .Define("cleanMets", cleanJets, {"Jet_P4","Jet_rawFactor","Jet_muonSubtrFactor","Jet_area","Jet_EmEF","Jet_jetId","GenJet_P4","Jet_genJetIdx","SMuon_P4","SMuon_jetIdx","SElectron_P4","SElectron_jetIdx","fixedGridRhoFastjetAll","RawMET_pt","RawMET_phi"}) // lepton args are unused in this call
+
+
+metVars.Add("corrMETnoxy_pt","cleanMets[5][0]")
+metVars.Add("corrMETnoxy_phi","cleanMets[5][1]")
 
 metVars.Add("metxyoutput", "metfunc(metptcorr, metphicor, corrMETnoxy_pt, corrMETnoxy_phi, PV_npvs, run)")
 metVars.Add("corrMET_pt","metxyoutput[0]")
