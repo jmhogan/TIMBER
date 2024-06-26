@@ -235,7 +235,7 @@ jCuts.Add('3 AK8s Pass', 'NFatJets_central > 2')    # need to ensure three jets 
 
 # -----------------------------MET Selection--------------------------------------------------------- 
 
-metVars.Add("metxyoutput", "metfunc(metptcorr, metphicor, corrMETnoxy_pt, corrMETnoxy_phi, PV_npvs, run)")
+metVars.Add("metxyoutput", "metfunc(metptcorr, metphicorr, corrMETnoxy_pt, corrMETnoxy_phi, PV_npvs, run)")
 metVars.Add("corrMET_pt","metxyoutput[0]")
 metVars.Add("corrMET_phi","metxyoutput[1]")
 
