@@ -12,10 +12,10 @@ using namespace std;
 // Commented Method Only
 
 // Make sure the run passes the json? //TODO better explanation
-/*bool goldenjson(lumiMask myLumiMask, const unsigned int &run, const unsigned int &luminosityBlock)
+bool goldenjson(lumiMask myLumiMask, const unsigned int &run, const unsigned int &luminosityBlock)
 {
   return myLumiMask.accept(run, luminosityBlock);
-};*/ 
+}; 
 
 // Pile Up Function
 RVec<double> pufunc(correction::Correction::Ref& pileupcorr, const float &numTrueInt) 
@@ -99,15 +99,12 @@ RVec<double> hltfunc(correction::Correction::Ref& muonhltcorr, vector<float> &el
       hlt = {elechltsfs[ptbin][etabin], elechltuncs[ptbin][etabin]};
     }
     else {
-      cout << "\t IN else--------";
-      if (pt < 50.681976) {
-	      cout << " CAUGHT ya------";
-      } else{
-      hlt = {muonhltcorr->evaluate({yrstr+"_UL",abs(eta),pt,"sf"}), 
+      //we have lookup tables we might put it into correction format.	      
+      
+      hlt = {1,1,1};  
+      /*hlt = {muonhltcorr->evaluate({yrstr+"_UL",abs(eta),pt,"sf"}), 
 	     muonhltcorr->evaluate({yrstr+"_UL",abs(eta),pt,"systup"}), 
-	     muonhltcorr->evaluate({yrstr+"_UL",abs(eta),pt,"systdown"})};
-      }
-      cout << " else END\n";  
+	     muonhltcorr->evaluate({yrstr+"_UL",abs(eta),pt,"systdown"})};*/
     }
     return hlt;
  }; 

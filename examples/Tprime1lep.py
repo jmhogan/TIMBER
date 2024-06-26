@@ -31,9 +31,7 @@ year = sys.argv[1] # first command line argument
 CompileCpp('TIMBER/Framework/include/common.h') # Compile (via gInterpreter) commonly used c++ code
 CompileCpp('TIMBER/Framework/Tprime1lep/cleanjet.cc') # Compile Our vlq c++ code
 CompileCpp('TIMBER/Framework/Tprime1lep/utilities.cc') # Compile Our vlq c++ code
-#ROOT.gInterpreter.ProcessLine('#include "../TIMBER/Framework/Tprime1lep/lumiMask.h"')
-#CompileCpp('TIMBER/Framework/Tprime1lep/lumiMask.h')
-#CompileCpp('TIMBER/Framework/Tprime1lep/lumiMask.cc')
+CompileCpp('TIMBER/Framework/Tprime1lep/lumiMask.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/selfDerived_corrs.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/corrlib_funcs.cc') 
 
@@ -57,24 +55,24 @@ debug = False
 
 # ------------------ Golden JSON Data ------------------
 # change the jsonfile path to somewhere they have it in TIMBER
-jsonfile = ""
-if (year == "2016" or year == "2016APV"): jsonfile = "Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt"
-elif (year == "2017"): jsonfile = "Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt"
-elif (year == "2018"): jsonfile = "Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt"
+jsonfile = "../TIMBER/data/LumiJSON/"
+if (year == "2016" or year == "2016APV"): jsonfile = jsonfile + "Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt"
+elif (year == "2017"): jsonfile = jsonfile + "Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt"
+elif (year == "2018"): jsonfile = jsonfile + "Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt"
 else: print(f'ERROR: Can\'t parse the year to assign a golden json file. Expected 2016, 2016APV, 2017, or 2018. Got: {year}\n')
-#ROOT.gInterpreter.Declare("""
-#const auto myLumiMask = lumiMask::fromJSON(\"""" + jsonfile + """\");
-#//  std::cout << "Testing the JSON! Known good run/lumi returns: " << myLumiMask.accept(315257, 10) << ", and known bad run returns: " << myLumiMask.accept(315257, 90) << std::endl;
-#""")
+
+ROOT.gInterpreter.Declare("""
+const auto myLumiMask = lumiMask::fromJSON(\"""" + jsonfile + """\");
+//  std::cout << "Testing the JSON! Known good run/lumi returns: " << myLumiMask.accept(315257, 10) << ", and known bad run returns: " << myLumiMask.accept(315257, 90) << std::endl;
+""")
 
 # ------------------ Self-derived corrections ------------------
 
 #TODO more things here
 
     # Lepton scale factors not in correctionLib
-ROOT.gInterpreter.ProcessLine("""
-initialize(year);
-""")
+ROOT.gInterpreter.ProcessLine('initialize(year);')
+
 #can do things like this inside:   include <iostream>
 #using namespace std; 
 #std::cout << elid_pts.size() << elid_pts.at(2); //TODO remove
@@ -113,6 +111,19 @@ auto metphicorr = metcorrset->at("phi_metphicorr_pfmet_mc");
 //if (!isMC) {
 //  metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
 //  metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); };
+
+auto ak4corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/jet_jerc.json"); 
+auto ak8corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/fatJet_jerc.json"); 
+auto ak4corr = ak4corrset->compound().at("Summer19"+jecyr+"_"+jecver+"_MC_L1L2L3Res_AK4PFchs");
+auto ak4corrL1 = ak4corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_L1FastJet_AK4PFchs"); 
+//if(!isMC){ ak4corr = ak4corrset->compound().at("Summer19"+jecyr+"_Run"+jecera+"_"+jecver+"_DATA_L1L2L3Res_AK4PFchs"); 
+auto ak4corrUnc = ak4corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_Total_AK4PFchs"); 
+
+auto ak4ptres = ak4corrset->at(jeryr+"_MC_PtResolution_AK4PFchs"); 
+auto ak4jer = ak4corrset->at(jeryr+"_MC_ScaleFactor_AK4PFchs"); 
+auto ak8corr = ak8corrset->compound().at("Summer19"+jecyr+"_"+jecver+"_MC_L1L2L3Res_AK8PFPuppi"); 
+//if(!isMC){ ak8corr = ak8corrset->compound().at("Summer19"+jecyr+"_Run"+jecera+"_"+jecver+"_DATA_L1L2L3Res_AK8PFPuppi"); 
+auto ak8corrUnc = ak8corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_Total_AK8PFPuppi"); 
 """) #TODO if statement doesn't work in this .Declare() ???
 
 #from muonhltcorr => std::cout << "\t loaded muon trig" << std::endl; // REDO ME (Do we need to change something?)
@@ -127,12 +138,11 @@ metCuts.Add('Event has jets',        'nJet > 0 && nFatJet > 0') # need jets
 # ------------------ Golden JSON (Data) || GEN Info (MC) ------------------
 gjsonVars = VarGroup('GoldenJsonVars')
 gjsonCuts = CutGroup('GoldenJsonCuts')
-#if not isMC:
- #   gjsonVars.Add("passesJSON", "goldenjson(myLumiMask, run, luminosityBlock)")
- #   gjsonCuts.Add("Data passes Golden JSON", "passesJSON == 1") 
-
-        # this was originally in the else block:
-gjsonVars.Add("PileupWeights", "pufunc(corrPU, Pileup_nTrueInt)")
+if isMC is False: # apply golden json to data
+  gjsonVars.Add("passesJSON", "goldenjson(myLumiMask, run, luminosityBlock)")
+  gjsonCuts.Add("Data passes Golden JSON", "passesJSON == 1") 
+else:
+  gjsonVars.Add("PileupWeights", "pufunc(corrPU, Pileup_nTrueInt)")
 
 # ------------------- Lepton Selection --------- got this when adding hltfunc to corrlib_funcs.cc --------------
 #auto LepSelect = LepDefs.Define("isMu", Form("(nMuon>0) && (HLT_Mu50%s) && (nSignalIsoMu==1) && (nVetoIsoLep==0) && (nElectron == 0 || nSignalIsoEl == 0)",tkmutrig.c_str()))
@@ -161,6 +171,9 @@ lVars.Add("TElectron_P4", "fVectorConstructor(TElectron_pt,TElectron_eta,TElectr
 lVars.Add("TMuon_jetIdx", "Muon_jetIdx[TightMu == true]")
 lVars.Add("TElectron_jetIdx", "Electron_jetIdx[TightEl == true]")
         # select lepton
+# ||||||||||||||||||||| TODO ||||||||||||||||||||||||
+### WE need to find out which triggers exist in run 3
+# ___________________________________________________
 lVars.Add("isMu","nMuon > 0 && nTightMu == 1 && (nElectron == 0 || nTightEl == 0) && nVetoLep == 0 && (HLT_Mu50 == 1 || HLT_Mu15_IsoVVVL_PFHT450 == 1)") 
 lVars.Add("isEl","nElectron > 0 && nTightEl == 1 && (nMuon == 0 || nTightMu == 0) && nVetoLep==0 && (HLT_Ele35_WPTight_Gsf == 1 || HLT_Ele15_IsoVVVL_PFHT450 == 1)") 
         
@@ -235,7 +248,7 @@ jCuts.Add('3 AK8s Pass', 'NFatJets_central > 2')    # need to ensure three jets 
 # -----------------------------MET Selection--------------------------------------------------------- 
 
 #  .Define("cleanMets", cleanJets, {"Jet_P4","Jet_rawFactor","Jet_muonSubtrFactor","Jet_area","Jet_EmEF","Jet_jetId","GenJet_P4","Jet_genJetIdx","SMuon_P4","SMuon_jetIdx","SElectron_P4","SElectron_jetIdx","fixedGridRhoFastjetAll","RawMET_pt","RawMET_phi"}) // lepton args are unused in this call
-
+'''
 metVars.Add("corrMETnoxy_pt","cleanMets[5][0]")
 metVars.Add("corrMETnoxy_phi","cleanMets[5][1]")
 
@@ -246,7 +259,7 @@ metVars.Add("corrMET_phi","metxyoutput[1]")
 
 metCuts.Add("Pass corr MET > 60", "corrMET_pt > 60")
 metCuts.Add("Electron Triangle Cut", "isMu || corrMET_pt>((130/1.5)*DeltaPhi(lepton_phi, corrMET_phi)-130)");
-
+'''
 # ------------------ Jet pt ordering, counting, lepton association ------------------
 # requires clean jet things for this:
 '''jVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
