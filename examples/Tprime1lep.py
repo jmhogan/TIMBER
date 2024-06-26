@@ -51,7 +51,7 @@ a = analyzer(file_name)
 
 print('==========================INITIALIZED ANALYZER========================')
 
-ROOT.gInterpreter.Declare('string year = "' + year + '";')
+ROOT.gInterpreter.Declare("""string year = "' + year + '"; bool isMC = "' + isMC + '";""")
 
 debug = False
 
@@ -99,6 +99,7 @@ ROOT.gInterpreter.Declare("""
 auto csetPU = correction::CorrectionSet::from_file("jsonpog-integration/POG/LUM/"+yrstr+"_UL/puWeights.json");
 auto electroncorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/EGM/"+yrstr+"_UL/electron.json");
 auto muoncorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/MUO/"+yrstr+"_UL/muon_Z.json");
+auto jetvetocorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/jetvetomaps.json");
 auto metcorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/met.json");
 
 auto corrPU = csetPU->at("Collisions"+yr+"_UltraLegacy_goldenJSON");
@@ -106,13 +107,13 @@ auto electroncorr = electroncorrset->at("UL-Electron-ID-SF");
 auto muoncorr = muoncorrset->at("NUM_TrackerMuons_DEN_genTracks");
 auto muonidcorr = muoncorrset->at("NUM_MediumID_DEN_TrackerMuons");
 auto muonhltcorr = muoncorrset->at("NUM_Mu50_or_"+mutrig+"_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"); 
+auto jetvetocorr = jetvetocorrset->at("Summer19UL"+yr+"_V1");
 auto metptcorr = metcorrset->at("pt_metphicorr_pfmet_mc");
 auto metphicorr = metcorrset->at("phi_metphicorr_pfmet_mc");
-""")
-
-#if(!isMC) {
- # metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
-  #metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); };
+//if (!isMC) {
+//  metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
+//  metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); };
+""") #TODO if statement doesn't work in this .Declare() ???
 
 #from muonhltcorr => std::cout << "\t loaded muon trig" << std::endl; // REDO ME (Do we need to change something?)
 
@@ -212,14 +213,6 @@ jVars.Add("cleanedJet_rawFactor", "cleanedJets[4]")
 jVars.Add("DR_lepJets","DeltaR_VecAndFloat(cleanedJet_eta,cleanedJet_phi,lepton_eta,lepton_phi)")
 jVars.Add("ptrel_lepJets","ptRel(cleanedJet_pt,cleanedJet_eta,cleanedJet_phi,cleanedJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
 jVars.Add("goodcleanJets", "cleanedJet_pt > 30 && abs(cleanedJet_eta) < 2.4 && Jet_jetId > 1 && (DR_lepJets > 0.4 || ptrel_lepJets > 20)")
-jVars.Add("NJets_central", "(int) Sum(goodcleanJets)")
-jVars.Add("gcJet_pt", "cleanedJet_pt[goodcleanJets == true]")
-jVars.Add("gcJet_eta", "cleanedJet_eta[goodcleanJets == true]")
-jVars.Add("gcJet_phi", "cleanedJet_phi[goodcleanJets == true]")
-jVars.Add("gcJet_mass", "cleanedJet_mass[goodcleanJets == true]")
-jVars.Add("gcJet_DeepFlav", "Jet_btagDeepFlavB[goodcleanJets == true]")
-jVars.Add("gcJet_DeepFlavM", "gcJet_DeepFlav > 0.2783")
-jVars.Add("NJets_DeepFlavM", "(int) Sum(gcJet_DeepFlavM)")
 '''
 jVars.Add("DR_lepFatJets","DeltaR_VecAndFloat(FatJet_eta,FatJet_phi,lepton_eta,lepton_phi)")
 jVars.Add("ptrel_lepFatJets","ptRel(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
@@ -254,6 +247,26 @@ metVars.Add("corrMET_phi","metxyoutput[1]")
 metCuts.Add("Pass corr MET > 60", "corrMET_pt > 60")
 metCuts.Add("Electron Triangle Cut", "isMu || corrMET_pt>((130/1.5)*DeltaPhi(lepton_phi, corrMET_phi)-130)");
 
+# ------------------ Jet pt ordering, counting, lepton association ------------------
+# requires clean jet things for this:
+'''jVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
+jVars.Add("gcJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcJet_pt_unsort))")
+jVars.Add("gcJet_pt","reorder(gcJet_pt_unsort,gcJet_ptargsort)")
+jVars.Add("gcJet_eta", "reorder(cleanJet_eta[goodcleanJets == true],gcJet_ptargsort)")
+jVars.Add("gcJet_phi", "reorder(cleanJet_phi[goodcleanJets == true],gcJet_ptargsort)")
+jVars.Add("gcJet_mass", "reorder(cleanJet_mass[goodcleanJets == true],gcJet_ptargsort)")
+jVars.Add("gcJet_vetomap", "jetvetofunc(jetvetocorr, gcJet_eta, gcJet_phi)")
+        #fatjet vars
+jVars.Add("gcFatJet_pt_unsort", "FatJet_pt[goodcleanFatJets == true]")
+jVars.Add("gcFatJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcFatJet_pt_unsort))")
+jVars.Add("gcFatJet_pt","reorder(gcFatJet_pt_unsort,gcFatJet_ptargsort)")
+jVars.Add("gcFatJet_eta", "reorder(FatJet_eta[goodcleanFatJets == true],gcFatJet_ptargsort)")
+jVars.Add("gcFatJet_phi", "reorder(FatJet_phi[goodcleanFatJets == true],gcFatJet_ptargsort)")
+jVars.Add("gcFatJet_mass", "reorder(FatJet_mass[goodcleanFatJets == true],gcFatJet_ptargsort)")
+jVars.Add("gcFatJet_sdmass", "reorder(FatJet_msoftdrop[goodcleanFatJets == true],gcFatJet_ptargsort)")
+jVars.Add("gcFatJet_vetomap", "jetvetofunc(jetvetocorr, gcFatJet_eta, gcFatJet_phi)")
+'''
+
 # ------------------ Add scale factors and MC jet-based calcs ------------------
 #TODO could be a fatJetVar group
 if isMC:
@@ -261,99 +274,6 @@ if isMC:
   jVars.Add("leptonIDSF", "idfunc(muonidcorr,elid_pts,elid_etas,elecidsfs,elecidsfuncs,yrstr, lepton_pt, lepton_eta, isEl)") #at(0) 
   jVars.Add("leptonIsoSF", "isofunc(muiso_pts,muiso_etas,muonisosfs,muonisosfunc,elid_pts,elid_etas,elecisosfs,elecisosfunc, lepton_pt, lepton_eta, isEl)")
   jVars.Add("leptonHLTSF", "hltfunc(muonhltcorr,elhlt_pts,elhlt_etas,elechltsfs,elechltuncs,yrstr, lepton_pt, lepton_eta, isEl)")
-
-# ------------------ Post Preselection Analysis ------------------
-ppaVars = VarGroup('postPreSelectionAnalysisVars')
-#TODO think.  Do we need the next one?  This one requires a lot of code from 
-#../../../RJRanalysis/CMSSW_11_0_0/src/RJR/step1RDF_forLJMet.cpp
-#ppaVars.Add("decayMode_or_genTTbarMass",decayModeSelection_genTTbarMassCalc,{"nGenPart","GenPart_pdgId","GenPart_mass", "GenPart_pt","GenPart_phi","GenPart_eta", "GenPart_genPartIdxMother","GenPart_status"})
-ppaVars.Add("lepton_lv","lvConstructor(lepton_pt,lepton_eta,lepton_phi,lepton_mass)")
-ppaVars.Add("AK4HTpMETpLepPt","AK4HT + lepton_pt + MET_pt") 
-ppaVars.Add("dnnJ","FatJet_deepTag_QCDothers[goodcleanFatJets == true]")	
-ppaVars.Add("int_dnnT","(FatJet_deepTag_TvsQCD * FatJet_deepTag_QCD) / (1 - FatJet_deepTag_TvsQCD)") 
-ppaVars.Add("dnnT","int_dnnT[goodcleanFatJets == true]")		
-ppaVars.Add("dnnH","FatJet_deepTag_H[goodcleanFatJets == true]")
-ppaVars.Add("int_dnnZ","(FatJet_deepTag_ZvsQCD * FatJet_deepTag_QCD) / (1 - FatJet_deepTag_ZvsQCD)") 
-ppaVars.Add("dnnZ","int_dnnZ[goodcleanFatJets == true]")			
-ppaVars.Add("int_dnnW","(FatJet_deepTag_WvsQCD * FatJet_deepTag_QCD) / (1 - FatJet_deepTag_WvsQCD)") 
-ppaVars.Add("dnnW","int_dnnW[goodcleanFatJets == true]")		
-ppaVars.Add("int_dnnB","(FatJet_deepTag_QCD - FatJet_deepTag_QCDothers)") 
-ppaVars.Add("dnnB","int_dnnB[goodcleanFatJets == true]")		
-ppaVars.Add("dnnLargest","maxFxn(dnnJ,dnnT,dnnH,dnnZ,dnnW,dnnB)")	
-ppaVars.Add("nJ_DeepAK8","Sum(dnnLargest == 0)")			
-ppaVars.Add("nT_DeepAK8","Sum(dnnLargest == 1)")			
-ppaVars.Add("nH_DeepAK8","Sum(dnnLargest == 2)")			
-ppaVars.Add("nZ_DeepAK8","Sum(dnnLargest == 3)")			
-ppaVars.Add("nW_DeepAK8","Sum(dnnLargest == 4)")			
-ppaVars.Add("nB_DeepAK8","Sum(dnnLargest == 5)")			
-ppaVars.Add("int_tau21","(FatJet_tau2 / FatJet_tau1)")			
-ppaVars.Add("tau21","int_tau21[goodcleanFatJets == true]")  
-ppaVars.Add("tau21_1","tau21[0]")					
-ppaVars.Add("tau21_2","tau21[1]")					
-ppaVars.Add("tau21_3","tau21[2]")					
-ppaVars.Add("minDR_ptRel_lead_lepAK8","minDR_ptRel_lead_calc(gcFatJet_pt,gcFatJet_eta,gcFatJet_phi,gcFatJet_mass,lepton_lv)")
-ppaVars.Add("minDR_lepAK8","minDR_ptRel_lead_lepAK8[0]")		
-ppaVars.Add("ptRel_lepAK8","minDR_ptRel_lead_lepAK8[1]")		
-ppaVars.Add("minDR_leadAK8otherAK8","minDR_ptRel_lead_lepAK8[2]")	
-ppaVars.Add("minDR_ptRel_lead_lepJets","minDR_ptRel_lead_calc(gcJet_pt,gcJet_eta,gcJet_phi,gcJet_mass,lepton_lv)")
-ppaVars.Add("minDR_lepJet","minDR_ptRel_lead_lepJets[0]")		
-ppaVars.Add("ptRel_lepJet","minDR_ptRel_lead_lepJets[1]")		
-ppaVars.Add("DR_lepAK8s","DeltaR_VecAndFloat(gcFatJet_eta,gcFatJet_phi,lepton_eta,lepton_phi)")
-ppaVars.Add("W_lv","lpNu_WCalc(MET_pt,MET_phi,lepton_lv)") 
-#ppaVars.Add("minMlj",minMleppJet_calc,{"gcJet_pt","gcJet_eta","gcJet_phi","gcJet_mass", "lepton_lv","gcJet_DeepFlav"})				
-ppaVars.Add("W_dRLep","dR_Wt_Calc(W_lv,lepton_lv)")			
-#ppaVars.Add("minMleppJet","minMlj[0]")					
-ppaVars.Add("ind_MinMlj","(int) minMlj[1]")				
-ppaVars.Add("NJetsDeepFlavwithSF","(int) minMlj[2]")		
-#ppaVars.Add("isLeptonic","isLeptonic_X(minMleppJet)")			
-#ppaVars.Add("t_lv","lpNu_t_Calc(isLeptonic,gcJet_pt,gcJet_eta,gcJet_phi,gcJet_mass,W_lv,minMleppJet,ind_MinMlj)")
-ppaVars.Add("t_pt","t_lv[0]")						
-ppaVars.Add("t_eta","t_lv[1]")						
-ppaVars.Add("t_phi","t_lv[2]")						
-ppaVars.Add("t_mass","t_lv[3]")						
-ppaVars.Add("t_dRWb","t_lv[4]")						
-ppaVars.Add("top_lv","top_lvConstructor(t_pt,t_eta,t_phi,t_mass)")	
-#ppaVars.Add("tj_vec","three_jet(top_lv,W_lv,isLeptonic,gcFatJet_pt,gcFatJet_eta,gcFatJet_phi,gcFatJet_mass,dnnT,dnnH,dnnZ,dnnW,dnnB,dnnLargest,gcFatJet_sdmass)")
-"""
-ppaVars.Add("Tprime1_DeepAK8_Mass","tj_vec[0]")				
-ppaVars.Add("Tprime2_DeepAK8_Mass","tj_vec[1]")				
-ppaVars.Add("Tprime1_DeepAK8_pt","tj_vec[2]")				
-ppaVars.Add("Tprime2_DeepAK8_pt","tj_vec[3]")				
-ppaVars.Add("Tprime1_DeepAK8_eta","tj_vec[4]")				
-ppaVars.Add("Tprime2_DeepAK8_eta","tj_vec[5]")				
-ppaVars.Add("Tprime1_DeepAK8_Phi","tj_vec[6]")				
-ppaVars.Add("Tprime2_DeepAK8_Phi","tj_vec[7]")				
-ppaVars.Add("Tprime1_DeepAK8_deltaR","tj_vec[8]")			
-ppaVars.Add("Tprime2_DeepAK8_deltaR","tj_vec[9]")			
-ppaVars.Add("Bprime1_DeepAK8_Mass","tj_vec[10]")			
-ppaVars.Add("Bprime2_DeepAK8_Mass","tj_vec[11]")			
-ppaVars.Add("Bprime1_DeepAK8_pt","tj_vec[12]")				
-ppaVars.Add("Bprime2_DeepAK8_pt","tj_vec[13]")				
-ppaVars.Add("Bprime1_DeepAK8_eta","tj_vec[14]")				
-ppaVars.Add("Bprime2_DeepAK8_eta","tj_vec[15]")				
-ppaVars.Add("Bprime1_DeepAK8_Phi","tj_vec[16]")				
-ppaVars.Add("Bprime2_DeepAK8_Phi","tj_vec[17]")				
-ppaVars.Add("Bprime1_DeepAK8_deltaR","tj_vec[18]")			
-ppaVars.Add("Bprime2_DeepAK8_deltaR","tj_vec[19]")			
-ppaVars.Add("leptonicTprimeJetIDs_DeepAK8","(int) tj_vec[23]")		
-ppaVars.Add("leptonicBprimeJetIDs_DeepAK8","(int) tj_vec[24]")		
-ppaVars.Add("hadronicTprimeJetIDs1_DeepAK8","(int) tj_vec[25]")		
-ppaVars.Add("hadronicTprimeJetIDs2_DeepAK8","(int) tj_vec[26]")		
-ppaVars.Add("hadronicBprimeJetIDs1_DeepAK8","(int) tj_vec[27]")		
-ppaVars.Add("hadronicBprimeJetIDs2_DeepAK8","(int) tj_vec[28]")		
-"""
-ppaVars.Add("TPrime1_lv","top_lvConstructor(Tprime1_DeepAK8_pt,Tprime1_DeepAK8_eta,Tprime1_DeepAK8_Phi,Tprime1_DeepAK8_Mass)") 
-ppaVars.Add("TPrime2_lv","top_lvConstructor(Tprime2_DeepAK8_pt,Tprime2_DeepAK8_eta,Tprime2_DeepAK8_Phi,Tprime2_DeepAK8_Mass)") 
-ppaVars.Add("BPrime1_lv","top_lvConstructor(Bprime1_DeepAK8_pt,Bprime1_DeepAK8_eta,Bprime1_DeepAK8_Phi,Bprime1_DeepAK8_Mass)") 
-ppaVars.Add("BPrime2_lv","top_lvConstructor(Bprime2_DeepAK8_pt,Bprime2_DeepAK8_eta,Bprime2_DeepAK8_Phi,Bprime2_DeepAK8_Mass)") 
-#ppaVars.Add("TTagged","three_jet_TTag(top_lv,W_lv,isLeptonic,gcFatJet_pt,gcFatJet_eta,gcFatJet_phi,gcFatJet_mass,dnnLargest,hadronicTprimeJetIDs1_DeepAK8,hadronicTprimeJetIDs2_DeepAK8)")
-ppaVars.Add("validT","TTagged[0]")					
-ppaVars.Add("TtaggedDecay","TTagged[1]")				
-#ppaVars.Add("BTagged","three_jet_BTag(top_lv,W_lv,isLeptonic,gcFatJet_pt,gcFatJet_eta,gcFatJet_phi,gcFatJet_mass,dnnLargest, hadronicBprimeJetIDs1_DeepAK8,hadronicBprimeJetIDs2_DeepAK8)")
-ppaVars.Add("validB","BTagged[0]")					
-ppaVars.Add("BtaggedDecay","BTagged[1]")
-
-
 
 
 # ------------------ Results ------------------
