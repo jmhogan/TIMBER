@@ -265,6 +265,7 @@ metCuts.Add("Electron Triangle Cut", "isMu || corrMET_pt>((130/1.5)*DeltaPhi(lep
 '''
 # ------------------ Jet pt ordering, counting, lepton association ------------------
 # requires clean jet things for this:
+# SWITCH cleanJet_x to cleanedJet_x --Camila
 '''jVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
 jVars.Add("gcJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcJet_pt_unsort))")
 jVars.Add("gcJet_pt","reorder(gcJet_pt_unsort,gcJet_ptargsort)")
