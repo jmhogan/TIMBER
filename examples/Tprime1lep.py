@@ -141,7 +141,6 @@ auto ak8corrUnc = ak8corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_Total_AK8PFPup
 #from muonhltcorr => std::cout << "\t loaded muon trig" << std::endl; // REDO ME (Do we need to change something?)
 
 # ------------------ MET Cuts ------------------
-metVars = VarGroup('METVars')
 metCuts = CutGroup('METCuts')
 metCuts.Add('MET Filters', 'Flag_EcalDeadCellTriggerPrimitiveFilter == 1 && Flag_goodVertices == 1 && Flag_HBHENoiseFilter == 1 && Flag_HBHENoiseIsoFilter == 1 && Flag_eeBadScFilter == 1 && Flag_globalSuperTightHalo2016Filter == 1 && Flag_BadPFMuonFilter == 1 && Flag_ecalBadCalibFilter == 1')
 metCuts.Add('Pass MET > 50', 'MET_pt > 50')
@@ -275,6 +274,7 @@ jCuts.Add('3 AK8s Pass', 'NFatJets_central > 2')    # need to ensure three jets 
 
 
 # -----------------------------MET Selection--------------------------------------------------------- 
+metVars = VarGroup('METVars')
 
 metVars.Add("corrMETnoxy_pt","cleanMets[5][0]")
 metVars.Add("corrMETnoxy_phi","cleanMets[5][1]")
@@ -334,7 +334,7 @@ rframeVars.Add('VLQ_mass_avg', '(VLQ_mass_T+VLQ_mass_Tbar)*0.5')
 # -------------------------------------
 
 
-nodeToPlot = a.Apply([metVars, metCuts, gjsonVars, gjsonCuts, lVars, lCuts, jVars, jCuts, rframeVars])
+nodeToPlot = a.Apply([gjsonVars, gjsonCuts, lVars, lCuts, jVars, jCuts, metVars, metCuts, rframeVars])
 #nodeToPlot = a.Apply(metCuts)
 #a.Apply(lVars)
 #a.Apply(lCuts)
