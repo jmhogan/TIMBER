@@ -239,14 +239,14 @@ jVars.Add("cleanedJets", "cleanJets(Jet_P4,Jet_rawFactor,TMuon_P4,TMuon_jetIdx,T
 #print(a.DataFrame().G
 
 ''' 
-jVars.Add("cleanedJet_pt", "cleanedJets[0]")
-jVars.Add("cleanedJet_eta", "cleanedJets[1]")
-jVars.Add("cleanedJet_phi", "cleanedJets[2]")
-jVars.Add("cleanedJet_mass", "cleanedJets[3]")
-jVars.Add("cleanedJet_rawFactor", "cleanedJets[4]")
-jVars.Add("DR_lepJets","DeltaR_VecAndFloat(cleanedJet_eta,cleanedJet_phi,lepton_eta,lepton_phi)")
-jVars.Add("ptrel_lepJets","ptRel(cleanedJet_pt,cleanedJet_eta,cleanedJet_phi,cleanedJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
-jVars.Add("goodcleanJets", "cleanedJet_pt > 30 && abs(cleanedJet_eta) < 2.4 && Jet_jetId > 1 && (DR_lepJets > 0.4 || ptrel_lepJets > 20)")
+jVars.Add("cleanJet_pt", "cleanedJets[0]")
+jVars.Add("cleanJet_eta", "cleanedJets[1]")
+jVars.Add("cleanJet_phi", "cleanedJets[2]")
+jVars.Add("cleanJet_mass", "cleanedJets[3]")
+jVars.Add("cleanJet_rawFactor", "cleanedJets[4]")
+jVars.Add("DR_lepJets","DeltaR_VecAndFloat(cleanJet_eta,cleanJet_phi,lepton_eta,lepton_phi)")
+jVars.Add("ptrel_lepJets","ptRel(cleanJet_pt,cleanJet_eta,cleanJet_phi,cleanJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
+jVars.Add("goodcleanJets", "cleanJet_pt > 30 && abs(cleanJet_eta) < 2.4 && Jet_jetId > 1 && (DR_lepJets > 0.4 || ptrel_lepJets > 20)")
 '''
 jVars.Add("DR_lepFatJets","DeltaR_VecAndFloat(FatJet_eta,FatJet_phi,lepton_eta,lepton_phi)")
 jVars.Add("ptrel_lepFatJets","ptRel(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
