@@ -216,34 +216,29 @@ jVars.Add("SElectron_P4","TElectron_P4")
 jVars.Add("SElectron_jetIdx","TElectron_jetIdx")
 if isMC:
   jVars.Add("GenJet_P4","fVectorConstructor(GenJet_pt,GenJet_eta,GenJet_phi,GenJet_mass)")
-  jVars.Add("cleanJets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,GenJet_P4,Jet_genJetIdx,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call
+  jVars.Add("cleanedJets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,GenJet_P4,Jet_genJetIdx,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call
   jVars.Add("cleanMets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,GenJet_P4,Jet_genJetIdx,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,RawMET_pt,RawMET_phi)") # lepton args are unused in this call
   jVars.Add("GenJetAK8_P4", "fVectorConstructor(GenJetAK8_pt,GenJetAK8_eta,GenJetAK8_phi,GenJetAK8_mass)")
   jVars.Add("cleanFatJets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,FatJet_P4,FatJet_rawFactor,FatJet_rawFactor,FatJet_area,FatJet_area,FatJet_jetId,GenJetAK8_P4,FatJet_genJetAK8Idx,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,DummyZero,DummyZero)") # args 12 and 14 are dummies
 else:
     # Replace all the GenJet arguments with fakes here for data. 
-  jVars.Add("cleanJets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,Jet_P4,Jet_jetId,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call, args 16-17 are dummies
+  jVars.Add("cleanedJets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,Jet_P4,Jet_jetId,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call, args 16-17 are dummies
   jVars.Add("cleanMets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,Jet_P4,Jet_jetId,Muon_P4,Muon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,RawMET_pt,RawMET_phi)") # lepton args unused in this call, args 16-17 are dummies
   jVars.Add("cleanFatJets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,FatJet_P4,FatJet_rawFactor,FatJet_rawFactor,FatJet_area,FatJet_area,FatJet_jetId,FatJet_P4,FatJet_jetId,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,DummyZero,DummyZero)") # args 12, 14, 16, 17 are dummies
+        # Jet Assign
+jVars.Add("cleanJet_pt", "cleanedJets[0]")
+jVars.Add("cleanJet_eta", "cleanedJets[1]")
+jVars.Add("cleanJet_phi", "cleanedJets[2]")
+jVars.Add("cleanJet_mass", "cleanedJets[3]")
+jVars.Add("cleanJet_rawFactor", "cleanedJets[4]")
+jVars.Add("cleanFatJet_pt", "cleanFatJets[0]")
+jVars.Add("cleanFatJet_eta", "cleanFatJets[1]")
+jVars.Add("cleanFatJet_phi", "cleanFatJets[2]")
+jVars.Add("cleanFatJet_mass", "cleanFatJets[3]")
+jVars.Add("cleanFatJet_rawFactor", "cleanFatJets[4]")
 
-
-jVars.Add("cleanedJets", "cleanJets(Jet_P4,Jet_rawFactor,TMuon_P4,TMuon_jetIdx,TElectron_P4,TElectron_jetIdx)")
-
-#print(jVars["cleanedJets[0]"])
-#print(cleanerJet.size)
-
-#print(<Node>)
-#print(a.GetNode(JetCleaningVars__cleanedJets))
-#print(a.GetActiveNode()) #Take("cleanedJets"))
-
-#print(a.DataFrame().G
 
 ''' 
-jVars.Add("cleanedJet_pt", "cleanedJets[0]")
-jVars.Add("cleanedJet_eta", "cleanedJets[1]")
-jVars.Add("cleanedJet_phi", "cleanedJets[2]")
-jVars.Add("cleanedJet_mass", "cleanedJets[3]")
-jVars.Add("cleanedJet_rawFactor", "cleanedJets[4]")
 jVars.Add("DR_lepJets","DeltaR_VecAndFloat(cleanedJet_eta,cleanedJet_phi,lepton_eta,lepton_phi)")
 jVars.Add("ptrel_lepJets","ptRel(cleanedJet_pt,cleanedJet_eta,cleanedJet_phi,cleanedJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
 jVars.Add("goodcleanJets", "cleanedJet_pt > 30 && abs(cleanedJet_eta) < 2.4 && Jet_jetId > 1 && (DR_lepJets > 0.4 || ptrel_lepJets > 20)")
@@ -268,8 +263,6 @@ jCuts.Add('3 AK8s Pass', 'NFatJets_central > 2')    # need to ensure three jets 
 
 # -----------------------------MET Selection--------------------------------------------------------- 
 
-#  .Define("cleanMets", cleanJets, {"Jet_P4","Jet_rawFactor","Jet_muonSubtrFactor","Jet_area","Jet_EmEF","Jet_jetId","GenJet_P4","Jet_genJetIdx","SMuon_P4","SMuon_jetIdx","SElectron_P4","SElectron_jetIdx","fixedGridRhoFastjetAll","RawMET_pt","RawMET_phi"}) # lepton args are unused in this call
-'''
 metVars.Add("corrMETnoxy_pt","cleanMets[5][0]")
 metVars.Add("corrMETnoxy_phi","cleanMets[5][1]")
 
@@ -279,11 +272,11 @@ metVars.Add("corrMET_pt","metxyoutput[0]")
 metVars.Add("corrMET_phi","metxyoutput[1]")
 
 metCuts.Add("Pass corr MET > 60", "corrMET_pt > 60")
-metCuts.Add("Electron Triangle Cut", "isMu || corrMET_pt>((130/1.5)*DeltaPhi(lepton_phi, corrMET_phi)-130)");
-'''
+metCuts.Add("Electron Triangle Cut", "isMu || corrMET_pt>((130/1.5)*DeltaPhi(lepton_phi, corrMET_phi)-130)")
+
 # ------------------ Jet pt ordering, counting, lepton association ------------------
 # requires clean jet things for this:
-'''jVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
+jVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
 jVars.Add("gcJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcJet_pt_unsort))")
 jVars.Add("gcJet_pt","reorder(gcJet_pt_unsort,gcJet_ptargsort)")
 jVars.Add("gcJet_eta", "reorder(cleanJet_eta[goodcleanJets == true],gcJet_ptargsort)")
@@ -299,7 +292,7 @@ jVars.Add("gcFatJet_phi", "reorder(FatJet_phi[goodcleanFatJets == true],gcFatJet
 jVars.Add("gcFatJet_mass", "reorder(FatJet_mass[goodcleanFatJets == true],gcFatJet_ptargsort)")
 jVars.Add("gcFatJet_sdmass", "reorder(FatJet_msoftdrop[goodcleanFatJets == true],gcFatJet_ptargsort)")
 jVars.Add("gcFatJet_vetomap", "jetvetofunc(jetvetocorr, gcFatJet_eta, gcFatJet_phi)")
-'''
+
 
 # ------------------ Add scale factors and MC jet-based calcs ------------------
 #TODO could be a fatJetVar group
@@ -341,7 +334,7 @@ for col in allColumns:
     #if i > 49: continue
     if col == "run": break # lets just skip all the original branches?
 
-    if ("P4" in col) or ("cleanJets" in col) or ("cleanFatJets" in col) or ("cleanMets" in col) or ("Dummy" in col): continue 
+    if ("P4" in col) or ("cleanedJets" in col) or ("cleanFatJets" in col) or ("cleanMets" in col) or ("Dummy" in col): continue 
     if ("LHE" in col) and ("Weight" not in col) and (col != "LHE_HT") and (col != "LHE_Vpt") and (col != "gcHTCorr_WjetLHE"): continue
     if col.startswith("Muon") and ("_tightId" not in col) and ("_isPF" not in col) and ("tunep" not in col) and ("genPartFlav" not in col): continue
     if col.startswith("Electron") and ("genPartFlav" not in col): continue
