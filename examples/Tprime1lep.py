@@ -1,4 +1,4 @@
-git config --global merge.conflictstyle diff3ROOT::VecOps::Rvec<float> standalone_Jet(ROOT::VecOps::RVec<float>& gcJet_eta, ROOT::VecOps::RVec<float>& gcJet_phi, ROOT::VecOps::RVec<float>& gcFatJet_et$from TIMBER.Analyzer import *
+from TIMBER.Analyzer import *
 from TIMBER.Tools.Common import *
 
 import ROOT
@@ -312,44 +312,8 @@ jVars.Add("cleanFatJet_mass", "return Map(cleanFatJets, [&](const TLorentzVector
 #jVars.Add("cleanFatJet_mass", "cleanFatJets[3]")
 #jVars.Add("cleanFatJet_rawFactor", "cleanFatJets[4]")
 
-jVars.Add("cleanedJets", "cleanJets(Jet_P4,Jet_rawFactor,TMuon_P4,TMuon_jetIdx,TElectron_P4,TElectron_jetIdx)")
-#print(jVars["cleanedJets[0]"])
-#print(cleanerJet.size)
 
-#print(<Node>)
-#print(a.GetNode(JetCleaningVars__cleanedJets))
-#print(a.GetActiveNode()) #Take("cleanedJets"))
-
-#print(a.DataFrame().G
-
-''' 
-jVars.Add("cleanJet_pt", "cleanedJets[0]")
-jVars.Add("cleanJet_eta", "cleanedJets[1]")
-jVars.Add("cleanJet_phi", "cleanedJets[2]")
-jVars.Add("cleanJet_mass", "cleanedJets[3]")
-jVars.Add("cleanJet_rawFactor", "cleanedJets[4]")
-jVars.Add("DR_lepJets","DeltaR_VecAndFloat(cleanJet_eta,cleanJet_phi,lepton_eta,lepton_phi)")
-jVars.Add("ptrel_lepJets","ptRel(cleanJet_pt,cleanJet_eta,cleanJet_phi,cleanJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
-jVars.Add("goodcleanJets", "cleanJet_pt > 30 && abs(cleanJet_eta) < 2.4 && Jet_jetId > 1 && (DR_lepJets > 0.4 || ptrel_lepJets > 20)")
-'''
-jVars.Add("DR_lepFatJets","DeltaR_VecAndFloat(FatJet_eta,FatJet_phi,lepton_eta,lepton_phi)")
-jVars.Add("ptrel_lepFatJets","ptRel(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
-jVars.Add("goodcleanFatJets", "FatJet_pt > 200 && abs(FatJet_eta) < 2.4 && FatJet_jetId > 1 && (DR_lepFatJets > 0.8 || ptrel_lepFatJets > 20)")
-jVars.Add("NFatJets_central", "(int) Sum(goodcleanFatJets)")
-jVars.Add("gcFatJet_pt", "FatJet_pt[goodcleanFatJets == true]")
-jVars.Add("gcFatJet_eta", "FatJet_eta[goodcleanFatJets == true]")
-jVars.Add("gcFatJet_phi", "FatJet_phi[goodcleanFatJets == true]")
-jVars.Add("gcFatJet_mass", "FatJet_mass[goodcleanFatJets == true]")
-jVars.Add("gcFatJet_sdmass", "FatJet_msoftdrop[goodcleanFatJets == true]")
-        # HT Calculation and Final Preselection Cut
-#jVars.Add('AK4HT', 'Sum(gcJet_pt)')    
-
-jCuts = CutGroup('JetCuts')
-#jCuts.Add('AK4 HT Pass', 'AK4HT > 510')    
-jCuts.Add('3 AK8s Pass', 'NFatJets_central > 2')    # need to ensure three jets exist
-
-
-# -----------------------------MET Selection--------------------------------------------------------- 
+# ------------------ MET Selection ------------------
 metVars = VarGroup('METVars')
 
 metVars.Add("corrMETnoxy_pt","return Map(cleanMets, [&](const TLorentzVector& vec) { return vec.Pt(); });")
@@ -384,8 +348,6 @@ jCuts.Add('3 AK8s Pass', 'NFatJets_central > 2')    # need to ensure three jets 
 
 # ------------------ Jet pt ordering, counting, lepton association ------------------
 # requires clean jet things for this:
-
-# SWITCH cleanJet_x to cleanedJet_x --Camila
 '''jVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
 jVars.Add("gcJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcJet_pt_unsort))")
 jVars.Add("gcJet_pt","reorder(gcJet_pt_unsort,gcJet_ptargsort)")
@@ -402,9 +364,7 @@ jVars.Add("gcFatJet_phi", "reorder(FatJet_phi[goodcleanFatJets == true],gcFatJet
 jVars.Add("gcFatJet_mass", "reorder(FatJet_mass[goodcleanFatJets == true],gcFatJet_ptargsort)")
 jVars.Add("gcFatJet_sdmass", "reorder(FatJet_msoftdrop[goodcleanFatJets == true],gcFatJet_ptargsort)")
 jVars.Add("gcFatJet_vetomap", "jetvetofunc(jetvetocorr, gcFatJet_eta, gcFatJet_phi)")
-''''
-jVars.Add("standAlone_Jet", "standalone_Jet(gcJet_eta,gcJet_phi,gcFatJet_eta,gcFatJet_phi)")
-#cami
+
 
 # ------------------ Add scale factors and MC jet-based calcs ------------------
 #TODO could be a fatJetVar group
