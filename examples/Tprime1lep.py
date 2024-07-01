@@ -228,8 +228,6 @@ else:
 
 
 jVars.Add("cleanedJets", "cleanJets(Jet_P4,Jet_rawFactor,TMuon_P4,TMuon_jetIdx,TElectron_P4,TElectron_jetIdx)")
-jVars.Add("standAlone_Jet", "standalone_Jet(gcJet_eta,gcJet_phi,gcFatJet_eta,gcFatJet_phi)")
-#cami 
 #print(jVars["cleanedJets[0]"])
 #print(cleanerJet.size)
 
@@ -258,7 +256,6 @@ jVars.Add("gcFatJet_eta", "FatJet_eta[goodcleanFatJets == true]")
 jVars.Add("gcFatJet_phi", "FatJet_phi[goodcleanFatJets == true]")
 jVars.Add("gcFatJet_mass", "FatJet_mass[goodcleanFatJets == true]")
 jVars.Add("gcFatJet_sdmass", "FatJet_msoftdrop[goodcleanFatJets == true]")
-
         # HT Calculation and Final Preselection Cut
 #jVars.Add('AK4HT', 'Sum(gcJet_pt)')    
 
@@ -302,6 +299,8 @@ jVars.Add("gcFatJet_mass", "reorder(FatJet_mass[goodcleanFatJets == true],gcFatJ
 jVars.Add("gcFatJet_sdmass", "reorder(FatJet_msoftdrop[goodcleanFatJets == true],gcFatJet_ptargsort)")
 jVars.Add("gcFatJet_vetomap", "jetvetofunc(jetvetocorr, gcFatJet_eta, gcFatJet_phi)")
 '''
+jVars.Add("standAlone_Jet", "standalone_Jet(gcJet_eta,gcJet_phi,gcFatJet_eta,gcFatJet_phi)")
+#cami
 
 # ------------------ Add scale factors and MC jet-based calcs ------------------
 #TODO could be a fatJetVar group
