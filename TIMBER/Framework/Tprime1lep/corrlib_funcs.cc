@@ -1,9 +1,6 @@
 // Methods in this file:
-// goldenjson() pufunc() recofunc() idfunc() isofunc() hltfunc() jetvetofunc() 
+// goldenjson() pufunc() recofunc() idfunc() isofunc() metfunc() hltfunc() jetvetofunc() 
 
-// --------------------------------------------------------
-// 		    PILE UP FXN
-// --------------------------------------------------------
 #include <stdexcept>
 
 using namespace ROOT::VecOps;

@@ -4,6 +4,9 @@ from TIMBER.Tools.Common import *
 import ROOT
 from ROOT import TFile
 import sys, os
+import gc
+
+gc.disable()
 
 from TIMBER.Tools.RestFramesHandler import load_restframes
 
@@ -25,6 +28,7 @@ CompileCpp('TIMBER/Framework/Tprime1lep/utilities.cc') # Compile Our vlq c++ cod
 CompileCpp('TIMBER/Framework/Tprime1lep/lumiMask.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/selfDerived_corrs.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/corrlib_funcs.cc') 
+ROOT.gInterpreter.ProcessLine('#include "TString.h"')
 
 handler_name = 'Tprime_handler.cc'
 class_name = 'Tprime_RestFrames_Container'
@@ -155,13 +159,10 @@ if isMC is False: # apply golden json to data
 else:
   gjsonVars.Add("PileupWeights", "pufunc(corrPU, Pileup_nTrueInt)")
 
-# ------------------- Lepton Selection --------- got this when adding hltfunc to corrlib_funcs.cc --------------
-#auto LepSelect = LepDefs.Define("isMu", Form("(nMuon>0) && (HLT_Mu50%s) && (nSignalIsoMu==1) && (nVetoIsoLep==0) && (nElectron == 0 || nSignalIsoEl == 0)",tkmutrig.c_str()))
- #   .Define("isEl", Form("(nElectron>0) && (%s) && (nSignalIsoEl==1) && (nVetoIsoLep==0) && (nMuon == 0 || nSignalIsoMu == 0)",eltrig.c_str()))
-  #  .Filter("isMu || isEl", "Event is either muon or electron")
-
-# ------------------ Letpon Cuts ------------------
+# ------------------ LEPTON Definitions ------------------
 lVars = VarGroup('LeptonVars')
+
+'''
 lVars.Add("TightMu", "abs(Muon_eta) < 2.4 && Muon_tightId == true && Muon_miniIsoId >= 3 && Muon_pt > 50")
 lVars.Add("TightEl", "abs(Electron_eta) < 2.5 && Electron_mvaFall17V2noIso_WP90 == true && Electron_miniPFRelIso_all < 0.1 && Electron_pt > 50")
 lVars.Add("VetoMu", "abs(Muon_eta) < 2.4 && Muon_looseId == true && Muon_miniIsoId >= 1 && Muon_pt > 10 && TightMu == false")
@@ -181,23 +182,77 @@ lVars.Add("TMuon_P4", "fVectorConstructor(TMuon_pt,TMuon_eta,TMuon_phi,TMuon_mas
 lVars.Add("TElectron_P4", "fVectorConstructor(TElectron_pt,TElectron_eta,TElectron_phi,TElectron_mass)")
 lVars.Add("TMuon_jetIdx", "Muon_jetIdx[TightMu == true]")
 lVars.Add("TElectron_jetIdx", "Electron_jetIdx[TightEl == true]")
-        # select lepton
+
+'''
+if year == "2018": elHEMcut = " && (Electron_eta > -1.479 || (Electron_phi < -1.57 || Electron_phi > -0.87))"
+ROOT.gInterpreter.Declare('string elHEMcut = "'+elHEMcut+'"; ')
+
+lVars.Add("Electron_cutBasedIdNoIso_tight", "Electron_cutBasedIdNoIso_tight(nElectron, Electron_vidNestedWPBitmap)")
+lVars.Add("TPassMu", "abs(Muon_eta)<2.4 && Muon_mediumId==1 && Muon_miniIsoId>=3 && abs(Muon_dz) < 0.5 && Muon_dxy < 0.2")
+#lVars.Add("TPassEl", "Form(\"(abs(Electron_eta)<1.442 || (abs(Electron_eta)>1.566 && abs(Electron_eta)<2.5)) && Electron_cutBasedIdNoIso_tight==1 && Electron_miniPFRelIso_all<0.1%s\",elHEMcut.c_str())")
+lVars.Add("TPassEl", "(abs(Electron_eta)<1.442 || (abs(Electron_eta)>1.566 && abs(Electron_eta)<2.5)) && Electron_cutBasedIdNoIso_tight==1 && Electron_miniPFRelIso_all<0.1" + elHEMcut)
+lVars.Add("VetoMu", "TPassMu && (Muon_pt>25)")
+lVars.Add("VetoEl", "TPassEl && (Electron_pt>25)")
+lVars.Add("SignalIsoMu", "TPassMu && (Muon_pt>=55)")
+lVars.Add("SignalIsoEl", "TPassEl && (Electron_pt>=55)")
+lVars.Add("nVetoLep", "(int) (Sum(VetoMu)+Sum(VetoEl))")
+lVars.Add("SMuon_pt", "Muon_pt[SignalIsoMu == true]")
+lVars.Add("SMuon_eta", "Muon_eta[SignalIsoMu == true]")
+lVars.Add("SMuon_phi", "Muon_phi[SignalIsoMu == true]")
+lVars.Add("SMuon_mass", "Muon_mass[SignalIsoMu == true]")
+lVars.Add("SElectron_pt", "Electron_pt[SignalIsoEl == true]")
+lVars.Add("SElectron_eta", "Electron_eta[SignalIsoEl == true]")
+lVars.Add("SElectron_phi", "Electron_phi[SignalIsoEl == true]")
+lVars.Add("SElectron_mass", "Electron_mass[SignalIsoEl == true]")
+lVars.Add("Muon_P4", "fVectorConstructor(Muon_pt,Muon_eta,Muon_phi,Muon_mass)")
+lVars.Add("SMuon_P4", "fVectorConstructor(SMuon_pt,SMuon_eta,SMuon_phi,SMuon_mass)")
+lVars.Add("SElectron_P4", "fVectorConstructor(SElectron_pt,SElectron_eta,SElectron_phi,SElectron_mass)")
+lVars.Add("SMuon_jetIdx", "Muon_jetIdx[SignalIsoMu == true]")
+lVars.Add("SElectron_jetIdx", "Electron_jetIdx[SignalIsoEl]")
+lVars.Add("nSignalIsoMu", "(int) Sum(SignalIsoMu)")
+lVars.Add("nSignalIsoEl", "(int) Sum(SignalIsoEl)")
+lVars.Add("VetoIsoMu", "(VetoMu == true && Muon_pt < 55)")
+lVars.Add("VetoIsoEl", "(VetoEl == true && Electron_pt < 55)")
+lVars.Add("nVetoIsoLep", "(int) (Sum(VetoIsoMu)+Sum(VetoIsoEl))")
+
+# ------------------ LEPTON SELECTION ------------------
+
 # ||||||||||||||||||||| TODO ||||||||||||||||||||||||
 ### WE need to find out which triggers exist in run 3
 # ___________________________________________________
-lVars.Add("isMu","nMuon > 0 && nTightMu == 1 && (nElectron == 0 || nTightEl == 0) && nVetoLep == 0 && (HLT_Mu50 == 1 || HLT_Mu15_IsoVVVL_PFHT450 == 1)") 
-lVars.Add("isEl","nElectron > 0 && nTightEl == 1 && (nMuon == 0 || nTightMu == 0) && nVetoLep==0 && (HLT_Ele35_WPTight_Gsf == 1 || HLT_Ele15_IsoVVVL_PFHT450 == 1)") 
+
+tkmutrig = " || HLT_OldMu100 || HLT_TkMu100"
+eltrig = "HLT_Ele115_CaloIdVT_GsfTrkIdT || HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 || HLT_Photon200"
+if(year == "2017" and era == "B"): 
+  tkmutrig = ""
+  eltrig = "HLT_Ele35_WPTight_Gsf || HLT_Photon200"
+if(year == "2016" or year == "2016APV"):
+  tkmutrig = " || HLT_TkMu50"
+  eltrig = "HLT_Ele115_CaloIdVT_GsfTrkIdT || HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 || HLT_Photon175"
+if(year == "2016APV" and (era == "A" or era == "B")):
+    tkmutrig = ""
+    eltrig = "HLT_Ele115_CaloIdVT_GsfTrkIdT || HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 || HLT_Photon175"
+ROOT.gInterpreter.Declare('string tkmutrig = "'+tkmutrig+'"; string eltrig = "'+eltrig+'"; ')
+
+#lVars.Add("isMu", "Form(\"(nMuon>0) && (HLT_Mu50%s) && (nSignalIsoMu==1) && (nVetoIsoLep==0) && (nElectron == 0 || nSignalIsoEl == 0)\",tkmutrig.c_str())")
+#lVars.Add("isEl", "Form(\"(nElectron>0) && (%s) && (nSignalIsoEl==1) && (nVetoIsoLep==0) && (nMuon == 0 || nSignalIsoMu == 0)\",eltrig.c_str())")
+lVars.Add("isMu", "(nMuon>0) && (HLT_Mu50"+ tkmutrig +") && (nSignalIsoMu==1) && (nVetoIsoLep==0) && (nElectron == 0 || nSignalIsoEl == 0)")
+lVars.Add("isEl", "(nElectron>0) && ("+ eltrig +") && (nSignalIsoEl==1) && (nVetoIsoLep==0) && (nMuon == 0 || nSignalIsoMu == 0)")
+#lVars.Add("isMu","nMuon > 0 && nTightMu == 1 && (nElectron == 0 || nTightEl == 0) && nVetoLep == 0 && (HLT_Mu50 == 1 || HLT_Mu15_IsoVVVL_PFHT450 == 1)") 
+#lVars.Add("isEl","nElectron > 0 && nTightEl == 1 && (nMuon == 0 || nTightMu == 0) && nVetoLep==0 && (HLT_Ele35_WPTight_Gsf == 1 || HLT_Ele15_IsoVVVL_PFHT450 == 1)") 
         
         # filter lepton
 lCuts = CutGroup('LeptonCuts')
 lCuts.Add("Event is either muon or electron", "isMu || isEl")
         # assign lepton
-lVars.Add("assignleps","assign_leps(isMu,isEl,TightMu,TightEl,Muon_pt,Muon_eta,Muon_phi,Muon_mass,Muon_miniPFRelIso_all,Electron_pt,Electron_eta,Electron_phi,Electron_mass,Electron_miniPFRelIso_all)")
+#lVars.Add("assignleps","assign_leps(isMu,isEl,TightMu,TightEl,Muon_pt,Muon_eta,Muon_phi,Muon_mass,Muon_miniPFRelIso_all,Electron_pt,Electron_eta,Electron_phi,Electron_mass,Electron_miniPFRelIso_all)")
+lVars.Add("assignleps", "assign_leps(isMu,isEl,SignalIsoMu,SignalIsoEl,Muon_pt,Muon_eta,Muon_phi,Muon_mass,Muon_miniPFRelIso_all,Electron_pt,Electron_eta,Electron_phi,Electron_mass,Electron_miniPFRelIso_all)")
 lVars.Add("lepton_pt","assignleps[0]")
 lVars.Add("lepton_eta","assignleps[1]")	
 lVars.Add("lepton_phi","assignleps[2]")
 lVars.Add("lepton_mass","assignleps[3]")
 lVars.Add("lepton_miniIso","assignleps[4]")
+
 
 # ------------------ JET Cleaning and JERC ------------------
 jVars = VarGroup('JetCleaningVars')
@@ -205,14 +260,18 @@ jVars = VarGroup('JetCleaningVars')
 jVars.Add("Jet_P4", "fVectorConstructor(Jet_pt,Jet_eta,Jet_phi,Jet_mass)")
 jVars.Add("FatJet_P4", "fVectorConstructor(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass)")
 jVars.Add("Jet_EmEF","Jet_neEmEF + Jet_chEmEF")
+#a.Define("DummyZero","0.0")
 jVars.Add("DummyZero","float(0.0)")
         # Clean Jets
 
 ###TODO sily things: signal X is = tight X ???
-jVars.Add("SMuon_P4","TMuon_P4")
-jVars.Add("SMuon_jetIdx","TMuon_jetIdx")
-jVars.Add("SElectron_P4","TElectron_P4")
-jVars.Add("SElectron_jetIdx","TElectron_jetIdx")
+#jVars.Add("SMuon_P4","TMuon_P4")
+#jVars.Add("SMuon_jetIdx","TMuon_jetIdx")
+#jVars.Add("SElectron_P4","TElectron_P4")
+#jVars.Add("SElectron_jetIdx","TElectron_jetIdx")
+
+#gc.disable()
+
 if isMC:
   jVars.Add("GenJet_P4","fVectorConstructor(GenJet_pt,GenJet_eta,GenJet_phi,GenJet_mass)")
   jVars.Add("cleanedJets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,GenJet_P4,Jet_genJetIdx,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call
@@ -225,48 +284,44 @@ else:
   jVars.Add("cleanMets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,Jet_P4,Jet_jetId,Muon_P4,Muon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,RawMET_pt,RawMET_phi)") # lepton args unused in this call, args 16-17 are dummies
   jVars.Add("cleanFatJets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,FatJet_P4,FatJet_rawFactor,FatJet_rawFactor,FatJet_area,FatJet_area,FatJet_jetId,FatJet_P4,FatJet_jetId,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,DummyZero,DummyZero)") # args 12, 14, 16, 17 are dummies
         # Jet Assign
-jVars.Add("cleanJet_pt", "cleanedJets[0]")
-jVars.Add("cleanJet_eta", "cleanedJets[1]")
-jVars.Add("cleanJet_phi", "cleanedJets[2]")
-jVars.Add("cleanJet_mass", "cleanedJets[3]")
-jVars.Add("cleanJet_rawFactor", "cleanedJets[4]")
-jVars.Add("cleanFatJet_pt", "cleanFatJets[0]")
-jVars.Add("cleanFatJet_eta", "cleanFatJets[1]")
-jVars.Add("cleanFatJet_phi", "cleanFatJets[2]")
-jVars.Add("cleanFatJet_mass", "cleanFatJets[3]")
-jVars.Add("cleanFatJet_rawFactor", "cleanFatJets[4]")
+
+jVars.Add("cleanJet_pt", "return Map(cleanedJets, [&](const TLorentzVector& vec) { return vec.Pt(); });")
+jVars.Add("cleanJet_eta", "return Map(cleanedJets, [&](const TLorentzVector& vec) { return vec.Eta(); });")
+jVars.Add("cleanJet_phi", "return Map(cleanedJets, [&](const TLorentzVector& vec) { return vec.Phi(); });")
+jVars.Add("cleanJet_mass", "return Map(cleanedJets, [&](const TLorentzVector& vec) { return vec.M(); });")
+
+jVars.Add("cleanFatJet_pt", "return Map(cleanFatJets, [&](const TLorentzVector& vec) { return vec.Pt(); });")
+jVars.Add("cleanFatJet_eta", "return Map(cleanFatJets, [&](const TLorentzVector& vec) { return vec.Eta(); });")
+jVars.Add("cleanFatJet_phi", "return Map(cleanFatJets, [&](const TLorentzVector& vec) { return vec.Phi(); });")
+jVars.Add("cleanFatJet_mass", "return Map(cleanFatJets, [&](const TLorentzVector& vec) { return vec.M(); });")
+
+#print(a.GetCollectionNames())
+#collectNames = a.GetCollectionNames()
+#for cn in collectNames:
+    #print(cn)
+#    print(a._collectionOrg.GetCollectionAttributes(cn))
+
+#jVars.Add("cleanJet_pt", "cleanedJets[0]")
+#jVars.Add("cleanJet_eta", "cleanedJets[1]")
+#jVars.Add("cleanJet_phi", "cleanedJets[2]")
+#jVars.Add("cleanJet_mass", "cleanedJets[3]")
+#jVars.Add("cleanJet_rawFactor", "cleanedJets[4]")
+#jVars.Add("cleanFatJet_pt", "cleanFatJets[0]")
+#jVars.Add("cleanFatJet_eta", "cleanFatJets[1]")
+#jVars.Add("cleanFatJet_phi", "cleanFatJets[2]")
+#jVars.Add("cleanFatJet_mass", "cleanFatJets[3]")
+#jVars.Add("cleanFatJet_rawFactor", "cleanFatJets[4]")
 
 
-''' 
-jVars.Add("DR_lepJets","DeltaR_VecAndFloat(cleanedJet_eta,cleanedJet_phi,lepton_eta,lepton_phi)")
-jVars.Add("ptrel_lepJets","ptRel(cleanedJet_pt,cleanedJet_eta,cleanedJet_phi,cleanedJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
-jVars.Add("goodcleanJets", "cleanedJet_pt > 30 && abs(cleanedJet_eta) < 2.4 && Jet_jetId > 1 && (DR_lepJets > 0.4 || ptrel_lepJets > 20)")
-'''
-jVars.Add("DR_lepFatJets","DeltaR_VecAndFloat(FatJet_eta,FatJet_phi,lepton_eta,lepton_phi)")
-jVars.Add("ptrel_lepFatJets","ptRel(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
-jVars.Add("goodcleanFatJets", "FatJet_pt > 200 && abs(FatJet_eta) < 2.4 && FatJet_jetId > 1 && (DR_lepFatJets > 0.8 || ptrel_lepFatJets > 20)")
-jVars.Add("NFatJets_central", "(int) Sum(goodcleanFatJets)")
-jVars.Add("gcFatJet_pt", "FatJet_pt[goodcleanFatJets == true]")
-jVars.Add("gcFatJet_eta", "FatJet_eta[goodcleanFatJets == true]")
-jVars.Add("gcFatJet_phi", "FatJet_phi[goodcleanFatJets == true]")
-jVars.Add("gcFatJet_mass", "FatJet_mass[goodcleanFatJets == true]")
-jVars.Add("gcFatJet_sdmass", "FatJet_msoftdrop[goodcleanFatJets == true]")
-
-        # HT Calculation and Final Preselection Cut
-#jVars.Add('AK4HT', 'Sum(gcJet_pt)')    
-
-jCuts = CutGroup('JetCuts')
-#jCuts.Add('AK4 HT Pass', 'AK4HT > 510')    
-jCuts.Add('3 AK8s Pass', 'NFatJets_central > 2')    # need to ensure three jets exist
-
-
-# -----------------------------MET Selection--------------------------------------------------------- 
+# ------------------ MET Selection ------------------
 metVars = VarGroup('METVars')
 
-metVars.Add("corrMETnoxy_pt","cleanMets[5][0]")
-metVars.Add("corrMETnoxy_phi","cleanMets[5][1]")
+metVars.Add("corrMETnoxy_pt","return Map(cleanMets, [&](const TLorentzVector& vec) { return vec.Pt(); });")
+metVars.Add("corrMETnoxy_phi","return Map(cleanMets, [&](const TLorentzVector& vec) { return vec.Phi(); });")
+#metVars.Add("corrMETnoxy_pt","cleanMets[5][0]")
+#metVars.Add("corrMETnoxy_phi","cleanMets[5][1]")
 
-metVars.Add("metxyoutput", "metfunc(metptcorr, metphicor, corrMETnoxy_pt, corrMETnoxy_phi, PV_npvs, run)")
+metVars.Add("metxyoutput", "metfunc(metptcorr, metphicorr, corrMETnoxy_pt, corrMETnoxy_phi, PV_npvs, run)")
 
 metVars.Add("corrMET_pt","metxyoutput[0]")
 metVars.Add("corrMET_phi","metxyoutput[1]")
@@ -274,15 +329,32 @@ metVars.Add("corrMET_phi","metxyoutput[1]")
 metCuts.Add("Pass corr MET > 60", "corrMET_pt > 60")
 metCuts.Add("Electron Triangle Cut", "isMu || corrMET_pt>((130/1.5)*DeltaPhi(lepton_phi, corrMET_phi)-130)")
 
+# ------------------ HT Calculation and N Jets cuts ------------------
+#TODO UNCOMMENT jVars.Add("DR_lepJets","DeltaR_VecAndFloat(cleanedJet_eta,cleanedJet_phi,lepton_eta,lepton_phi)")
+#               jVars.Add("ptrel_lepJets","ptRel(cleanedJet_pt,cleanedJet_eta,cleanedJet_phi,cleanedJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
+#               jVars.Add("goodcleanJets", "cleanedJet_pt > 30 && abs(cleanedJet_eta) < 2.4 && Jet_jetId > 1 && (DR_lepJets > 0.4 || ptrel_lepJets > 20)")
+
+jVars.Add("DR_lepFatJets","DeltaR_VecAndFloat(FatJet_eta,FatJet_phi,lepton_eta,lepton_phi)")
+jVars.Add("ptrel_lepFatJets","ptRel(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
+jVars.Add("goodcleanFatJets", "FatJet_pt > 200 && abs(FatJet_eta) < 2.4 && FatJet_jetId > 1 && (DR_lepFatJets > 0.8 || ptrel_lepFatJets > 20)")
+jVars.Add("NFatJets_central", "(int) Sum(goodcleanFatJets)")
+
+#jVars.Add('AK4HT', 'Sum(gcJet_pt)')    
+
+jCuts = CutGroup('JetCuts')
+#jCuts.Add('AK4 HT Pass', 'AK4HT > 510')    
+jCuts.Add('3 AK8s Pass', 'NFatJets_central > 2')    # need to ensure three jets exist
+
+
 # ------------------ Jet pt ordering, counting, lepton association ------------------
 # requires clean jet things for this:
-jVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
+'''jVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
 jVars.Add("gcJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcJet_pt_unsort))")
 jVars.Add("gcJet_pt","reorder(gcJet_pt_unsort,gcJet_ptargsort)")
 jVars.Add("gcJet_eta", "reorder(cleanJet_eta[goodcleanJets == true],gcJet_ptargsort)")
 jVars.Add("gcJet_phi", "reorder(cleanJet_phi[goodcleanJets == true],gcJet_ptargsort)")
 jVars.Add("gcJet_mass", "reorder(cleanJet_mass[goodcleanJets == true],gcJet_ptargsort)")
-jVars.Add("gcJet_vetomap", "jetvetofunc(jetvetocorr, gcJet_eta, gcJet_phi)")
+jVars.Add("gcJet_vetomap", "jetvetofunc(jetvetocorr, gcJet_eta, gcJet_phi)")'''
         #fatjet vars
 jVars.Add("gcFatJet_pt_unsort", "FatJet_pt[goodcleanFatJets == true]")
 jVars.Add("gcFatJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcFatJet_pt_unsort))")
@@ -317,13 +389,22 @@ rframeVars.Add('VLQ_mass_avg', '(VLQ_mass_T+VLQ_mass_Tbar)*0.5')
 # -------------------------------------
 
 
-nodeToPlot = a.Apply([gjsonVars, gjsonCuts, lVars, lCuts, jVars, jCuts, metVars, metCuts, rframeVars])
+nodeToPlot = a.Apply([gjsonVars, gjsonCuts, lVars, lCuts]) #, jVars, jCuts, metVars, metCuts, rframeVars])
 #nodeToPlot = a.Apply(metCuts)
 #a.Apply(lVars)
 #a.Apply(lCuts)
-#a.Apply(jVars) ## where problem is
-#a.Apply(jCuts)
-#a.Apply(rframeVars)
+#a.ActiveNode.Apply([jVars, jCuts, rframeVars]) ## where problem is
+
+# Solution to cleanJets() problem:
+#       The analyzer .Apply() calls the analyzer .Define().  This .Define() calls self._collectionOrg.CollectionDefCheck(var, newNode).
+#  This method executes this line: if re.search(r"\b" + re.escape(c+'s') + r"\b", action_str) and (c+'s' not in self._builtCollections):
+#                                       print ('MAKING %ss for %s'%(c,action_str))
+#  Apparently somethings get discarded from this _collectionOrg?
+
+newNode = a.ActiveNode.Apply(jVars)
+a.SetActiveNode(newNode)
+
+a.Apply([jCuts, rframeVars])
 
 allColumns = a.GetColumnNames()
 columns = [] #allColumns
