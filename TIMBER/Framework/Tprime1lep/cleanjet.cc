@@ -55,18 +55,16 @@ RVec<float> assign_leps(bool isMu, bool isEl, RVec<int> &TPassMu, RVec<int> &TPa
     
 
 // ---- Clean Jets Function ----
-RVec<TLorentzVector> cleanJets (const bool &debug, const string &jesvar, const bool &isMC, 
+RVec<RVec<float>> cleanJets (const bool &debug, const string &jesvar, const bool &isMC, 
 	correction::CompoundCorrection::Ref& ak4corr, correction::Correction::Ref& ak4corrL1, correction::Correction::Ref& ak4corrUnc, correction::Correction::Ref& ak4ptres, correction::Correction::Ref& ak4jer,
 	correction::CompoundCorrection::Ref& ak8corr, correction::Correction::Ref& ak8corrUnc, 
 	const RVec<TLorentzVector> &jt_p4, const RVec<float> &jt_rf, const RVec<float> &jt_murf, const RVec<float> &jt_area, const RVec<float> &jt_em, const RVec<int> &jt_id, 
 	const RVec<TLorentzVector> &genjt_p4, const RVec<int> &jt_genidx, const RVec<TLorentzVector> &mu_p4, const RVec<int> mu_jetid, 
 	const RVec<TLorentzVector> &el_p4, const RVec<int> &el_jetid, const float &rho, const float &met, const float &phi) 
 {
-  RVec<TLorentzVector> cleaned_P4; 
-  if (met > 0) cleaned_P4.resize(1); 
-  else cleaned_P4.resize(jt_p4.size());
+  if (met == 0 && debug) cout << "---------------------------------------------------------------\n";
 
-  //cleanJetPt(jt_p4.size()), cleanJetEta(jt_p4.size()), cleanJetPhi(jt_p4.size()), cleanJetMass(jt_p4.size());//, rawfact(jt_p4.size());
+  RVec<float> cleanJetPt(jt_p4.size()), cleanJetEta(jt_p4.size()), cleanJetPhi(jt_p4.size()), cleanJetMass(jt_p4.size());//, rawfact(jt_p4.size());
 
   string jervar = "nom";
   float jesuncmult = 0;
@@ -83,9 +81,10 @@ RVec<TLorentzVector> cleanJets (const bool &debug, const string &jesvar, const b
   
   float metx = met*cos(phi);
   float mety = met*sin(phi);
-  if (met > 0 && debug) std::cout<< "Incoming met = " << met << ", phi = " << phi << std::endl;
+  //if (met > 0 && debug) std::cout<< "Incoming met = " << met << ", phi = " << phi << std::endl;
 
   for (unsigned int ijet = 0; ijet < jt_p4.size(); ijet++) {
+    if (met == 0 && debug) std::cout<< "Incoming jet, pt = " << jt_p4[ijet].Pt() << ", phi = " << jt_p4[ijet].Phi() << std::endl;
     TLorentzVector jet = jt_p4[ijet];
     int jetid = jt_id[ijet];   
     float rf = jt_rf[ijet];
@@ -106,8 +105,14 @@ RVec<TLorentzVector> cleanJets (const bool &debug, const string &jesvar, const b
 	  rf = 0; 
 	}
     }
+    
+    if (met == 0 && debug) std::cout<< "Post Lepton jet, pt = " << jet.Pt() << ", phi = " << jet.Phi() << std::endl;
+    
     float jes = 1.0; float jesL1 = 1.0; float jer = 1.0; float unc = 1.0;
     jet = jet * (1 - rf);                                                         // rf = 0 if JEC undone above
+    
+    if (met == 0 && debug) std::cout<< "Print 3 jet, pt = " << jet.Pt() << ", phi = " << jet.Phi() << std::endl;
+    
     if (met > 0 && jt_em[ijet] > 0.9) continue;                                    // not these jets for MET	
     if (met > 0) jet *= (1 - jt_murf[ijet]);                                       // further correct raw to muon-substracted raw for T1.
     float rawpt = jet.Pt();
@@ -133,30 +138,24 @@ RVec<TLorentzVector> cleanJets (const bool &debug, const string &jesvar, const b
     }	
     TLorentzVector jetL1 = jet*jesL1*jer*unc;
     jet = jet*jes*jer*unc;                                                        // evals to jes*1 for data.
+    
+    if (met == 0 && debug) std::cout<< "Print last jet, pt = " << jet.Pt() << ", phi = " << jet.Phi() << std::endl;
+    
     rf = 1.0 - 1.0/(jes*jer*unc);	
     if (jet.Pt() > 15) {
 	metx += (jetL1 - jet).Px();
 	mety += (jetL1 - jet).Py();
     }
 
-    if (met > 0) continue;							  // only need met stuff
-
-    cleaned_P4.push_back(jet); 
-
-    /*cleanJetPt[ijet] = jet.Pt();
+    cleanJetPt[ijet] = jet.Pt();
     cleanJetEta[ijet] = jet.Eta();
     cleanJetPhi[ijet] = jet.Phi();
     cleanJetMass[ijet] = jet.M();
-    *///rawfact[ijet] = rf;
   }
   
-  if (met > 0) {
-    TVector2 corrmet(metx,mety);
-    //RVec<float> corrmets = {float(corrmet.Mod()),float(TVector2::Phi_mpi_pi(corrmet.Phi()))};
-    cleaned_P4.push_back(*(new TLorentzVector(float(corrmet.Mod()), 0, float(TVector2::Phi_mpi_pi(corrmet.Phi())), 0)));
-  }
-  //RVec<RVec<float>> output = {cleanJetPt, cleanJetEta, cleanJetPhi, cleanJetMass, /*rawfact,*/ corrmets};
+  TVector2 corrmet(metx,mety);
+  RVec<float> corrmets = {float(corrmet.Mod()),float(TVector2::Phi_mpi_pi(corrmet.Phi()))};
+  RVec<RVec<float>> output = {cleanJetPt, cleanJetEta, cleanJetPhi, cleanJetMass, corrmets};
   
-  return cleaned_P4;
-  //return output;
+  return output;
 };

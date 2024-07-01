@@ -1,12 +1,8 @@
 // Methods in this file:
 // goldenjson() pufunc() recofunc() idfunc() isofunc() metfunc() hltfunc() jetvetofunc() 
 
-#include <stdexcept>
-
 using namespace ROOT::VecOps;
 using namespace std;
-
-// Commented Method Only
 
 // Make sure the run passes the json? //TODO better explanation
 bool goldenjson(lumiMask myLumiMask, const unsigned int &run, const unsigned int &luminosityBlock)
