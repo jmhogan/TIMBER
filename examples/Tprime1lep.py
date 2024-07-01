@@ -1,4 +1,4 @@
-from TIMBER.Analyzer import *
+ROOT::VecOps::Rvec<float> standalone_Jet(ROOT::VecOps::RVec<float>& gcJet_eta, ROOT::VecOps::RVec<float>& gcJet_phi, ROOT::VecOps::RVec<float>& gcFatJet_et$from TIMBER.Analyzer import *
 from TIMBER.Tools.Common import *
 
 import ROOT
@@ -228,7 +228,8 @@ else:
 
 
 jVars.Add("cleanedJets", "cleanJets(Jet_P4,Jet_rawFactor,TMuon_P4,TMuon_jetIdx,TElectron_P4,TElectron_jetIdx)")
-
+jVars.Add("standAlone_Jet", "standalone_Jet(gcJet_eta,gcJet_phi,gcFatJet_eta,gcFatJet_phi)")
+#cami 
 #print(jVars["cleanedJets[0]"])
 #print(cleanerJet.size)
 

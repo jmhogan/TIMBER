@@ -117,6 +117,26 @@ ROOT::VecOps::RVec<float> DeltaR_VecAndFloat(ROOT::VecOps::RVec<float>& jet_eta,
   return DR;
 };
 
+//cami
+ROOT::VecOps::Rvec<float> standalone_Jet(ROOT::VecOps::RVec<float>& gcJet_eta, ROOT::VecOps::RVec<float>& gcJet_phi, ROOT::VecOps::RVec<float>& gcFatJet_eta, ROOT::VecOps::RVec<float>& gcFatJet_phi)"
+{
+  ROOT::VecOps::RVec<float> lone_Jet (gcJet_eta.size());
+  //TLorentzVector gcJet;
+  //TLorentzVector gcFatJet;
+  //gcJet.SetPtEtaPhiM(gcJet_eta, gcJet_phi);
+  for(int i = 0; i < gcJet_eta.size(); i++) {
+	int passes = 1;
+	for (int k = 0; k < gcFatJet_eta.size(); k++) {
+		if (DeltaR(gcJet_eta[i],gcFatJet_eta[k],gcJet_phi[i],gcFatJet_phi[k]) <0.8) {
+			passes = 0;
+		}
+	}
+	lone_Jet[i] = passes;
+  }
+  return lone_Jet;
+}
+//cami
+
 ROOT::VecOps::RVec<float> ptRel(ROOT::VecOps::RVec<float>& jet_pt, ROOT::VecOps::RVec<float>& jet_eta, ROOT::VecOps::RVec<float>& jet_phi, ROOT::VecOps::RVec<float>& jet_mass, const float& lepton_pt, const float& lepton_eta, const float& lepton_phi, const float& lepton_mass)
 {
   ROOT::VecOps::RVec<float> ptrel (jet_pt.size(),-1);

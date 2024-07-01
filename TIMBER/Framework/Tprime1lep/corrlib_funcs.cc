@@ -74,7 +74,7 @@ RVec<double> isofunc(vector<float> muiso_pts, vector<float> muiso_etas, vector<v
   return iso;
 };
 
-// What is MET? it returns the corrections for met's transverse momentum and phi angle. 
+// What is MET? = missing energy transfer = neutrinos. It returns the corrections for met's transverse momentum and phi angle. 
 RVec<float> metfunc(correction::Correction::Ref& metptcorr, correction::Correction::Ref& metphicorr, const float &met, const float &phi, const int &npvs, const unsigned int &run)
 //assigned types as per BtoTW git analyzer_RDF.cc
 {
