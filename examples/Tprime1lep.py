@@ -4,9 +4,6 @@ from TIMBER.Tools.Common import *
 import ROOT
 from ROOT import TFile
 import sys, os
-import gc
-
-gc.disable()
 
 from TIMBER.Tools.RestFramesHandler import load_restframes
 
