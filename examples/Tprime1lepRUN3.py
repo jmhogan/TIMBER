@@ -55,8 +55,6 @@ if (campaign == "Summer22"): year = "2022";
 
 elif (campaign == "Summer22EE"): year = "2022";
 
-#elif (campaign == "Prompt"): year = "2022";
-
 elif (campaign == "Summer23"): year = "2023";
 
 elif (campaign == "Summer23BPix"): year = "2023";
@@ -104,7 +102,7 @@ const auto myLumiMask = lumiMask::fromJSON(\"""" + jsonfile + """\");
 
     # Lepton scale factors not in correctionLib
 ROOT.gInterpreter.ProcessLine('initialize(campaign);')
-#cami - initialize with campaign becaus ethe corrections are unique for each one
+#cami - initialize with campaign because the corrections are unique for each one
 #change in selfderived -- not necessary bc it's calling the function -- change name to setup corr?
 
 #can do things like this inside:   include <iostream>
@@ -114,39 +112,45 @@ ROOT.gInterpreter.ProcessLine('initialize(campaign);')
 #""")
 
 # ------------------ correctionsLib corrections ------------------
-#CAMI -- seems we don't need this random name part for muonhltcorr --> mutrig = "CascadeMu100_or_HighPtTkMu100";
+
+#CAMI: check where else yrstr is used, change to "year"
 
 ak4pf = "_AK4PFPuppi"
-jercera = "E" #DUMMY PLACEHOLDER VARIABLE -- need to define jercera and make the program understand how to pick the correct "run" between E,F and G for Summer22EE jet_jerc (used in ak4corrL1(!isMC))
-jercrunver = "v123" #DUMMY PLACEHOLDER VARIABLE -- need to define jercrunver and make the program understand how to pick the correct version between v123 and v4 for Summer23 jet_jerc (used in ak4corrL1(!isMC))
+ak8pf = "_AK8PFPuppi"
+jercera = "E" #DUMMY VARIABLE -- need to define jercera and make the program understand how to pick the correct "run" between E,F and G for Summer22EE jet_jerc (used in ak4corrL1(!isMC))
+jercrunver = "v123" #DUMMY VARIABLE -- need to define jercrunver and make the program understand how to pick the correct version between v123 and v4 for Summer23 jet_jerc (used in ak4corrL1(!isMC))
 
 if (campaign == "Summer22"): year = "2022"; prompt = "Summer22_22Sep2023"; jecver = "_V2"; veto_run = "_RunCD_V1"; jercrun = "_RunCD"
-#CAMI: check where else yrstr is used, change to "year"
 # deepjetL = "0.0508"; yr = "16"; jecyr = "UL16APV"; jeryr = "Summer20UL16APV_JRV3"
-elif (campaign == "Summer22EE"): year = "2022"; prompt = "Summer22EE_22Sep2023"; jecver = "_V2"; veto_run = "_RunEFG_V1"; jercrun = "_Run"+jercera; 
-#CAMI --- jercrun needs to receive a letter by jercera (E, F, or G).
+
+elif (campaign == "Summer22EE"): year = "2022"; prompt = "Summer22EE_22Sep2023"; jecver = "_V2"; veto_run = "_RunEFG_V1"; jercrun = "_Run"+jercera  #CAMI --- jercrun needs to receive a letter by jercera (E, F, or G).
+
 # deepjetL = "0.0480"; yr = "16"; jecyr = "UL16"; jeryr = "Summer20UL16_JRV3"; jecver = "V7"k
-elif (campaign == "Summer23"): year = "2023"; prompt = "Summmer23Prompt23"; jecver = "_V1"; veto_run = "_RunC_V1"; jercrun = "_RunC"+jercrunver;
-#CAMI --- jercrun needs to receive either v123 or v4 from jercrunver
+
+elif (campaign == "Summer23"): year = "2023"; prompt = "Summmer23Prompt23"; jecver = "_V1"; veto_run = "_RunC_V1"; jercrun = "_RunC"+jercrunver   #CAMI --- jercrun needs to receive either v123 or v4 from jercrunver
+
 # mutrig = "OldMu100_or_TkMu100"; deepjetL = "0.0532"; yr = "17"; jecyr = "UL17"; jeryr = "Summer19UL17_JRV2"; jecver = "V5"
+
 elif (campaign == "Summer23BPix"): year = "2023"; prompt = "Summmer23BPixPrompt23"; jecver = "_V1"; veto_run = "_RunD_V1"; jercrun = "_RunD"
+
 # mutrig = "OldMu100_or_TkMu100"; deepjetL = "0.0490"; yr = "18"; jecyr = "UL18"; jeryr = "Summer19UL18_JRV2"; jecver = "V5"
+
 else: print(f'ERROR: Can\'t parse the year to assign correctionLib json files. Expected 2022 or 2023. Try changing the \"campaign\" initial argument.')
 
 
-#changed era_num to year cami -- year is not the name of the function used in selfDerived_corr
+#cami -- year is not* the name of the function used in selfDerived_corr
 ROOT.gInterpreter.Declare("""
 string year = \""""+year+"""\";  
 string jecver = \""""+jecver+"""\"; 
 string corrPU_name;
 string ak4pt_name;
+string ak4jer_name;
 string campaign = \""""+campaign+"""\";
 string prompt = \""""+prompt+"""\";
 string ak4pf = \""""+ak4pf+"""\";
+string ak8pf = \""""+ak8pf+"""\";
 string veto_run = \""""+veto_run+"""\";
 string jercrun = \""""+jercrun+"""\";
-string jercrunver = \""""+jercrunver+"""\";
-string jercera = \""""+jercera+"""\";
 
 ///string mutrig = \""""+mutrig+"""\";
 ///float deepjetL = """+deepjetL+""";
@@ -158,6 +162,12 @@ string jercera = \""""+jercera+"""\";
 # CAMI -- auto muoncorr = muoncorrset->at("NUM_TrackerMuons_DEN_genTracks"); ##no name matches closely? CAMI
 # CAMI -- in recofunc, change the muon part of the func to return value one instead of figuring our value from corr
 # CAMI -- auto metcorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+year+"_"+campaign+"/met.json") -- didn't find a met.json correction. Only jetvetomap, jet_jerc and fatJet_jerc
+#CAMI -- check what uses metptcorr & metphicorr, change it so it returns "1"
+#	auto metptcorr = metcorrset->at("pt_metphicorr_pfmet_mc");
+#	auto metphicorr = metcorrset->at("phi_metphicorr_pfmet_mc");
+#	if (!isMC) {
+#	  metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
+#	  metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); };
 
 
 ROOT.gInterpreter.Declare("""
@@ -169,60 +179,59 @@ auto jetvetocorrset = correction::CorrectionSet::from_file("jsonpog-integration/
 if (campaign == "Summer22"){
    corrPU_name = "Collisions"+year+"_355100_357900_eraBCD_GoldenJson";
    ak4pt_name = prompt + "_JRV1_MC_PtResolution" + ak4pf;
+   ak4jer_name = prompt + "_JRV1_MC_ScaleFactor" + ak4pf;
 
 }elif (campaign == "Summer22EE"){ 
    corrPU_name = "Collisions"+year+"_359022_362760_eraEFG_GoldenJson");
    ak4pt_name = prompt + "_JRV1_MC_PtResolution" + ak4pf;
+   ak4jer_name = prompt + "_JRV1_MC_ScaleFactor" + ak4pf;
 
 }elif (campaign == "Summer23"){ #only used in jetvetomaps.json
    corrPU_name = "Collisions"+year+"_366403_369802_eraBC_GoldenJson");
    ak4pt_name = prompt + jercrun + "_JRV1_MC_PtResolution" + ak4pf;
+   ak4jer_name = prompt + jercrun + "_JRV1_MC_ScaleFactor" + ak4pf;
 
 }elif (campaign == "Summer23BPix"){ 
    corrPU_name = "Collisions"+year+"_369803_370790_eraD_GoldenJson");
    ak4pt_name = prompt + jercrun + "_JRV1_MC_PtResolution" + ak4pf;
+   ak4jer_name = prompt + jercrun + "_JRV1_MC_ScaleFactor" + ak4pf;
 
 }else { False }
 
 
 auto corrPU = csetPU->at(corrPU_name);
-#
-auto electroncorr = electroncorrset->at("Electron-ID-SF"); ///not necessary to add the v2 or v3 details
-#
-auto muonidcorr = muoncorrset->at("NUM_MediumID_DEN_TrackerMuons");
-#
-auto muonhltcorr = muoncorrset->at("NUM_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"); 
-#
-auto jetvetocorr = jetvetocorrset->at(prompt+veto_run);
-#
 
-#CAMI -- check what uses metptcorr & metphicorr, change it so it returns "1"
-///auto metptcorr = metcorrset->at("pt_metphicorr_pfmet_mc");
-///auto metphicorr = metcorrset->at("phi_metphicorr_pfmet_mc");
-//if (!isMC) {
-//  metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
-//  metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); };
+auto electroncorr = electroncorrset->at("Electron-ID-SF"); ///not necessary to add the v2 or v3 details
+
+auto muonidcorr = muoncorrset->at("NUM_MediumID_DEN_TrackerMuons");
+
+auto muonhltcorr = muoncorrset->at("NUM_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"); 
+
+auto jetvetocorr = jetvetocorrset->at(prompt+veto_run);
 
 auto ak4corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+year+"_"+campaign+"/jet_jerc.json"); 
-#
-auto ak8corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+year+"_"+campaign+"/fatJet_jerc.json"); 
-#
+
+auto ak8corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+year+"_"+campaign+"/fatJet_jerc.json")
+
 auto ak4corr = ak4corrset->compound().at(prompt+jecver+"_MC_L1L2L3Res"+ak4pf);
-#
+//if(!isMC){ak4corr = ak4corrset->compound().at(prompt+jercrun+jercver+"_DATA_L1L2L3Res"+ak4pf);} 
+///the if statememt was under ak4corrL1 even though we're defining ak4corr still
+
 auto ak4corrL1 = ak4corrset->at("prompt+jcver+"_MC_L1FastJet"+ak4pf"); 
-//if(!isMC){ak4corr = ak4corrset->compound().at(prompt+jercrun+jercver+"_DATA_L1L2L3Res"+ak4pf);}
 
 auto ak4corrUnc = ak4corrset->at(prompt+jercver+"_MC_Total"+ak4pf); 
-#
+
 auto ak4ptres = ak4corrset->at(ak4pt_name); 
-#
-auto ak4jer = ak4corrset->at(jeryr+"_MC_ScaleFactor_AK4PFchs"); 
 
-auto ak8corr = ak8corrset->compound().at("Summer19"+jecyr+"_"+jecver+"_MC_L1L2L3Res_AK8PFPuppi"); 
-//if(!isMC){ ak8corr = ak8corrset->compound().at("Summer19"+jecyr+"_Run"+jecera+"_"+jecver+"_DATA_L1L2L3Res_AK8PFPuppi"); };
+auto ak4jer = ak4corrset->at(ak4jer_name); 
 
-auto ak8corrUnc = ak8corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_Total_AK8PFPuppi"); 
-""") #TODO if statement doesn't work in this .Declare() ???
+auto ak8corr = ak8corrset->compound().at(prompt + jercver + "_MC_L1L2L3Res" + ak8pf); 
+//if(!isMC){ ak8corr = ak8corrset->compound().at(prompt + jercrun + jercver + "_DATA_L1L2L3Res" + ak8pf); };
+
+auto ak8corrUnc = ak8corrset->at(prompt + jercver + "_MC_Total" + ak8pf); 
+""") 
+
+#TODO if statement doesn't work in this .Declare() ???
 
 #from muonhltcorr => std::cout << "\t loaded muon trig" << std::endl; // REDO ME (Do we need to change something?)
 
