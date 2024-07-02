@@ -28,7 +28,6 @@ CompileCpp('TIMBER/Framework/Tprime1lep/utilities.cc') # Compile Our vlq c++ cod
 CompileCpp('TIMBER/Framework/Tprime1lep/lumiMask.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/selfDerived_corrs.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/corrlib_funcs.cc') 
-CompileCpp('TIMBER/Framework/Tprime1lep/generatorInfo.cc')
 ROOT.gInterpreter.ProcessLine('#include "TString.h"')
 
 handler_name = 'Tprime_handler.cc'
@@ -46,14 +45,26 @@ a = analyzer(file_name)
 print('==========================INITIALIZED ANALYZER========================')
 
 # ------------------ Command Line Arguments ------------------
-year = sys.argv[1]
+campaign = sys.argv[1]
+
+# ------------------ Argument dependent Variables -------------------------
+# set variable for year depending on campaign input, preserves some lines calling year
+#will this work? I think so... selfDerived_corr (where year is defined) is compiled above this (?) 
+
+if (campaign == "Summer22"): year = "2022";
+
+elif (campaign == "Summer22EE"): year = "2022";
+
+elif (campaign == "Summer23"): year = "2023";
+
+elif (campaign == "Summer23BPix"): year = "2023";
+
+#selfDerived_corr.cc --> replace year block with 2022/2023 corrections?
+else: print(f'ERROR: Can\'t parse the RUN 3 campaign to assign correctionLib json file. Expected Summer22, Summer22EE, Summer23, or Summer23BPix. Got: {campaign}\n')
 
 # ------------------ Important Variables ------------------
 
-#TODO translate the code from BtoTW analyzer_RDF.h for the 4 arguments.  filelist.txt num1 num2
-
-#isMC? isVV? isSig? etc.
-sample = "TprimeTprime_M-1500_TuneCP5_13TeV-madgraph-pythia8"
+#TODO isMC? isVV? isSig? etc.
 isMC = True
 '''if "/mc/" in file_name:
   isMC = True
@@ -71,22 +82,14 @@ if not isData:
 
 debug = False
 
-#TODO test this isMC
-ROOT.gInterpreter.Declare("""
-string year = "' + year + '"; 
-string sample = "' + sample + '";
-bool isMC = \""""+str(isMC)+"""\"; 
-bool debug = false; //\""""+str(debug)+"""\"; 
-string jesvar = "' + jesvar + '"; 
-""")
+ROOT.gInterpreter.Declare("""string year = "' + year + '"; bool isMC = \""""+str(isMC)+"""\"; bool debug = \""""+str(debug)+"""\"; string jesvar = "' + jesvar + '"; """)
 
 # ------------------ Golden JSON Data ------------------
 # change the jsonfile path to somewhere they have it in TIMBER
 jsonfile = "../TIMBER/data/LumiJSON/"
-if (year == "2016" or year == "2016APV"): jsonfile = jsonfile + "Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt"
-elif (year == "2017"): jsonfile = jsonfile + "Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt"
-elif (year == "2018"): jsonfile = jsonfile + "Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt"
-else: print(f'ERROR: Can\'t parse the year to assign a golden json file. Expected 2016, 2016APV, 2017, or 2018. Got: {year}\n')
+if (year == "2022"): jsonfile = jsonfile #+ "(...)_Collisions22_*JSON.txt"
+elif (year == "2023"): jsonfile = jsonfile #+ "(...)_Collisions23_*JSON.txt"
+else: print(f'ERROR: Can\'t parse the year to assign a golden json file. Try changing the \"campaign\" initial argument.')
 
 ROOT.gInterpreter.Declare("""
 const auto myLumiMask = lumiMask::fromJSON(\"""" + jsonfile + """\");
@@ -98,7 +101,9 @@ const auto myLumiMask = lumiMask::fromJSON(\"""" + jsonfile + """\");
 #TODO more things here
 
     # Lepton scale factors not in correctionLib
-ROOT.gInterpreter.ProcessLine('initialize(year);')
+ROOT.gInterpreter.ProcessLine('initialize(campaign);')
+#cami - initialize with campaign because the corrections are unique for each one
+#change in selfderived -- not necessary bc it's calling the function -- change name to setup corr?
 
 #can do things like this inside:   include <iostream>
 #using namespace std; 
@@ -107,54 +112,126 @@ ROOT.gInterpreter.ProcessLine('initialize(year);')
 #""")
 
 # ------------------ correctionsLib corrections ------------------
-mutrig = "TkMu50";
-if (year == "2016APV"): deepjetL = "0.0508"; yrstr = "2016preVFP"; yr = "16"; jecyr = "UL16APV"; jeryr = "Summer20UL16APV_JRV3"; jecver = "V7"
-elif (year == "2016"): deepjetL = "0.0480"; yrstr = "2016postVFP"; yr = "16"; jecyr = "UL16"; jeryr = "Summer20UL16_JRV3"; jecver = "V7"
-elif (year == "2017"): mutrig = "OldMu100_or_TkMu100"; deepjetL = "0.0532"; yrstr = "2017"; yr = "17"; jecyr = "UL17"; jeryr = "Summer19UL17_JRV2"; jecver = "V5"
-elif (year == "2018"): mutrig = "OldMu100_or_TkMu100"; deepjetL = "0.0490"; yrstr = "2018"; yr = "18"; jecyr = "UL18"; jeryr = "Summer19UL18_JRV2"; jecver = "V5"
-else: print(f'ERROR: Can\'t parse the year to assign correctionLib json files. Expected 2016, 2016APV, 2017, or 2018. Got: {year}\n')
 
+#CAMI: check where else yrstr is used, change to "year"
+
+ak4pf = "_AK4PFPuppi"
+ak8pf = "_AK8PFPuppi"
+jercera = "E" #DUMMY VARIABLE -- need to define jercera and make the program understand how to pick the correct "run" between E,F and G for Summer22EE jet_jerc (used in ak4corrL1(!isMC))
+jercrunver = "v123" #DUMMY VARIABLE -- need to define jercrunver and make the program understand how to pick the correct version between v123 and v4 for Summer23 jet_jerc (used in ak4corrL1(!isMC))
+
+if (campaign == "Summer22"): year = "2022"; prompt = "Summer22_22Sep2023"; jecver = "_V2"; veto_run = "_RunCD_V1"; jercrun = "_RunCD"
+# deepjetL = "0.0508"; yr = "16"; jecyr = "UL16APV"; jeryr = "Summer20UL16APV_JRV3"
+
+elif (campaign == "Summer22EE"): year = "2022"; prompt = "Summer22EE_22Sep2023"; jecver = "_V2"; veto_run = "_RunEFG_V1"; jercrun = "_Run"+jercera  #CAMI --- jercrun needs to receive a letter by jercera (E, F, or G).
+
+# deepjetL = "0.0480"; yr = "16"; jecyr = "UL16"; jeryr = "Summer20UL16_JRV3"; jecver = "V7"k
+
+elif (campaign == "Summer23"): year = "2023"; prompt = "Summmer23Prompt23"; jecver = "_V1"; veto_run = "_RunC_V1"; jercrun = "_RunC"+jercrunver   #CAMI --- jercrun needs to receive either v123 or v4 from jercrunver
+
+# mutrig = "OldMu100_or_TkMu100"; deepjetL = "0.0532"; yr = "17"; jecyr = "UL17"; jeryr = "Summer19UL17_JRV2"; jecver = "V5"
+
+elif (campaign == "Summer23BPix"): year = "2023"; prompt = "Summmer23BPixPrompt23"; jecver = "_V1"; veto_run = "_RunD_V1"; jercrun = "_RunD"
+
+# mutrig = "OldMu100_or_TkMu100"; deepjetL = "0.0490"; yr = "18"; jecyr = "UL18"; jeryr = "Summer19UL18_JRV2"; jecver = "V5"
+
+else: print(f'ERROR: Can\'t parse the year to assign correctionLib json files. Expected 2022 or 2023. Try changing the \"campaign\" initial argument.')
+
+
+#cami -- year is not* the name of the function used in selfDerived_corr
 ROOT.gInterpreter.Declare("""
-string yrstr = \""""+yrstr+"""\"; string yr = \""""+yr+"""\"; string jecyr = \""""+jecyr+"""\"; string jeryr = \""""+jeryr+"""\"; string jecver = \""""+jecver+"""\"; string mutrig = \""""+mutrig+"""\";
-float deepjetL = """+deepjetL+""";
+string year = \""""+year+"""\";  
+string jecver = \""""+jecver+"""\"; 
+string corrPU_name;
+string ak4pt_name;
+string ak4jer_name;
+string campaign = \""""+campaign+"""\";
+string prompt = \""""+prompt+"""\";
+string ak4pf = \""""+ak4pf+"""\";
+string ak8pf = \""""+ak8pf+"""\";
+string veto_run = \""""+veto_run+"""\";
+string jercrun = \""""+jercrun+"""\";
+
+///string mutrig = \""""+mutrig+"""\";
+///float deepjetL = """+deepjetL+""";
+///string yr = \""""+yr+"""\"; 
+///string jecyr = \""""+jecyr+"""\"; 
+///string jeryr = \""""+jeryr+"""\";
 """)
 
+# CAMI -- auto muoncorr = muoncorrset->at("NUM_TrackerMuons_DEN_genTracks"); ##no name matches closely? CAMI
+# CAMI -- in recofunc, change the muon part of the func to return value one instead of figuring our value from corr
+# CAMI -- auto metcorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+year+"_"+campaign+"/met.json") -- didn't find a met.json correction. Only jetvetomap, jet_jerc and fatJet_jerc
+#CAMI -- check what uses metptcorr & metphicorr, change it so it returns "1"
+#	auto metptcorr = metcorrset->at("pt_metphicorr_pfmet_mc");
+#	auto metphicorr = metcorrset->at("phi_metphicorr_pfmet_mc");
+#	if (!isMC) {
+#	  metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
+#	  metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); };
+
 
 ROOT.gInterpreter.Declare("""
-auto csetPU = correction::CorrectionSet::from_file("jsonpog-integration/POG/LUM/"+yrstr+"_UL/puWeights.json");
-auto electroncorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/EGM/"+yrstr+"_UL/electron.json");
-auto muoncorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/MUO/"+yrstr+"_UL/muon_Z.json");
-auto jetvetocorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/jetvetomaps.json");
-auto metcorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/met.json");
+auto csetPU = correction::CorrectionSet::from_file("jsonpog-integration/POG/LUM/"+year+"_"+campaign+"/puWeights.json");
+auto electroncorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/EGM/"+year+"_"+campaign+"/electron.json");
+auto muoncorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/MUO/"+year+"_"+campaign+"/muon_Z.json");
+auto jetvetocorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+year+"_"+campaign+"/jetvetomaps.json");
 
-auto corrPU = csetPU->at("Collisions"+yr+"_UltraLegacy_goldenJSON");
-auto electroncorr = electroncorrset->at("UL-Electron-ID-SF"); 
-auto muoncorr = muoncorrset->at("NUM_TrackerMuons_DEN_genTracks");
+if (campaign == "Summer22"){
+   corrPU_name = "Collisions"+year+"_355100_357900_eraBCD_GoldenJson";
+   ak4pt_name = prompt + "_JRV1_MC_PtResolution" + ak4pf;
+   ak4jer_name = prompt + "_JRV1_MC_ScaleFactor" + ak4pf;
+
+}elif (campaign == "Summer22EE"){ 
+   corrPU_name = "Collisions"+year+"_359022_362760_eraEFG_GoldenJson");
+   ak4pt_name = prompt + "_JRV1_MC_PtResolution" + ak4pf;
+   ak4jer_name = prompt + "_JRV1_MC_ScaleFactor" + ak4pf;
+
+}elif (campaign == "Summer23"){ #only used in jetvetomaps.json
+   corrPU_name = "Collisions"+year+"_366403_369802_eraBC_GoldenJson");
+   ak4pt_name = prompt + jercrun + "_JRV1_MC_PtResolution" + ak4pf;
+   ak4jer_name = prompt + jercrun + "_JRV1_MC_ScaleFactor" + ak4pf;
+
+}elif (campaign == "Summer23BPix"){ 
+   corrPU_name = "Collisions"+year+"_369803_370790_eraD_GoldenJson");
+   ak4pt_name = prompt + jercrun + "_JRV1_MC_PtResolution" + ak4pf;
+   ak4jer_name = prompt + jercrun + "_JRV1_MC_ScaleFactor" + ak4pf;
+
+}else { False }
+
+
+auto corrPU = csetPU->at(corrPU_name);
+
+auto electroncorr = electroncorrset->at("Electron-ID-SF"); ///not necessary to add the v2 or v3 details
+
 auto muonidcorr = muoncorrset->at("NUM_MediumID_DEN_TrackerMuons");
-auto muonhltcorr = muoncorrset->at("NUM_Mu50_or_"+mutrig+"_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"); 
-auto jetvetocorr = jetvetocorrset->at("Summer19UL"+yr+"_V1");
-auto metptcorr = metcorrset->at("pt_metphicorr_pfmet_mc");
-auto metphicorr = metcorrset->at("phi_metphicorr_pfmet_mc");
 
-auto ak4corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/jet_jerc.json"); 
-auto ak8corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/fatJet_jerc.json"); 
-auto ak4corr = ak4corrset->compound().at("Summer19"+jecyr+"_"+jecver+"_MC_L1L2L3Res_AK4PFchs");
-auto ak4corrL1 = ak4corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_L1FastJet_AK4PFchs"); 
-auto ak4corrUnc = ak4corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_Total_AK4PFchs"); 
+auto muonhltcorr = muoncorrset->at("NUM_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"); 
 
-auto ak4ptres = ak4corrset->at(jeryr+"_MC_PtResolution_AK4PFchs"); 
-auto ak4jer = ak4corrset->at(jeryr+"_MC_ScaleFactor_AK4PFchs"); 
-auto ak8corr = ak8corrset->compound().at("Summer19"+jecyr+"_"+jecver+"_MC_L1L2L3Res_AK8PFPuppi");
-auto ak8corrUnc = ak8corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_Total_AK8PFPuppi");
+auto jetvetocorr = jetvetocorrset->at(prompt+veto_run);
+
+auto ak4corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+year+"_"+campaign+"/jet_jerc.json"); 
+
+auto ak8corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+year+"_"+campaign+"/fatJet_jerc.json")
+
+auto ak4corr = ak4corrset->compound().at(prompt+jecver+"_MC_L1L2L3Res"+ak4pf);
+//if(!isMC){ak4corr = ak4corrset->compound().at(prompt+jercrun+jercver+"_DATA_L1L2L3Res"+ak4pf);} 
+///the if statememt was under ak4corrL1 even though we're defining ak4corr still
+
+auto ak4corrL1 = ak4corrset->at("prompt+jcver+"_MC_L1FastJet"+ak4pf"); 
+
+auto ak4corrUnc = ak4corrset->at(prompt+jercver+"_MC_Total"+ak4pf); 
+
+auto ak4ptres = ak4corrset->at(ak4pt_name); 
+
+auto ak4jer = ak4corrset->at(ak4jer_name); 
+
+auto ak8corr = ak8corrset->compound().at(prompt + jercver + "_MC_L1L2L3Res" + ak8pf); 
+//if(!isMC){ ak8corr = ak8corrset->compound().at(prompt + jercrun + jercver + "_DATA_L1L2L3Res" + ak8pf); };
+
+auto ak8corrUnc = ak8corrset->at(prompt + jercver + "_MC_Total" + ak8pf); 
 """) 
-if not isMC:
-  ROOT.gInterpreter.Declare("""
-    metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
-    metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); 
 
-    ak4corr = ak4corrset->compound().at("Summer19"+jecyr+"_Run"+jecera+"_"+jecver+"_DATA_L1L2L3Res_AK4PFchs");
-    ak8corr = ak8corrset->compound().at("Summer19"+jecyr+"_Run"+jecera+"_"+jecver+"_DATA_L1L2L3Res_AK8PFPuppi"); 
-  """)
+#TODO if statement doesn't work in this .Declare() ???
 
 #from muonhltcorr => std::cout << "\t loaded muon trig" << std::endl; // REDO ME (Do we need to change something?)
 
@@ -167,7 +244,7 @@ metCuts.Add('Event has jets',        'nJet > 0 && nFatJet > 0') # need jets
 # ------------------ Golden JSON (Data) || GEN Info (MC) ------------------
 gjsonVars = VarGroup('GoldenJsonVars')
 gjsonCuts = CutGroup('GoldenJsonCuts')
-if not isMC: # apply golden json to data
+if isMC is False: # apply golden json to data
   gjsonVars.Add("passesJSON", "goldenjson(myLumiMask, run, luminosityBlock)")
   gjsonCuts.Add("Data passes Golden JSON", "passesJSON == 1") 
 else:
@@ -176,13 +253,35 @@ else:
 # ------------------ LEPTON Definitions ------------------
 lVars = VarGroup('LeptonVars')
 
+'''
+lVars.Add("TightMu", "abs(Muon_eta) < 2.4 && Muon_tightId == true && Muon_miniIsoId >= 3 && Muon_pt > 50")
+lVars.Add("TightEl", "abs(Electron_eta) < 2.5 && Electron_mvaFall17V2noIso_WP90 == true && Electron_miniPFRelIso_all < 0.1 && Electron_pt > 50")
+lVars.Add("VetoMu", "abs(Muon_eta) < 2.4 && Muon_looseId == true && Muon_miniIsoId >= 1 && Muon_pt > 10 && TightMu == false")
+lVars.Add("VetoEl", "abs(Electron_eta) < 2.5 && Electron_mvaFall17V2noIso_WPL == true && Electron_miniPFRelIso_all < 0.4 && Electron_pt > 10 && TightEl == false")
+lVars.Add("nVetoLep", "Sum(VetoMu)+Sum(VetoEl)")
+lVars.Add("nTightMu", "Sum(TightMu)")
+lVars.Add("nTightEl", "Sum(TightEl)")
+lVars.Add("TMuon_pt", "Muon_pt[TightMu == true]")
+lVars.Add("TMuon_eta", "Muon_eta[TightMu == true]")
+lVars.Add("TMuon_phi", "Muon_phi[TightMu == true]")
+lVars.Add("TMuon_mass", "Muon_mass[TightMu == true]")
+lVars.Add("TElectron_pt", "Electron_pt[TightEl == true]")
+lVars.Add("TElectron_eta", "Electron_eta[TightEl == true]")
+lVars.Add("TElectron_phi", "Electron_phi[TightEl == true]")
+lVars.Add("TElectron_mass", "Electron_mass[TightEl == true]")
+lVars.Add("TMuon_P4", "fVectorConstructor(TMuon_pt,TMuon_eta,TMuon_phi,TMuon_mass)")
+lVars.Add("TElectron_P4", "fVectorConstructor(TElectron_pt,TElectron_eta,TElectron_phi,TElectron_mass)")
+lVars.Add("TMuon_jetIdx", "Muon_jetIdx[TightMu == true]")
+lVars.Add("TElectron_jetIdx", "Electron_jetIdx[TightEl == true]")
+
+'''
 if year == "2018": elHEMcut = " && (Electron_eta > -1.479 || (Electron_phi < -1.57 || Electron_phi > -0.87))"
 ROOT.gInterpreter.Declare('string elHEMcut = "'+elHEMcut+'"; ')
 
 lVars.Add("Electron_cutBasedIdNoIso_tight", "Electron_cutBasedIdNoIso_tight(nElectron, Electron_vidNestedWPBitmap)")
 lVars.Add("TPassMu", "abs(Muon_eta)<2.4 && Muon_mediumId==1 && Muon_miniIsoId>=3 && abs(Muon_dz) < 0.5 && Muon_dxy < 0.2")
 #lVars.Add("TPassEl", "Form(\"(abs(Electron_eta)<1.442 || (abs(Electron_eta)>1.566 && abs(Electron_eta)<2.5)) && Electron_cutBasedIdNoIso_tight==1 && Electron_miniPFRelIso_all<0.1%s\",elHEMcut.c_str())")
-lVars.Add("TPassEl", "(abs(Electron_eta)<1.442 || (abs(Electron_eta)>1.566 && abs(Electron_eta)<2.5)) && Electron_cutBasedIdNoIso_tight==1 && Electron_miniPFRelIso_all<0.1"+ elHEMcut)
+lVars.Add("TPassEl", "(abs(Electron_eta)<1.442 || (abs(Electron_eta)>1.566 && abs(Electron_eta)<2.5)) && Electron_cutBasedIdNoIso_tight==1 && Electron_miniPFRelIso_all<0.1" + elHEMcut)
 lVars.Add("VetoMu", "TPassMu && (Muon_pt>25)")
 lVars.Add("VetoEl", "TPassEl && (Electron_pt>25)")
 lVars.Add("SignalIsoMu", "TPassMu && (Muon_pt>=55)")
@@ -230,11 +329,14 @@ ROOT.gInterpreter.Declare('string tkmutrig = "'+tkmutrig+'"; string eltrig = "'+
 #lVars.Add("isEl", "Form(\"(nElectron>0) && (%s) && (nSignalIsoEl==1) && (nVetoIsoLep==0) && (nMuon == 0 || nSignalIsoMu == 0)\",eltrig.c_str())")
 lVars.Add("isMu", "(nMuon>0) && (HLT_Mu50"+ tkmutrig +") && (nSignalIsoMu==1) && (nVetoIsoLep==0) && (nElectron == 0 || nSignalIsoEl == 0)")
 lVars.Add("isEl", "(nElectron>0) && ("+ eltrig +") && (nSignalIsoEl==1) && (nVetoIsoLep==0) && (nMuon == 0 || nSignalIsoMu == 0)")
+#lVars.Add("isMu","nMuon > 0 && nTightMu == 1 && (nElectron == 0 || nTightEl == 0) && nVetoLep == 0 && (HLT_Mu50 == 1 || HLT_Mu15_IsoVVVL_PFHT450 == 1)") 
+#lVars.Add("isEl","nElectron > 0 && nTightEl == 1 && (nMuon == 0 || nTightMu == 0) && nVetoLep==0 && (HLT_Ele35_WPTight_Gsf == 1 || HLT_Ele15_IsoVVVL_PFHT450 == 1)") 
         
         # filter lepton
 lCuts = CutGroup('LeptonCuts')
 lCuts.Add("Event is either muon or electron", "isMu || isEl")
         # assign lepton
+#lVars.Add("assignleps","assign_leps(isMu,isEl,TightMu,TightEl,Muon_pt,Muon_eta,Muon_phi,Muon_mass,Muon_miniPFRelIso_all,Electron_pt,Electron_eta,Electron_phi,Electron_mass,Electron_miniPFRelIso_all)")
 lVars.Add("assignleps", "assign_leps(isMu,isEl,SignalIsoMu,SignalIsoEl,Muon_pt,Muon_eta,Muon_phi,Muon_mass,Muon_miniPFRelIso_all,Electron_pt,Electron_eta,Electron_phi,Electron_mass,Electron_miniPFRelIso_all)")
 lVars.Add("lepton_pt","assignleps[0]")
 lVars.Add("lepton_eta","assignleps[1]")	
@@ -249,8 +351,18 @@ jVars = VarGroup('JetCleaningVars')
 jVars.Add("Jet_P4", "fVectorConstructor(Jet_pt,Jet_eta,Jet_phi,Jet_mass)")
 jVars.Add("FatJet_P4", "fVectorConstructor(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass)")
 jVars.Add("Jet_EmEF","Jet_neEmEF + Jet_chEmEF")
+#a.Define("DummyZero","0.0")
 jVars.Add("DummyZero","float(0.0)")
         # Clean Jets
+
+###TODO sily things: signal X is = tight X ???
+#jVars.Add("SMuon_P4","TMuon_P4")
+#jVars.Add("SMuon_jetIdx","TMuon_jetIdx")
+#jVars.Add("SElectron_P4","TElectron_P4")
+#jVars.Add("SElectron_jetIdx","TElectron_jetIdx")
+
+#gc.disable()
+
 if isMC:
   jVars.Add("GenJet_P4","fVectorConstructor(GenJet_pt,GenJet_eta,GenJet_phi,GenJet_mass)")
   jVars.Add("cleanedJets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,GenJet_P4,Jet_genJetIdx,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call
@@ -263,21 +375,42 @@ else:
   jVars.Add("cleanMets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,Jet_P4,Jet_jetId,Muon_P4,Muon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,RawMET_pt,RawMET_phi)") # lepton args unused in this call, args 16-17 are dummies
   jVars.Add("cleanFatJets", "cleanJets(debug,jesvar,isMC,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,FatJet_P4,FatJet_rawFactor,FatJet_rawFactor,FatJet_area,FatJet_area,FatJet_jetId,FatJet_P4,FatJet_jetId,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,fixedGridRhoFastjetAll,DummyZero,DummyZero)") # args 12, 14, 16, 17 are dummies
         # Jet Assign
-jVars.Add("cleanJet_pt", "cleanedJets[0]")
-jVars.Add("cleanJet_eta", "cleanedJets[1]")
-jVars.Add("cleanJet_phi", "cleanedJets[2]")
-jVars.Add("cleanJet_mass", "cleanedJets[3]")
-jVars.Add("cleanFatJet_pt", "cleanFatJets[0]")
-jVars.Add("cleanFatJet_eta", "cleanFatJets[1]")
-jVars.Add("cleanFatJet_phi", "cleanFatJets[2]")
-jVars.Add("cleanFatJet_mass", "cleanFatJets[3]")
+
+jVars.Add("cleanJet_pt", "return Map(cleanedJets, [&](const TLorentzVector& vec) { return vec.Pt(); });")
+jVars.Add("cleanJet_eta", "return Map(cleanedJets, [&](const TLorentzVector& vec) { return vec.Eta(); });")
+jVars.Add("cleanJet_phi", "return Map(cleanedJets, [&](const TLorentzVector& vec) { return vec.Phi(); });")
+jVars.Add("cleanJet_mass", "return Map(cleanedJets, [&](const TLorentzVector& vec) { return vec.M(); });")
+
+jVars.Add("cleanFatJet_pt", "return Map(cleanFatJets, [&](const TLorentzVector& vec) { return vec.Pt(); });")
+jVars.Add("cleanFatJet_eta", "return Map(cleanFatJets, [&](const TLorentzVector& vec) { return vec.Eta(); });")
+jVars.Add("cleanFatJet_phi", "return Map(cleanFatJets, [&](const TLorentzVector& vec) { return vec.Phi(); });")
+jVars.Add("cleanFatJet_mass", "return Map(cleanFatJets, [&](const TLorentzVector& vec) { return vec.M(); });")
+
+#print(a.GetCollectionNames())
+#collectNames = a.GetCollectionNames()
+#for cn in collectNames:
+    #print(cn)
+#    print(a._collectionOrg.GetCollectionAttributes(cn))
+
+#jVars.Add("cleanJet_pt", "cleanedJets[0]")
+#jVars.Add("cleanJet_eta", "cleanedJets[1]")
+#jVars.Add("cleanJet_phi", "cleanedJets[2]")
+#jVars.Add("cleanJet_mass", "cleanedJets[3]")
+#jVars.Add("cleanJet_rawFactor", "cleanedJets[4]")
+#jVars.Add("cleanFatJet_pt", "cleanFatJets[0]")
+#jVars.Add("cleanFatJet_eta", "cleanFatJets[1]")
+#jVars.Add("cleanFatJet_phi", "cleanFatJets[2]")
+#jVars.Add("cleanFatJet_mass", "cleanFatJets[3]")
+#jVars.Add("cleanFatJet_rawFactor", "cleanFatJets[4]")
 
 
 # ------------------ MET Selection ------------------
 metVars = VarGroup('METVars')
 
-metVars.Add("corrMETnoxy_pt","cleanMets[4][0]")
-metVars.Add("corrMETnoxy_phi","cleanMets[4][1]")
+metVars.Add("corrMETnoxy_pt","return Map(cleanMets, [&](const TLorentzVector& vec) { return vec.Pt(); });")
+metVars.Add("corrMETnoxy_phi","return Map(cleanMets, [&](const TLorentzVector& vec) { return vec.Phi(); });")
+#metVars.Add("corrMETnoxy_pt","cleanMets[5][0]")
+#metVars.Add("corrMETnoxy_phi","cleanMets[5][1]")
 
 metVars.Add("metxyoutput", "metfunc(metptcorr, metphicorr, corrMETnoxy_pt, corrMETnoxy_phi, PV_npvs, run)")
 
@@ -288,30 +421,31 @@ metCuts.Add("Pass corr MET > 60", "corrMET_pt > 60")
 metCuts.Add("Electron Triangle Cut", "isMu || corrMET_pt>((130/1.5)*DeltaPhi(lepton_phi, corrMET_phi)-130)")
 
 # ------------------ HT Calculation and N Jets cuts ------------------
-jVars.Add("DR_lepJets","DeltaR_VecAndFloat(cleanJet_eta,cleanJet_phi,lepton_eta,lepton_phi)")
-jVars.Add("ptrel_lepJets","ptRel(cleanJet_pt,cleanJet_eta,cleanJet_phi,cleanJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
-jVars.Add("goodcleanJets", "cleanJet_pt > 30 && abs(cleanJet_eta) < 2.4 && Jet_jetId > 1 && (DR_lepJets > 0.4 || ptrel_lepJets > 20)")
-jVars.Add("gcJet_HT","Sum(cleanJet_pt[goodcleanJets == true])")
+#TODO UNCOMMENT jVars.Add("DR_lepJets","DeltaR_VecAndFloat(cleanedJet_eta,cleanedJet_phi,lepton_eta,lepton_phi)")
+#               jVars.Add("ptrel_lepJets","ptRel(cleanedJet_pt,cleanedJet_eta,cleanedJet_phi,cleanedJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
+#               jVars.Add("goodcleanJets", "cleanedJet_pt > 30 && abs(cleanedJet_eta) < 2.4 && Jet_jetId > 1 && (DR_lepJets > 0.4 || ptrel_lepJets > 20)")
+
 jVars.Add("DR_lepFatJets","DeltaR_VecAndFloat(FatJet_eta,FatJet_phi,lepton_eta,lepton_phi)")
-jVars.Add("ptrel_lepFatJets","ptRel(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)")   #TODO not in BtoTW
+jVars.Add("ptrel_lepFatJets","ptRel(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
 jVars.Add("goodcleanFatJets", "FatJet_pt > 200 && abs(FatJet_eta) < 2.4 && FatJet_jetId > 1 && (DR_lepFatJets > 0.8 || ptrel_lepFatJets > 20)")
-#TODO which one do we want?  jVars.Add("goodcleanFatJets", "cleanFatJet_pt > 200 && abs(cleanFatJet_eta) < 2.5 && FatJet_jetId > 1 && (DR_lepFatJets > 0.8)")
-jVars.Add("NFatJets", "(int) Sum(goodcleanFatJets)")
+jVars.Add("NFatJets_central", "(int) Sum(goodcleanFatJets)")
+
+#jVars.Add('AK4HT', 'Sum(gcJet_pt)')    
 
 jCuts = CutGroup('JetCuts')
-
-jCuts.Add('Pass HT > 510', 'gcJet_HT > 510') # change to? > 250   
-jCuts.Add('3 AK8s Pass', 'NFatJets > 2')  #TODO change to? > 0      # need to ensure three jets exist
+#jCuts.Add('AK4 HT Pass', 'AK4HT > 510')    
+jCuts.Add('3 AK8s Pass', 'NFatJets_central > 2')    # need to ensure three jets exist
 
 
 # ------------------ Jet pt ordering, counting, lepton association ------------------
-jVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
+# requires clean jet things for this:
+'''jVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
 jVars.Add("gcJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcJet_pt_unsort))")
 jVars.Add("gcJet_pt","reorder(gcJet_pt_unsort,gcJet_ptargsort)")
 jVars.Add("gcJet_eta", "reorder(cleanJet_eta[goodcleanJets == true],gcJet_ptargsort)")
 jVars.Add("gcJet_phi", "reorder(cleanJet_phi[goodcleanJets == true],gcJet_ptargsort)")
 jVars.Add("gcJet_mass", "reorder(cleanJet_mass[goodcleanJets == true],gcJet_ptargsort)")
-jVars.Add("gcJet_vetomap", "jetvetofunc(jetvetocorr, gcJet_eta, gcJet_phi)")
+jVars.Add("gcJet_vetomap", "jetvetofunc(jetvetocorr, gcJet_eta, gcJet_phi)")'''
         #fatjet vars
 jVars.Add("gcFatJet_pt_unsort", "FatJet_pt[goodcleanFatJets == true]")
 jVars.Add("gcFatJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcFatJet_pt_unsort))")
@@ -327,8 +461,6 @@ jVars.Add("Isolated_AK4","standalone_Jet(gcJet_eta, gcJet_phi, gcFatJet_eta, gcF
 # ------------------ Add scale factors and MC jet-based calcs ------------------
 #TODO could be a fatJetVar group
 if isMC:
-  #jVars.Add("genttbarMass", Form("genttbarMassCalc(\"%s\", nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status)",sample.c_str()))
-  jVars.Add("genttbarMass", "genttbarMassCalc(\""+sample+"\", nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status)")
   jVars.Add("leptonRecoSF", "recofunc(electroncorr, muoncorr, yrstr, lepton_pt, lepton_eta, isEl)")
   jVars.Add("leptonIDSF", "idfunc(muonidcorr,elid_pts,elid_etas,elecidsfs,elecidsfuncs,yrstr, lepton_pt, lepton_eta, isEl)") #at(0) 
   jVars.Add("leptonIsoSF", "isofunc(muiso_pts,muiso_etas,muonisosfs,muonisosfunc,elid_pts,elid_etas,elecisosfs,elecisosfunc, lepton_pt, lepton_eta, isEl)")
@@ -346,22 +478,25 @@ rframeVars.Add('VLQ_mass_ratio', 'VLQ_mass_T/VLQ_mass_Tbar')
 rframeVars.Add('VLQ_mass_avg', '(VLQ_mass_T+VLQ_mass_Tbar)*0.5')
 
 
-# ------------------ ------------------ 
+# -------------------------------------
 
 
-nodeToPlot = a.Apply([gjsonVars, gjsonCuts, lVars, lCuts]) 
+nodeToPlot = a.Apply([gjsonVars, gjsonCuts, lVars, lCuts]) #, jVars, jCuts, metVars, metCuts, rframeVars])
+#nodeToPlot = a.Apply(metCuts)
+#a.Apply(lVars)
+#a.Apply(lCuts)
+#a.ActiveNode.Apply([jVars, jCuts, rframeVars]) ## where problem is
 
 # Solution to cleanJets() problem:
 #       The analyzer .Apply() calls the analyzer .Define().  This .Define() calls self._collectionOrg.CollectionDefCheck(var, newNode).
 #  This method executes this line: if re.search(r"\b" + re.escape(c+'s') + r"\b", action_str) and (c+'s' not in self._builtCollections):
 #                                       print ('MAKING %ss for %s'%(c,action_str))
 #  Apparently somethings get discarded from this _collectionOrg?
-#  Instead force the .Apply() from the ActiveNode because the node .Apply() is better.
 
 newNode = a.ActiveNode.Apply(jVars)
 a.SetActiveNode(newNode)
 
-a.Apply([jCuts, metVars, rframeVars])
+a.Apply([jCuts, rframeVars])
 
 allColumns = a.GetColumnNames()
 columns = [] #allColumns
