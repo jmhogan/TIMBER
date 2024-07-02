@@ -28,6 +28,7 @@ CompileCpp('TIMBER/Framework/Tprime1lep/utilities.cc') # Compile Our vlq c++ cod
 CompileCpp('TIMBER/Framework/Tprime1lep/lumiMask.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/selfDerived_corrs.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/corrlib_funcs.cc') 
+CompileCpp('TIMBER/Framework/Tprime1lep/generatorInfo.cc')
 ROOT.gInterpreter.ProcessLine('#include "TString.h"')
 
 handler_name = 'Tprime_handler.cc'
@@ -49,7 +50,10 @@ year = sys.argv[1]
 
 # ------------------ Important Variables ------------------
 
-#TODO isMC? isVV? isSig? etc.
+#TODO translate the code from BtoTW analyzer_RDF.h for the 4 arguments.  filelist.txt num1 num2
+
+#isMC? isVV? isSig? etc.
+sample = "TprimeTprime_M-1500_TuneCP5_13TeV-madgraph-pythia8"
 isMC = True
 '''if "/mc/" in file_name:
   isMC = True
@@ -67,9 +71,14 @@ if not isData:
 
 debug = False
 
-ROOT.gInterpreter.Declare("""string year = "' + year + '"; bool isMC = \""""+str(isMC)+"""\"; 
-        bool debug = false; //\""""+str(debug)+"""\"; 
-        string jesvar = "' + jesvar + '"; """)
+#TODO test this isMC
+ROOT.gInterpreter.Declare("""
+string year = "' + year + '"; 
+string sample = "' + sample + '";
+bool isMC = \""""+str(isMC)+"""\"; 
+bool debug = false; //\""""+str(debug)+"""\"; 
+string jesvar = "' + jesvar + '"; 
+""")
 
 # ------------------ Golden JSON Data ------------------
 # change the jsonfile path to somewhere they have it in TIMBER
@@ -126,23 +135,26 @@ auto muonhltcorr = muoncorrset->at("NUM_Mu50_or_"+mutrig+"_DEN_CutBasedIdGlobalH
 auto jetvetocorr = jetvetocorrset->at("Summer19UL"+yr+"_V1");
 auto metptcorr = metcorrset->at("pt_metphicorr_pfmet_mc");
 auto metphicorr = metcorrset->at("phi_metphicorr_pfmet_mc");
-//if (!isMC) {
-//  metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
-//  metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); };
 
 auto ak4corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/jet_jerc.json"); 
 auto ak8corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/fatJet_jerc.json"); 
 auto ak4corr = ak4corrset->compound().at("Summer19"+jecyr+"_"+jecver+"_MC_L1L2L3Res_AK4PFchs");
 auto ak4corrL1 = ak4corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_L1FastJet_AK4PFchs"); 
-//if(!isMC){ ak4corr = ak4corrset->compound().at("Summer19"+jecyr+"_Run"+jecera+"_"+jecver+"_DATA_L1L2L3Res_AK4PFchs"); 
 auto ak4corrUnc = ak4corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_Total_AK4PFchs"); 
 
 auto ak4ptres = ak4corrset->at(jeryr+"_MC_PtResolution_AK4PFchs"); 
 auto ak4jer = ak4corrset->at(jeryr+"_MC_ScaleFactor_AK4PFchs"); 
-auto ak8corr = ak8corrset->compound().at("Summer19"+jecyr+"_"+jecver+"_MC_L1L2L3Res_AK8PFPuppi"); 
-//if(!isMC){ ak8corr = ak8corrset->compound().at("Summer19"+jecyr+"_Run"+jecera+"_"+jecver+"_DATA_L1L2L3Res_AK8PFPuppi"); 
-auto ak8corrUnc = ak8corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_Total_AK8PFPuppi"); 
-""") #TODO if statement doesn't work in this .Declare() ???
+auto ak8corr = ak8corrset->compound().at("Summer19"+jecyr+"_"+jecver+"_MC_L1L2L3Res_AK8PFPuppi");
+auto ak8corrUnc = ak8corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_Total_AK8PFPuppi");
+""") 
+if not isMC:
+  ROOT.gInterpreter.Declare("""
+    metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
+    metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); 
+
+    ak4corr = ak4corrset->compound().at("Summer19"+jecyr+"_Run"+jecera+"_"+jecver+"_DATA_L1L2L3Res_AK4PFchs");
+    ak8corr = ak8corrset->compound().at("Summer19"+jecyr+"_Run"+jecera+"_"+jecver+"_DATA_L1L2L3Res_AK8PFPuppi"); 
+  """)
 
 #from muonhltcorr => std::cout << "\t loaded muon trig" << std::endl; // REDO ME (Do we need to change something?)
 
@@ -155,7 +167,7 @@ metCuts.Add('Event has jets',        'nJet > 0 && nFatJet > 0') # need jets
 # ------------------ Golden JSON (Data) || GEN Info (MC) ------------------
 gjsonVars = VarGroup('GoldenJsonVars')
 gjsonCuts = CutGroup('GoldenJsonCuts')
-if isMC is False: # apply golden json to data
+if not isMC: # apply golden json to data
   gjsonVars.Add("passesJSON", "goldenjson(myLumiMask, run, luminosityBlock)")
   gjsonCuts.Add("Data passes Golden JSON", "passesJSON == 1") 
 else:
@@ -315,6 +327,8 @@ jVars.Add("Isolated_AK4","standalone_Jet(gcJet_eta, gcJet_phi, gcFatJet_eta, gcF
 # ------------------ Add scale factors and MC jet-based calcs ------------------
 #TODO could be a fatJetVar group
 if isMC:
+  #jVars.Add("genttbarMass", Form("genttbarMassCalc(\"%s\", nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status)",sample.c_str()))
+  jVars.Add("genttbarMass", "genttbarMassCalc(\""+sample+"\", nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status)")
   jVars.Add("leptonRecoSF", "recofunc(electroncorr, muoncorr, yrstr, lepton_pt, lepton_eta, isEl)")
   jVars.Add("leptonIDSF", "idfunc(muonidcorr,elid_pts,elid_etas,elecidsfs,elecidsfuncs,yrstr, lepton_pt, lepton_eta, isEl)") #at(0) 
   jVars.Add("leptonIsoSF", "isofunc(muiso_pts,muiso_etas,muonisosfs,muonisosfunc,elid_pts,elid_etas,elecisosfs,elecisosfunc, lepton_pt, lepton_eta, isEl)")
@@ -342,6 +356,7 @@ nodeToPlot = a.Apply([gjsonVars, gjsonCuts, lVars, lCuts])
 #  This method executes this line: if re.search(r"\b" + re.escape(c+'s') + r"\b", action_str) and (c+'s' not in self._builtCollections):
 #                                       print ('MAKING %ss for %s'%(c,action_str))
 #  Apparently somethings get discarded from this _collectionOrg?
+#  Instead force the .Apply() from the ActiveNode because the node .Apply() is better.
 
 newNode = a.ActiveNode.Apply(jVars)
 a.SetActiveNode(newNode)
