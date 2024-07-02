@@ -47,20 +47,23 @@ print('==========================INITIALIZED ANALYZER========================')
 # ------------------ Command Line Arguments ------------------
 campaign = sys.argv[1]
 
+# ------------------ Argument dependent Variables -------------------------
 # set variable for year depending on campaign input, preserves some lines calling year
 #will this work? I think so... selfDerived_corr (where year is defined) is compiled above this (?) 
-if (campaign == "Summer22"): year = "2022";
 
-elif (campaign == "Summer22EE"): year = "2022";
+# YEAR in capital letters means it shouldn't be changed, akin to constant variable.
+if (campaign == "Summer22"): YEAR = "2022";
+
+elif (campaign == "Summer22EE"): YEAR = "2022";
 
 #elif (campaign == "Prompt"): year = "2022";
 
-elif (campaign == "Summer23"): year = "2023";
+elif (campaign == "Summer23"): YEAR = "2023";
 
-elif (campaign == "Summer23BPix"): year = "2023";
+elif (campaign == "Summer23BPix"): YEAR = "2023";
 
 #selfDerived_corr.cc --> replace year block with 2022/2023 corrections?
-else: print(f'ERROR: Can\'t parse the RUN 3 campaign to assign correctionLib json file. Expected Summer22, Summer22EE, Prompt, Summer23, or Summer23BPix. Got: {campaign}\n')
+else: print(f'ERROR: Can\'t parse the RUN 3 campaign to assign correctionLib json file. Expected Summer22, Summer22EE, Summer23, or Summer23BPix. Got: {campaign}\n')
 
 # ------------------ Important Variables ------------------
 
@@ -82,13 +85,13 @@ if not isData:
 
 debug = False
 
-ROOT.gInterpreter.Declare("""string year = "' + year + '"; bool isMC = \""""+str(isMC)+"""\"; bool debug = \""""+str(debug)+"""\"; string jesvar = "' + jesvar + '"; """)
+ROOT.gInterpreter.Declare("""string year = "' + YEAR + '"; bool isMC = \""""+str(isMC)+"""\"; bool debug = \""""+str(debug)+"""\"; string jesvar = "' + jesvar + '"; """)
 
 # ------------------ Golden JSON Data ------------------
 # change the jsonfile path to somewhere they have it in TIMBER
 jsonfile = "../TIMBER/data/LumiJSON/"
-if (year == "2022"): jsonfile = jsonfile #+ "(...)_Collisions22_*JSON.txt"
-elif (year == "2023"): jsonfile = jsonfile #+ "(...)_Collisions23_*JSON.txt"
+if (YEAR == "2022"): jsonfile = jsonfile #+ "(...)_Collisions22_*JSON.txt"
+elif (YEAR == "2023"): jsonfile = jsonfile #+ "(...)_Collisions23_*JSON.txt"
 else: print(f'ERROR: Can\'t parse the year to assign a golden json file. Try changing the \"campaign\" initial argument.')
 
 ROOT.gInterpreter.Declare("""
@@ -103,7 +106,7 @@ const auto myLumiMask = lumiMask::fromJSON(\"""" + jsonfile + """\");
     # Lepton scale factors not in correctionLib
 ROOT.gInterpreter.ProcessLine('initialize(campaign);')
 #cami - initialize with campaign becaus ethe corrections are unique for each one
-#change in selfderived -- not necessary bc it's calling the function -- setup corr?
+#change in selfderived -- not necessary bc it's calling the function -- change name to setup corr?
 
 #can do things like this inside:   include <iostream>
 #using namespace std; 
@@ -112,95 +115,103 @@ ROOT.gInterpreter.ProcessLine('initialize(campaign);')
 #""")
 
 # ------------------ correctionsLib corrections ------------------
-mutrig = "TkMu50";
+#CAMI -- seems we don't need this random name part for muonhltcorr --> mutrig = "CascadeMu100_or_HighPtTkMu100";
+
+l3res = "_MC_L1L2L3Res"
+l1fast = "_MC_L1FastJet"
+ak4pf = "_AK4PFPuppi"
 #missing what changes to do for yr, jecyr, jeryr, and jecver
-if (campaign == "Summer22"): #CAMI: check where else yrstr is used, change to "era_num"
-# deepjetL = "0.0508"; era_num = "2022"; yr = "16"; jecyr = "UL16APV"; jeryr = "Summer20UL16APV_JRV3"; jecver = "V7"
-elif (campaign == "Summer22EE"): 
-# deepjetL = "0.0480"; era_num = "2022"; yr = "16"; jecyr = "UL16"; jeryr = "Summer20UL16_JRV3"; jecver = "V7"
-#elif (campaign == "Prompt"): #only used in jetvetomaps.json
-# deepjetL = "0.0480"; era_num = "2022"; yr = "16"; jecyr = "UL16"; jeryr = "Summer20UL16_JRV3"; jecver = "V7"
-elif (campaign == "Summer23"): 
-# mutrig = "OldMu100_or_TkMu100"; deepjetL = "0.0532"; era_num = "2023"; yr = "17"; jecyr = "UL17"; jeryr = "Summer19UL17_JRV2"; jecver = "V5"
-elif (campaign == "Summer23BPix"): 
-# mutrig = "OldMu100_or_TkMu100"; deepjetL = "0.0490"; era_num = "2023"; yr = "18"; jecyr = "UL18"; jeryr = "Summer19UL18_JRV2"; jecver = "V5"
+if (campaign == "Summer22"): YEAR = "2022"; prompt = "Summer22_22Sep2023"; jecver = "_V2"; veto_run = "_RunCD_V1";
+#CAMI: check where else yrstr is used, change to "YEAR"
+# deepjetL = "0.0508"; yr = "16"; jecyr = "UL16APV"; jeryr = "Summer20UL16APV_JRV3"
+elif (campaign == "Summer22EE"): YEAR = "2022"; prompt = "Summer22EE_22Sep2023"; jecver = "_V2"; veto_run = "_RunEFG_V1"
+# deepjetL = "0.0480"; yr = "16"; jecyr = "UL16"; jeryr = "Summer20UL16_JRV3"; jecver = "V7"k; prompt = "Summer22EE_22Sep2023"
+elif (campaign == "Summer23"): YEAR = "2023"; prompt = "Summmer23Prompt23"; jecver = "_V1"; veto_run = "_RunC_V1"
+# mutrig = "OldMu100_or_TkMu100"; deepjetL = "0.0532"; yr = "17"; jecyr = "UL17"; jeryr = "Summer19UL17_JRV2"; jecver = "V5"
+elif (campaign == "Summer23BPix"): YEAR = "2023"; prompt = "Summmer23BPixPrompt23"; jecver = "_V1"; veto_run = "_RunD_V1"
+# mutrig = "OldMu100_or_TkMu100"; deepjetL = "0.0490"; yr = "18"; jecyr = "UL18"; jeryr = "Summer19UL18_JRV2"; jecver = "V5"
 else: print(f'ERROR: Can\'t parse the year to assign correctionLib json files. Expected 2022 or 2023. Try changing the \"campaign\" initial argument.')
 
 
-#change era_num to year cami
+#changed era_num to year cami -- year is not the name of the function used in selfDerived_corr
 ROOT.gInterpreter.Declare("""
-string year = \""""+era_num+"""\"; 
-string yr = \""""+yr+"""\"; 
-string jecyr = \""""+jecyr+"""\"; 
-string jeryr = \""""+jeryr+"""\"; 
+string YEAR = \""""+YEAR+"""\"; 
+///string yr = \""""+yr+"""\"; 
+///string jecyr = \""""+jecyr+"""\"; 
+///string jeryr = \""""+jeryr+"""\"; 
 string jecver = \""""+jecver+"""\"; 
-string mutrig = \""""+mutrig+"""\";
-float deepjetL = """+deepjetL+""";
+///string mutrig = \""""+mutrig+"""\";
+///float deepjetL = """+deepjetL+""";
+string corrPU_name;
+string campaign = \""""+campaign+"""\";
+string prompt = \""""+prompt+"""\";
+string l3res = \""""+l3res+"""\";
+string l1fast = \""""+l1fast+"""\";
+string ak4pf = \""""+ak4pf+"""\";
+string veto_run = \""""+veto_run+"""\";
 """)
 
+# auto muoncorr = muoncorrset->at("NUM_TrackerMuons_DEN_genTracks"); ##no name matches closely? CAMI
+# in recofunc, change the muon part of the func to return value one instead of figuring our value from corr
+
 
 ROOT.gInterpreter.Declare("""
-auto csetPU = correction::CorrectionSet::from_file("jsonpog-integration/POG/LUM/"+era_num+"_"+campaign+"/puWeights.json");
-auto electroncorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/EGM/"+era_num+"_"+campaign+"/electron.json");
-auto muoncorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/MUO/"+era_num+"_"+campaign+"/muon_Z.json");
-auto jetvetocorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+era_num+"_"+campaign+"/jetvetomaps.json");
+auto csetPU = correction::CorrectionSet::from_file("jsonpog-integration/POG/LUM/"+YEAR+"_"+campaign+"/puWeights.json");
+auto electroncorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/EGM/"+YEAR+"_"+campaign+"/electron.json");
+auto muoncorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/MUO/"+YEAR+"_"+campaign+"/muon_Z.json");
+auto jetvetocorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+YEAR+"_"+campaign+"/jetvetomaps.json");
 
-# auto metcorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+era_num+"_"+campaign+"/met.json");
+# auto metcorrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+YEAR+"_"+campaign+"/met.json");
 # didn't find a met.json correction. Only jetvetomap, jet_jerc and fatJet_jerc
 
-#cami change the if else to only change the dd=string so we run the correction once.
-if (campaign == "Summer22"){ 
-   auto corrPU = csetPU->at("Collisions2022_355100_357900_eraBCD_GoldenJson");
-   
 
-   };
-elif (campaign == "Summer22EE"){ 
+if (campaign == "Summer22"){
+   corrPU_name = "Collisions"+YEAR+"_355100_357900_eraBCD_GoldenJson";
+   vetomaps_filename = prompt+"_RunCD_V1";
 
-   auto corrPU = csetPU->at("Collisions2022_359022_362760_eraEFG_GoldenJson");
+}elif (campaign == "Summer22EE"){ 
 
-   };
-elif (campaign == "Summer23"){ #only used in jetvetomaps.json
+   corrPU_name = "Collisions"+YEAR+"_359022_362760_eraEFG_GoldenJson");
+   vetomaps_filename = prompt+
 
-   auto corrPU = csetPU->at("Collisions2023_366403_369802_eraBC_GoldenJson");
+}elif (campaign == "Summer23"){ #only used in jetvetomaps.json
 
-   };
-elif (campaign == "Summer23BPix"){ 
+   corrPU_name = "Collisions"+YEAR+"_366403_369802_eraBC_GoldenJson");
+   vetomaps_filename = prompt+
 
-   auto corrPU = csetPU->at("Collisions2023_369803_370790_eraD_GoldenJson");
+}elif (campaign == "Summer23BPix"){ 
 
-   };
-elif (campaign == "Prompt"){
+   corrPU_name = "Collisions"+YEAR+"_369803_370790_eraD_GoldenJson");
+   vetomaps_filename = prompt+
 
-   };
+}else { False }
 
-else { False };
 
-Electron-ID-SFauto electroncorr = electroncorrset->at("Electron-ID-SF"); #for 2022 it's "v2" and for 2023 it's "v3"
- 
-auto muoncorr = muoncorrset->at("NUM_TrackerMuons_DEN_genTracks"); ##no name matches closely? cami -- comment out (?)
-
-## in recofunc, change the muon part of the func to return value one instead of figuring our value from corr
-
+auto corrPU = csetPU->at(corrPU_name);
+#
+auto electroncorr = electroncorrset->at("Electron-ID-SF"); ///not necessary to add the v2 or v3 details
+#
 auto muonidcorr = muoncorrset->at("NUM_MediumID_DEN_TrackerMuons");
+#
+auto muonhltcorr = muoncorrset->at("NUM_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"); 
+#
+auto jetvetocorr = jetvetocorrset->at(prompt+veto_run);
+#
 
-auto muonhltcorr = muoncorrset->at("NUM_Mu50_or_"+mutrig+"_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"); 
-
-auto jetvetocorr = jetvetocorrset->at("Summer19UL"+yr+"_V1");
-
-auto metptcorr = metcorrset->at("pt_metphicorr_pfmet_mc");
-
-auto metphicorr = metcorrset->at("phi_metphicorr_pfmet_mc");
+#CAMI -- check what uses metptcorr & metphicorr, change it so it returns "1"
+///auto metptcorr = metcorrset->at("pt_metphicorr_pfmet_mc");
+///auto metphicorr = metcorrset->at("phi_metphicorr_pfmet_mc");
 //if (!isMC) {
 //  metptcorr = metcorrset->at("pt_metphicorr_pfmet_data");
 //  metphicorr = metcorrset->at("phi_metphicorr_pfmet_data"); };
 
-auto ak4corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/jet_jerc.json"); 
-
-auto ak8corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+yrstr+"_UL/fatJet_jerc.json"); 
-
-auto ak4corr = ak4corrset->compound().at("Summer19"+jecyr+"_"+jecver+"_MC_L1L2L3Res_AK4PFchs");
-
-auto ak4corrL1 = ak4corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_L1FastJet_AK4PFchs"); 
+auto ak4corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+YEAR+"_"+campaign+"/jet_jerc.json"); 
+#
+auto ak8corrset = correction::CorrectionSet::from_file("jsonpog-integration/POG/JME/"+YEAR+"_"+campaign+"/fatJet_jerc.json"); 
+#
+auto ak4corr = ak4corrset->compound().at(prompt+jecver+l3res+ak4pf);
+#
+auto ak4corrL1 = ak4corrset->at("prompt+jcver+l1fast+ak4pf"); 
 //if(!isMC){ ak4corr = ak4corrset->compound().at("Summer19"+jecyr+"_Run"+jecera+"_"+jecver+"_DATA_L1L2L3Res_AK4PFchs"); };
 
 auto ak4corrUnc = ak4corrset->at("Summer19"+jecyr+"_"+jecver+"_MC_Total_AK4PFchs"); 
@@ -257,7 +268,7 @@ lVars.Add("TMuon_jetIdx", "Muon_jetIdx[TightMu == true]")
 lVars.Add("TElectron_jetIdx", "Electron_jetIdx[TightEl == true]")
 
 '''
-if year == "2018": elHEMcut = " && (Electron_eta > -1.479 || (Electron_phi < -1.57 || Electron_phi > -0.87))"
+if YEAR == "2018": elHEMcut = " && (Electron_eta > -1.479 || (Electron_phi < -1.57 || Electron_phi > -0.87))"
 ROOT.gInterpreter.Declare('string elHEMcut = "'+elHEMcut+'"; ')
 
 lVars.Add("Electron_cutBasedIdNoIso_tight", "Electron_cutBasedIdNoIso_tight(nElectron, Electron_vidNestedWPBitmap)")
@@ -296,13 +307,13 @@ lVars.Add("nVetoIsoLep", "(int) (Sum(VetoIsoMu)+Sum(VetoIsoEl))")
 
 tkmutrig = " || HLT_OldMu100 || HLT_TkMu100"
 eltrig = "HLT_Ele115_CaloIdVT_GsfTrkIdT || HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 || HLT_Photon200"
-if(year == "2017" and era == "B"): 
+if(YEAR == "2017" and era == "B"): 
   tkmutrig = ""
   eltrig = "HLT_Ele35_WPTight_Gsf || HLT_Photon200"
-if(year == "2016" or year == "2016APV"):
+if(YEAR == "2016" or YEAR == "2016APV"):
   tkmutrig = " || HLT_TkMu50"
   eltrig = "HLT_Ele115_CaloIdVT_GsfTrkIdT || HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 || HLT_Photon175"
-if(year == "2016APV" and (era == "A" or era == "B")):
+if(YEAR == "2016APV" and (era == "A" or era == "B")):
     tkmutrig = ""
     eltrig = "HLT_Ele115_CaloIdVT_GsfTrkIdT || HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 || HLT_Photon175"
 ROOT.gInterpreter.Declare('string tkmutrig = "'+tkmutrig+'"; string eltrig = "'+eltrig+'"; ')
