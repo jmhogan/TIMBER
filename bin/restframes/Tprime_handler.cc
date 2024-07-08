@@ -253,7 +253,7 @@ RVec<float> Tprime_RestFrames_Container::compute_mass(int thread_index, float le
     double MET_py  = met_pt*std::sin(met_phi);
     met3  = TVector3(MET_px, MET_py, 0.0);
     //std::tuple<float, float> masses = rfh->calculate_mass(lepton, met3, jet_1, jet_2, jet_3); //, jet_4);
-    std::array<double, 4> masses = rfh->calculate_mass(lepton, met3, jet_1, jet_2, jet_3); //, jet_4);
+    std::array<double, 2> masses = rfh->calculate_mass(lepton, met3, jet_1, jet_2, jet_3); //, jet_4);
 
     RVec<float> mass_vec;
 

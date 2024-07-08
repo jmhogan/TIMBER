@@ -410,7 +410,8 @@ def analyze(jesvar):
   rframeVars.Add('VLQ_mass_Tbar', 'VLQ_mass[1]')
   rframeVars.Add('VLQ_mass_ratio', 'VLQ_mass_T/VLQ_mass_Tbar')
   rframeVars.Add('VLQ_mass_avg', '(VLQ_mass_T+VLQ_mass_Tbar)*0.5')
-  
+  rframeVars.Add('RJR_vect_T', 'VLQ_mass[2]') 
+  rframeVars.Add('RJR_vect_Tbar', 'VLQ_mass[3]') 
   
   # ------------------ Apply Var and Cut Groups------------------ 
   
@@ -496,7 +497,6 @@ def analyze(jesvar):
   out.Close()
   
   a.Close()
-  #return finalFile
 
 if not isMC:
   analyze("Nominal")
@@ -504,18 +504,5 @@ else:
   shifts = ["Nominal","JECup","JECdn","JERup","JERdn"]
   for shift in shifts:
     analyze(shift)
-
-
-#print("Adding Counter tree to the file:")
-#b = analyzer(file_name, eventsTreeName="Runs") #ROOT.RDataFrame("Runs", 'trimmed_input.txt') #listFiles)
-#opts = ROOT.RDF.RSnapshotOptions()
-'''opts.fLazy = lazy
-opts.fCompressionAlgorithm =1 
-opts.fCompressionLevel = 1'''
-#opts.fMode = "UPDATE";
-#rdf_runs.Snapshot("Runs", stdfinalFile, rdf_runs.GetColumnNames(), opts)
-#b.Snapshot(b.GetColumnNames(), stdfinalFile, "Runs", lazy=False, openOption='UPDATE', saveRunChain=e)
-
-#listFiles.close()
 
 os.remove('trimmed_input.txt')
