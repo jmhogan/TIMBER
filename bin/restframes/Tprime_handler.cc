@@ -14,6 +14,13 @@
 using namespace RestFrames;
 using namespace ROOT::VecOps;
 
+union rfv {
+  double dbl;
+  TLorentzVector vect;
+};
+
+//RVec<union rfv>
+
 class Tprime_RestFrames_Handler : public RestFramesHandler {
     private:
 
@@ -46,7 +53,7 @@ class Tprime_RestFrames_Handler : public RestFramesHandler {
 
     public:
         Tprime_RestFrames_Handler();
-        std::array<double, 4> calculate_mass(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3); //, TLorentzVector &jet4);
+        std::array<double, 2> calculate_mass(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3); //, TLorentzVector &jet4);
 	//std::tuple<float,float>
 };
 
@@ -141,7 +148,7 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     MinJJ->AddFrame(*J1, 1);
     MinJJ->AddFrame(*J0, 1);
     // MinSqJJ.reset(new MinMassesSqCombJigsaw("MinDiffJJ", jigsaw_name, 2, 4));
-    // A
+    // 
     // JETS->AddJigsaw(*MinSqJJ);
     // MinSqJJ->AddCombFrame(*b, 0);
     // MinSqJJ->AddCombFrame(*J1, 1);
@@ -169,7 +176,7 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     // MinTauTau->AddFrame(*TAUb,1);
 };
 
-std::array<double, 4> Tprime_RestFrames_Handler::calculate_mass(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3) { //, TLorentzVector &jet4) {
+std::array<double, 2> Tprime_RestFrames_Handler::calculate_mass(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3) { //, TLorentzVector &jet4) {
     before_analysis();
     
     INV->SetLabFrameThreeVector(met3);	
@@ -186,12 +193,12 @@ std::array<double, 4> Tprime_RestFrames_Handler::calculate_mass(TLorentzVector &
 
     LAB->AnalyzeEvent(); // analyze the event
 
-    double calc_mass_T = T->GetFourVector(*LAB).M();
-    double calc_mass_Tbar = Tbar->GetFourVector(*LAB).M();
+    //double calc_mass_T = T->GetFourVector(*LAB).M();
+    //double calc_mass_Tbar = Tbar->GetFourVector(*LAB).M();
     double T_mass = T->GetMass();
     double Tbar_mass = Tbar->GetMass();
 
-    std::array<double, 4> result = {calc_mass_T, calc_mass_Tbar, T_mass, Tbar_mass};
+    std::array<double, 2> result = {T_mass, Tbar_mass};
 
     after_analysis();
 
