@@ -205,10 +205,11 @@ std::vector<std::vector<float>> pnet_J_W = {
 
 
 	// initialize these ^
-void initialize(string year) 
+void initialize(string year)   ///void initialize(string initargument) --OR-- void initialize(string campaign)
 {
   //std::cout << elid_pts.size() << std::endl;
   if(year == "2016APV"){
+//if(year == "2022"), based on Tprime1lepRUN3.py if/else conditions right after campaign --OR-- if(campaign == "Summer22"), needs a further "year=2022" variable? --OR-- if(initargument == Summer22")
 
     btageffs = { // B, C, Light
       {0.829835, 0.534866, 0.510229},
