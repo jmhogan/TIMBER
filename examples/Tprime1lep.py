@@ -10,6 +10,8 @@ from TIMBER.Tools.RestFramesHandler import load_restframes
 import correctionlib
 correctionlib.register_pyroot_binding()
 
+from memory_profiler import profile
+
 sys.path.append('../../')
 sys.path.append('../../../')
 
@@ -17,7 +19,7 @@ sys.path.append('../../../')
 inputFiles = sys.argv[1] #fileList
 testNum1 = sys.argv[2]
 testNum2 = sys.argv[3]
-yearIn = sys.argv[4]
+year = sys.argv[4]
 
 # Make the New .txt file from line testNum1 to testNum2 because TIMBER can handle .txt of .root's files   
 print(f"Input File Path: {inputFiles}")
@@ -34,9 +36,10 @@ listFiles = open('trimmed_input.txt', 'w')
 for i, line in enumerate(lines): #, start=1):
   if i in [start, end]:
     listFiles.write(line)
+    #print(line)
 listFiles.close()
 
-print(f"Number of Entries: {end - start}")
+print(f"Number of Entries: {end - start + 1}")
 sampleName = lines[start]
 print(f"Sample Name: {sampleName}")
 
@@ -46,9 +49,9 @@ isMadgraphBkg = (("QCD" in sampleName) or ("madgraphMLM" in sampleName))
 isTOP = (("Mtt" in sampleName) or ("ST" in sampleName) or ("ttZ" in sampleName) or ("ttW" in sampleName) or ("ttH" in sampleName) or ("TTTo" in sampleName))
 isTT = (("TT_Tune" in sampleName) or ("Mtt" in sampleName) or ("TTTo" in sampleName))
 isVV = (("WW_" in sampleName) or ("WZ_" in sampleName) or ("ZZ_" in sampleName))
-isSM = ("SingleMuon" in sampleName)
+isSM = ("Muon" in sampleName)
 isSE = (("SingleElectron" in sampleName) or ("EGamma" in sampleName))
-isMC = not (("Single" in sampleName) or ("Data18" in sampleName) or ("EGamma" in sampleName))
+isMC = not (("Single" in sampleName) or ("Muon" in sampleName) or ("EGamma" in sampleName))
 
 if (isTT): samplebin = 0
 elif (("ST_" in sampleName)): samplebin = 1
@@ -70,8 +73,7 @@ elif (isSig):
   if (("M-2000" in sampleName)): samplebin = 16
   if (("M-2200" in sampleName)): samplebin = 17
 
-year = yearIn # May need to change this line to get things to work
-
+#'root://cms-xrd-global.cern.ch//store/data/Run2018A/SingleMuon/NANOAOD/UL2018_MiniAODv2_NanoAODv9-v2/2550000/28FF17A8-95EB-FD41-A55B-2EFAF2D6AF91.root' 
 tokens = sampleName.split("/")
 sample = tokens[7] # was 5
 if not isMC: 
@@ -105,7 +107,7 @@ CompileCpp('TIMBER/Framework/Tprime1lep/cleanjet.cc') # Compile Our vlq c++ code
 CompileCpp('TIMBER/Framework/Tprime1lep/utilities.cc') # Compile Our vlq c++ code
 CompileCpp('TIMBER/Framework/Tprime1lep/lumiMask.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/selfDerived_corrs.cc')
-CompileCpp('TIMBER/Framework/Tprime1lep/corrlib_funcs.cc') 
+CompileCpp('TIMBER/Framework/Tprime1lep/corr_funcs.cc') 
 CompileCpp('TIMBER/Framework/Tprime1lep/generatorInfo.cc')
 ROOT.gInterpreter.ProcessLine('#include "TString.h"')
 
@@ -120,8 +122,6 @@ load_restframes(num_threads, handler_name, class_name, 'rfc')
 
 # ------------------ Important Variables ------------------
 debug = False
-isData = False
-if (("Single" in inputFiles) or ("EGamma" in inputFiles)): isData = True
 
 ROOT.gInterpreter.Declare("""
   string year = \"""" + year + """\"; 
@@ -135,6 +135,7 @@ ROOT.gInterpreter.Declare("""
 
 
 # ------------------ Analyze Function ------------------
+#@profile
 def analyze(jesvar):
   ROOT.gInterpreter.ProcessLine('string jesvar = "' + jesvar + '"; ')
 
@@ -221,8 +222,6 @@ def analyze(jesvar):
       auto ak8corr = ak8corrset->compound().at("Summer19"+jecyr+"_"+jecver+"_MC_L1L2L3Res_AK8PFPuppi");
     """)
   
-  #from muonhltcorr => std::cout << "\t loaded muon trig" << std::endl; // REDO ME (Do we need to change something?)
-  
   # ------------------ MET Cuts ------------------
   metCuts = CutGroup('METCuts')
   metCuts.Add('MET Filters', 'Flag_EcalDeadCellTriggerPrimitiveFilter == 1 && Flag_goodVertices == 1 && Flag_HBHENoiseFilter == 1 && Flag_HBHENoiseIsoFilter == 1 && Flag_eeBadScFilter == 1 && Flag_globalSuperTightHalo2016Filter == 1 && Flag_BadPFMuonFilter == 1 && Flag_ecalBadCalibFilter == 1')
@@ -278,7 +277,7 @@ def analyze(jesvar):
   ### WE need to find out which triggers exist in run 3
   # ___________________________________________________
   
-  tkmutrig = " || HLT_OldMu100 || HLT_TkMu100"
+  '''tkmutrig = " || HLT_OldMu100 || HLT_TkMu100"
   eltrig = "HLT_Ele115_CaloIdVT_GsfTrkIdT || HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 || HLT_Photon200"
   if(year == "2017" and era == "B"): 
     tkmutrig = ""
@@ -289,6 +288,10 @@ def analyze(jesvar):
   if(year == "2016APV" and (era == "A" or era == "B")):
       tkmutrig = ""
       eltrig = "HLT_Ele115_CaloIdVT_GsfTrkIdT || HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 || HLT_Photon175"
+  '''
+  tkmutrig = " == 1 || HLT_Mu15_IsoVVVL_PFHT450 == 1"
+  eltrig = "HLT_Ele35_WPTight_Gsf == 1 || HLT_Ele15_IsoVVVL_PFHT450 == 1"
+
   ROOT.gInterpreter.Declare('string tkmutrig = "'+tkmutrig+'"; string eltrig = "'+eltrig+'"; ')
   
   #lVars.Add("isMu", "Form(\"(nMuon>0) && (HLT_Mu50%s) && (nSignalIsoMu==1) && (nVetoIsoLep==0) && (nElectron == 0 || nSignalIsoEl == 0)\",tkmutrig.c_str())")
@@ -358,15 +361,15 @@ def analyze(jesvar):
   jVars.Add("goodcleanJets", "cleanJet_pt > 30 && abs(cleanJet_eta) < 2.4 && Jet_jetId > 1 && (DR_lepJets > 0.4 || ptrel_lepJets > 20)")
   jVars.Add("gcJet_HT","Sum(cleanJet_pt[goodcleanJets == true])")
   jVars.Add("DR_lepFatJets","DeltaR_VecAndFloat(FatJet_eta,FatJet_phi,lepton_eta,lepton_phi)")
-  jVars.Add("ptrel_lepFatJets","ptRel(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)")   #TODO not in BtoTW
+  jVars.Add("ptrel_lepFatJets","ptRel(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)")  
   jVars.Add("goodcleanFatJets", "FatJet_pt > 200 && abs(FatJet_eta) < 2.4 && FatJet_jetId > 1 && (DR_lepFatJets > 0.8 || ptrel_lepFatJets > 20)")
-  #TODO which one do we want?  jVars.Add("goodcleanFatJets", "cleanFatJet_pt > 200 && abs(cleanFatJet_eta) < 2.5 && FatJet_jetId > 1 && (DR_lepFatJets > 0.8)")
+  # alternative:  jVars.Add("goodcleanFatJets", "cleanFatJet_pt > 200 && abs(cleanFatJet_eta) < 2.5 && FatJet_jetId > 1 && (DR_lepFatJets > 0.8)")
   jVars.Add("NFatJets", "(int) Sum(goodcleanFatJets)")
   
   jCuts = CutGroup('JetCuts')
   
-  jCuts.Add('Pass HT > 510', 'gcJet_HT > 510') # change to? > 250   
-  jCuts.Add('3 AK8s Pass', 'NFatJets > 2')  #TODO change to? > 0      # need to ensure three jets exist
+  jCuts.Add('Pass HT > 510', 'gcJet_HT > 510')
+  jCuts.Add('3 AK8s Pass', 'NFatJets > 2')      # need to ensure three jets exist
   
   
   # ------------------ Jet pt ordering, counting, lepton association ------------------
@@ -405,11 +408,10 @@ def analyze(jesvar):
   rframeVars.Add('VLQ_mass', 'rfc.compute_mass(rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, MET_pt, MET_phi)')
   rframeVars.Add('VLQ_mass_T', 'VLQ_mass[0]')
   rframeVars.Add('VLQ_mass_Tbar', 'VLQ_mass[1]')
-  rframeVars.Add('VLQ_mass_T_r', 'VLQ_mass[2]')
-  rframeVars.Add('VLQ_mass_Tbar_r', 'VLQ_mass[3]')
   rframeVars.Add('VLQ_mass_ratio', 'VLQ_mass_T/VLQ_mass_Tbar')
   rframeVars.Add('VLQ_mass_avg', '(VLQ_mass_T+VLQ_mass_Tbar)*0.5')
-  
+  rframeVars.Add('RJR_vect_T', 'VLQ_mass[2]') 
+  rframeVars.Add('RJR_vect_Tbar', 'VLQ_mass[3]') 
   
   # ------------------ Apply Var and Cut Groups------------------ 
   
@@ -464,18 +466,15 @@ def analyze(jesvar):
   
   finalFile = "RDF_" + sample + era + "_" + year + "_" + str(testNum1) + ".root"
   
-  #TODO ROOT::RDF::RSnapshotOptions opts;
-  #if(jesvar != "Nominal") opts.fMode = "UPDATE";
+  mode = 'RECREATE'
+  if (jesvar != "Nominal"): mode = 'UPDATE'
   
-  #TODO do we want the REPORT on the filter statistics?
-  a.Snapshot(columns, finalFile, "Events", lazy=False, openOption='RECREATE', saveRunChain=False)
+  a.Snapshot(columns, finalFile, "Events", lazy=False, openOption=mode, saveRunChain=True)
   
   print(f"Number of Columns in Snapshot: {i}")
   
-  myHist1 = a.GetActiveNode().DataFrame.Histo1D(('m_T_lab', 'Mass of T lab', 25, 500, 2000), 'VLQ_mass_T')
-  myHist2 = a.GetActiveNode().DataFrame.Histo1D(('m_Tbar_lab', 'Mass of Tbar lab', 25, 500, 2000), 'VLQ_mass_Tbar')
-  myHist1a = a.GetActiveNode().DataFrame.Histo1D(('m_T', 'Mass of T', 25, 500, 2000), 'VLQ_mass_T_r')
-  myHist2a = a.GetActiveNode().DataFrame.Histo1D(('m_Tbar', 'Mass of Tbar', 25, 500, 2000), 'VLQ_mass_Tbar_r')
+  myHist1 = a.GetActiveNode().DataFrame.Histo1D(('m_T', 'Mass of T lab', 25, 500, 2000), 'VLQ_mass_T')
+  myHist2 = a.GetActiveNode().DataFrame.Histo1D(('m_Tbar', 'Mass of Tbar lab', 25, 500, 2000), 'VLQ_mass_Tbar')
   myHist3 = a.GetActiveNode().DataFrame.Histo1D(('m_T/m_Tbar', 'Mass ratio of the two particles', 25, 0, 2), 'VLQ_mass_ratio')
   myHist4 = a.GetActiveNode().DataFrame.Histo1D(('m_avg', 'Mass average of the two', 25, 500, 2000), 'VLQ_mass_avg')
   
@@ -486,6 +485,12 @@ def analyze(jesvar):
   myHist2a.Write()
   myHist3.Write()
   myHist4.Write()
+
+  print("Cut statistics:")
+  rep = a.DataFrame.Report()
+  rep.Print()
+  print("Got past the report")
+  
   
   print("--------- Analysis End ---------")
   
@@ -493,7 +498,7 @@ def analyze(jesvar):
   
   a.Close()
 
-if isData:
+if not isMC:
   analyze("Nominal")
 else:
   shifts = ["Nominal","JECup","JECdn","JERup","JERdn"]

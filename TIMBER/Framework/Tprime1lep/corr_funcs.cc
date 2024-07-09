@@ -1,4 +1,4 @@
-// Methods in this file:
+// Methods in this file:  		There are several corrlib functions and some non corrlib functions.
 // goldenjson() pufunc() recofunc() idfunc() isofunc() metfunc() hltfunc() jetvetofunc() 
 
 using namespace ROOT::VecOps;
