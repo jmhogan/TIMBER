@@ -271,6 +271,7 @@ def analyze(jesvar):
   lVars.Add("VetoIsoEl", "(VetoEl == true && Electron_pt < 55)")
   lVars.Add("nVetoIsoLep", "(int) (Sum(VetoIsoMu)+Sum(VetoIsoEl))")
   
+  
   # ------------------ LEPTON SELECTION ------------------
   
   # ||||||||||||||||||||| TODO ||||||||||||||||||||||||
@@ -380,10 +381,12 @@ def analyze(jesvar):
   jVars.Add("gcJet_phi", "reorder(cleanJet_phi[goodcleanJets == true],gcJet_ptargsort)")
   jVars.Add("gcJet_mass", "reorder(cleanJet_mass[goodcleanJets == true],gcJet_ptargsort)")
   jVars.Add("gcJet_vetomap", "jetvetofunc(jetvetocorr, gcJet_eta, gcJet_phi)")
+
           #fatjet vars
   jVars.Add("gcFatJet_pt_unsort", "FatJet_pt[goodcleanFatJets == true]")
   jVars.Add("gcFatJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcFatJet_pt_unsort))")
   jVars.Add("gcFatJet_pt","reorder(gcFatJet_pt_unsort,gcFatJet_ptargsort)")
+  
   jVars.Add("gcFatJet_eta", "reorder(FatJet_eta[goodcleanFatJets == true],gcFatJet_ptargsort)")
   jVars.Add("gcFatJet_phi", "reorder(FatJet_phi[goodcleanFatJets == true],gcFatJet_ptargsort)")
   jVars.Add("gcFatJet_mass", "reorder(FatJet_mass[goodcleanFatJets == true],gcFatJet_ptargsort)")
@@ -405,13 +408,63 @@ def analyze(jesvar):
   
   # ------------------ Results ------------------
   rframeVars = VarGroup('restFrameVars')
-  rframeVars.Add('VLQ_mass', 'rfc.compute_mass(rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, MET_pt, MET_phi)')
-  rframeVars.Add('VLQ_mass_T', 'VLQ_mass[0]')
-  rframeVars.Add('VLQ_mass_Tbar', 'VLQ_mass[1]')
-  rframeVars.Add('VLQ_mass_ratio', 'VLQ_mass_T/VLQ_mass_Tbar')
-  rframeVars.Add('VLQ_mass_avg', '(VLQ_mass_T+VLQ_mass_Tbar)*0.5')
-  rframeVars.Add('RJR_vect_T', 'VLQ_mass[2]') 
-  rframeVars.Add('RJR_vect_Tbar', 'VLQ_mass[3]') 
+  rframeVars.Add('RJR_doubles', 'rfc.return_doubles(rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, MET_pt, MET_phi)')
+  rframeVars.Add('RJR_vecs', 'rfc.return_vecs(rdfslot_)')
+
+  rframeVars.Add("R_TTbar_Mass", 'RJR_doubles[0]')
+  rframeVars.Add("R_TTbar_CosAngle", 'RJR_doubles[1]');
+  rframeVars.Add("R_TTbar_DeltaPhiAngle", 'RJR_doubles[2]');
+  rframeVars.Add("R_TTbar_4VectLAB", 'RJR_vecs[0]');
+  
+  rframeVars.Add("R_T_Mass", 'RJR_doubles[3]');
+  rframeVars.Add("R_T_CosAngle", 'RJR_doubles[4]');
+  rframeVars.Add("R_T_DeltaPhiAngle", 'RJR_doubles[5]');
+  rframeVars.Add("R_T_4VectLAB", 'RJR_vecs[1]');
+  rframeVars.Add("R_T_4VectTTbar", 'RJR_vecs[2]');
+
+  rframeVars.Add("R_Tbar_Mass", 'RJR_doubles[6]');
+  rframeVars.Add("R_Tbar_CosAngle", 'RJR_doubles[7]');
+  #rframeVars.Add("R_Tbar_DeltaPhiAngle", 'RJR_doubles[8]');
+  rframeVars.Add("R_Tbar_4VectLAB", 'RJR_vecs[3]');
+  rframeVars.Add("R_Tbar_4VectTTbar", 'RJR_vecs[4]');
+
+  rframeVars.Add("R_W_Mass", 'RJR_doubles[8]');
+  rframeVars.Add("R_W_CosAngle", 'RJR_doubles[9]');
+  rframeVars.Add("R_W_DeltaPhiAngle", 'RJR_doubles[10]');
+  rframeVars.Add("R_W_4VectLAB", 'RJR_vecs[5]');
+  rframeVars.Add("R_W_4VectTTbar", 'RJR_vecs[6]');
+  rframeVars.Add("R_W_4VectT", 'RJR_vecs[7]');
+
+  rframeVars.Add("R_b_Mass", 'RJR_doubles[11]');
+  rframeVars.Add("R_b_CosAngle", 'RJR_doubles[12]');
+  #rframeVars.Add("R_b_DeltaPhiAngle", 'RJR_doubles[14]');
+  rframeVars.Add("R_b_4VectLAB", 'RJR_vecs[8]');
+  rframeVars.Add("R_b_4VectTTbar", 'RJR_vecs[9]');
+  rframeVars.Add("R_b_4VectT", 'RJR_vecs[10]');
+  '''
+  rframeVars.Add("R_J0_Mass", 'RJR_doubles[]');
+  rframeVars.Add("R_J0_CosAngle", 'RJR_doubles[]');
+  rframeVars.Add("R_J0_DeltaPhiAngle", 'RJR_doubles[]');
+  rframeVars.Add("R_J0_4VectLAB", 'RJR_vecs[]');
+  rframeVars.Add("R_J0_4VectTTbar", 'RJR_vecs[]');
+  rframeVars.Add("R_J0_4VectTbar", 'RJR_vecs[]');
+  
+  rframeVars.Add("R_J1_Mass", 'RJR_doubles[]');
+  rframeVars.Add("R_J1_CosAngle", 'RJR_doubles[]');
+  rframeVars.Add("R_J1_DeltaPhiAngle", 'RJR_doubles[]');
+  rframeVars.Add("R_J1_4VectLAB", 'RJR_vecs[]');
+  rframeVars.Add("R_J1_4VectTTbar", 'RJR_vecs[]');
+  rframeVars.Add("R_J1_4VectTbar", 'RJR_vecs[]');
+  '''
+#NONE of the l or nu stuff were able to be received ##TODO try to save as much as possible
+#  rframeVars.Add("R_l_CosAngle", 'RJR_doubles[13]');
+  #rframeVars.Add("R_l_DeltaPhiAngle", 'RJR_doubles[17]');
+
+#  rframeVars.Add("R_Nu_CosAngle", 'RJR_doubles[14]');
+  #rframeVars.Add("R_Nu_DeltaPhiAngle", 'RJR_doubles[20]');
+  
+  rframeVars.Add('R_mass_ratio', 'R_T_Mass/R_Tbar_Mass')
+  rframeVars.Add('R_mass_avg', '(R_T_Mass+R_Tbar_Mass)*0.5')
   
   # ------------------ Apply Var and Cut Groups------------------ 
   
@@ -457,6 +510,7 @@ def analyze(jesvar):
     if col.startswith("nOther") or col.startswith("nPS") or col.startswith("nPhoton"): continue
     if col.startswith("nSV") or col.startswith("nSub") or col.startswith("nTau") or col.startswith("nTrig"): continue
     if col.startswith("nboosted"): continue
+    if col.startswith("RJR"): continue
     #TODO need to figure out how to exclude the things related to nSub and Sub.
     columns.append(col)
     i = i + 1
@@ -473,19 +527,19 @@ def analyze(jesvar):
   
   print(f"Number of Columns in Snapshot: {i}")
   
-  myHist1 = a.GetActiveNode().DataFrame.Histo1D(('m_T', 'Mass of T lab', 25, 500, 2000), 'VLQ_mass_T')
-  myHist2 = a.GetActiveNode().DataFrame.Histo1D(('m_Tbar', 'Mass of Tbar lab', 25, 500, 2000), 'VLQ_mass_Tbar')
-  myHist3 = a.GetActiveNode().DataFrame.Histo1D(('m_T/m_Tbar', 'Mass ratio of the two particles', 25, 0, 2), 'VLQ_mass_ratio')
-  myHist4 = a.GetActiveNode().DataFrame.Histo1D(('m_avg', 'Mass average of the two', 25, 500, 2000), 'VLQ_mass_avg')
+  myHist1 = a.GetActiveNode().DataFrame.Histo1D(('m_T', 'Mass of T lab', 25, 500, 2000), 'R_T_Mass')
+  myHist2 = a.GetActiveNode().DataFrame.Histo1D(('m_Tbar', 'Mass of Tbar lab', 25, 500, 2000), 'R_Tbar_Mass')
+  myHist3 = a.GetActiveNode().DataFrame.Histo1D(('m_T/m_Tbar', 'Mass ratio of the two particles', 25, 0, 2), 'R_mass_ratio')
+  myHist4 = a.GetActiveNode().DataFrame.Histo1D(('m_avg', 'Mass average of the two', 25, 500, 2000), 'R_mass_avg')
   
   out = ROOT.TFile.Open('test_Tprime_out.root','RECREATE') #'UPDATE')
   myHist1.Write()
   myHist2.Write()
-  myHist1a.Write()
-  myHist2a.Write()
   myHist3.Write()
   myHist4.Write()
 
+  out.Close()
+  
   print("Cut statistics:")
   rep = a.DataFrame.Report()
   rep.Print()
@@ -493,8 +547,6 @@ def analyze(jesvar):
   
   
   print("--------- Analysis End ---------")
-  
-  out.Close()
   
   a.Close()
 

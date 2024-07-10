@@ -53,8 +53,10 @@ class Tprime_RestFrames_Handler : public RestFramesHandler {
 
     public:
         Tprime_RestFrames_Handler();
-        std::array<double, 2> calculate_mass(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3); //, TLorentzVector &jet4);
+        RVec<double> calculate_doubles(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3); //, TLorentzVector &jet4);
 	//std::tuple<float,float>
+	
+	RVec<TLorentzVector> calculate_vecs();
 };
 
 Tprime_RestFrames_Handler::Tprime_RestFrames_Handler() {
@@ -176,7 +178,7 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     // MinTauTau->AddFrame(*TAUb,1);
 };
 
-std::array<double, 2> Tprime_RestFrames_Handler::calculate_mass(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3) { //, TLorentzVector &jet4) {
+RVec<double> Tprime_RestFrames_Handler::calculate_doubles(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3) { //, TLorentzVector &jet4) {
     before_analysis();
     
     INV->SetLabFrameThreeVector(met3);	
@@ -193,29 +195,93 @@ std::array<double, 2> Tprime_RestFrames_Handler::calculate_mass(TLorentzVector &
 
     LAB->AnalyzeEvent(); // analyze the event
 
-    //double calc_mass_T = T->GetFourVector(*LAB).M();
-    //double calc_mass_Tbar = Tbar->GetFourVector(*LAB).M();
-    double T_mass = T->GetMass();
-    double Tbar_mass = Tbar->GetMass();
 
-    std::array<double, 2> result = {T_mass, Tbar_mass};
+    RVec<double> observables; // = {T_mass, Tbar_mass};
 
-    after_analysis();
+    observables.push_back(TTbar->GetMass());
+    observables.push_back(TTbar->GetCosDecayAngle());
+    observables.push_back(TTbar->GetDeltaPhiDecayAngle());
+    
+    observables.push_back(T->GetMass());
+    observables.push_back(T->GetCosDecayAngle());
+    observables.push_back(T->GetDeltaPhiDecayAngle());
+    
+    observables.push_back(Tbar->GetMass());
+    observables.push_back(Tbar->GetCosDecayAngle());
+  //observables.push_back(Tbar->GetDeltaPhiDecayAngle());
+    
+    observables.push_back(W->GetMass());
+    observables.push_back(W->GetCosDecayAngle());
+    observables.push_back(W->GetDeltaPhiDecayAngle());
+    
+    observables.push_back(b->GetMass());
+    observables.push_back(b->GetCosDecayAngle());
+  //observables.push_back(b->GetDeltaPhiDecayAngle());		DON'T GET this, doesn't work, ERRORS
+    /*
+    observables.push_back(J0->GetMass());
+    observables.push_back(J0->GetCosDecayAngle());
+    observables.push_back(J0->GetDeltaPhiDecayAngle());
+
+    observables.push_back(J1->GetMass());
+    observables.push_back(J1->GetCosDecayAngle());
+    observables.push_back(J1->GetDeltaPhiDecayAngle());
+    */
+//wasn't able to save any l nor nu things
+
+    //TODO moved? after_analysis();
 
     /*std::default_random_engine generator;
     std::bernoulli_distribution dist(0.5);
     bool which = dist(generator);
     
     if (which) return std::make_tuple(calc_mass_Tbar, calc_mass_T); */
-    return result; //std::make_tuple(calc_mass_T, calc_mass_Tbar);
+    return observables; //std::make_tuple(calc_mass_T, calc_mass_Tbar);
 };
+
+// calculate_vecs() returns all the important four vectors of the frames in the tree
+RVec<TLorentzVector> Tprime_RestFrames_Handler::calculate_vecs() {
+    RVec<TLorentzVector> observables;
+
+    observables.push_back(TTbar->GetFourVector());
+    
+    observables.push_back(T->GetFourVector());
+    observables.push_back(T->GetFourVector(*TTbar));
+    
+    observables.push_back(Tbar->GetFourVector());
+    observables.push_back(Tbar->GetFourVector(*TTbar));
+    
+    observables.push_back(W->GetFourVector());
+    observables.push_back(W->GetFourVector(*TTbar));
+    observables.push_back(W->GetFourVector(*T));
+    
+    observables.push_back(b->GetFourVector());
+    observables.push_back(b->GetFourVector(*TTbar));
+    observables.push_back(b->GetFourVector(*T));
+    
+    /*observables.push_back(J0->GetFourVector());
+    observables.push_back(J0->GetFourVector(*TTbar));
+    observables.push_back(J0->GetFourVector(*Tbar));
+    observables.push_back(J1->GetFourVector());
+    observables.push_back(J1->GetFourVector(*TTbar));
+    observables.push_back(J1->GetFourVector(*Tbar)); */
+   
+    // no 4vecs for l and nu because it didn't work 
+
+    after_analysis();
+    
+    return observables;
+};
+
+
 
 class Tprime_RestFrames_Container : public RestFramesContainer {
     public:
         Tprime_RestFrames_Container(int num_threads);
         RestFramesHandler *create_handler() override;
 
-        RVec<float> compute_mass(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, float met_pt, float met_phi);
+        RVec<double> return_doubles(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, float met_pt, float met_phi);
+	
+	RVec<TLorentzVector> return_vecs(int thread_index);
 };
 
 Tprime_RestFrames_Container::Tprime_RestFrames_Container (int num_threads) : RestFramesContainer(num_threads){
@@ -226,11 +292,11 @@ RestFramesHandler * Tprime_RestFrames_Container::create_handler() {
     return new Tprime_RestFrames_Handler;
 }
 
-
-RVec<float> Tprime_RestFrames_Container::compute_mass(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, float met_pt, float met_phi) {
+// return_doubles() returns all the masses, cos angles, and deltaPhi angles of the frames in the tree
+RVec<double> Tprime_RestFrames_Container::return_doubles(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, float met_pt, float met_phi) {
 
     // This pointer should explicitly not be deleted!
-    Tprime_RestFrames_Handler *rfh = static_cast<Tprime_RestFrames_Handler *>(get_handler(thread_index));
+     Tprime_RestFrames_Handler *rfh = static_cast<Tprime_RestFrames_Handler *>(get_handler(thread_index));
 
     TLorentzVector jet_1;
     TLorentzVector jet_2;
@@ -252,18 +318,17 @@ RVec<float> Tprime_RestFrames_Container::compute_mass(int thread_index, float le
     double MET_px  = met_pt*std::cos(met_phi);
     double MET_py  = met_pt*std::sin(met_phi);
     met3  = TVector3(MET_px, MET_py, 0.0);
-    //std::tuple<float, float> masses = rfh->calculate_mass(lepton, met3, jet_1, jet_2, jet_3); //, jet_4);
-    std::array<double, 2> masses = rfh->calculate_mass(lepton, met3, jet_1, jet_2, jet_3); //, jet_4);
+    //std::tuple<float, float> masses = rfh->calculate_doubles(lepton, met3, jet_1, jet_2, jet_3); //, jet_4);
+    RVec<double> observables = rfh->calculate_doubles(lepton, met3, jet_1, jet_2, jet_3); //, jet_4);
 
-    RVec<float> mass_vec;
+    return observables;
+}
 
-    mass_vec.push_back(masses[0]);
-    mass_vec.push_back(masses[1]);
-    mass_vec.push_back(masses[2]);
-    mass_vec.push_back(masses[3]);
 
-    /*mass_vec.push_back(std::get<0>(masses));
-    mass_vec.push_back(std::get<1>(masses)); */
+// return_vecs() returns all the four vectors/TLorentzVectors of the frames in the tree
+RVec<TLorentzVector> Tprime_RestFrames_Container::return_vecs(int thread_index) {
+    // This pointer should explicitly not be deleted!
+    Tprime_RestFrames_Handler *rfh = static_cast<Tprime_RestFrames_Handler *>(get_handler(thread_index));
 
-    return mass_vec;
+    return rfh->calculate_vecs();
 }
