@@ -1,4 +1,3 @@
-// A
 // Self Derived Corrections 
 
 #include <TROOT.h>
