@@ -11,6 +11,7 @@ import correctionlib
 correctionlib.register_pyroot_binding()
 
 from memory_profiler import profile
+import time
 
 sys.path.append('../../')
 sys.path.append('../../../')
@@ -20,6 +21,15 @@ inputFiles = sys.argv[1] #fileList
 testNum1 = sys.argv[2]
 testNum2 = sys.argv[3]
 year = sys.argv[4]
+saveMode = sys.argv[5]
+
+savemode = "snapshot"
+if saveMode == "-hist" or saveMode == "--histograms": savemode = "histograms"
+
+#parser = argparse.ArgumentParser()
+#parser.add_argument("-save", "--savemode", dest = "savemode", default = "snapshot", help="Output mode (snapshot or histograms)")
+
+#args = parser.parse_args()
 
 # Make the New .txt file from line testNum1 to testNum2 because TIMBER can handle .txt of .root's files   
 print(f"Input File Path: {inputFiles}")
@@ -523,22 +533,31 @@ def analyze(jesvar):
   mode = 'RECREATE'
   if (jesvar != "Nominal"): mode = 'UPDATE'
   
-  a.Snapshot(columns, finalFile, "Events", lazy=False, openOption=mode, saveRunChain=True)
+  if savemode == "snapshot":
+    a.Snapshot(columns, finalFile, "Events", lazy=False, openOption=mode, saveRunChain=True)
   
-  print(f"Number of Columns in Snapshot: {i}")
+    print(f"Number of Columns in Snapshot: {i}")
+  elif savemode == "histograms": 
+    print("____Creating Histograms")
+    start_time = time.time()
+    myHist1 = a.GetActiveNode().DataFrame.Histo1D(('m_T', 'Mass of T lab', 25, 500, 2000), 'R_T_Mass')
+    myHist2 = a.GetActiveNode().DataFrame.Histo1D(('m_Tbar', 'Mass of Tbar lab', 25, 500, 2000), 'R_Tbar_Mass')
+    myHist3 = a.GetActiveNode().DataFrame.Histo1D(('m_T/m_Tbar', 'Mass ratio of the two particles', 25, 0, 2), 'R_mass_ratio')
+    myHist4 = a.GetActiveNode().DataFrame.Histo1D(('m_avg', 'Mass average of the two', 25, 500, 2000), 'R_mass_avg')
   
-  myHist1 = a.GetActiveNode().DataFrame.Histo1D(('m_T', 'Mass of T lab', 25, 500, 2000), 'R_T_Mass')
-  myHist2 = a.GetActiveNode().DataFrame.Histo1D(('m_Tbar', 'Mass of Tbar lab', 25, 500, 2000), 'R_Tbar_Mass')
-  myHist3 = a.GetActiveNode().DataFrame.Histo1D(('m_T/m_Tbar', 'Mass ratio of the two particles', 25, 0, 2), 'R_mass_ratio')
-  myHist4 = a.GetActiveNode().DataFrame.Histo1D(('m_avg', 'Mass average of the two', 25, 500, 2000), 'R_mass_avg')
-  
-  out = ROOT.TFile.Open('test_Tprime_out.root','RECREATE') #'UPDATE')
-  myHist1.Write()
-  myHist2.Write()
-  myHist3.Write()
-  myHist4.Write()
+    out = ROOT.TFile.Open('test_Tprime_out.root','RECREATE') #'UPDATE')
+    print("--- Open Histo File: %s minutes ---" % (round((time.time() - start_time)/60.,3)))
+    
+    myHist1.Write()
+    print("--- Writing Histos: %s minutes ---" % (round((time.time() - start_time)/60.,3)))
+    myHist2.Write()
+    print("--- Writing Histos: %s minutes ---" % (round((time.time() - start_time)/60.,3)))
+    myHist3.Write()
+    print("--- Writing Histos: %s minutes ---" % (round((time.time() - start_time)/60.,3)))
+    myHist4.Write()
+    print("--- Writing Histos: %s minutes ---" % (round((time.time() - start_time)/60.,3)))
 
-  out.Close()
+    out.Close()
   
   print("Cut statistics:")
   rep = a.DataFrame.Report()
