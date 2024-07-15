@@ -86,10 +86,10 @@ elif (isSig):
 #'root://cms-xrd-global.cern.ch//store/data/Run2018A/SingleMuon/NANOAOD/UL2018_MiniAODv2_NanoAODv9-v2/2550000/28FF17A8-95EB-FD41-A55B-2EFAF2D6AF91.root' 
 tokens = sampleName.split("/")
 sample = tokens[7] # was 5
+runera = tokens[6] # was 4
+process = tokens[9] # was 7
+era = runera[-1] # last char
 if not isMC: 
-  runera = tokens[6] # was 4
-  process = tokens[9] # was 7
-  era = runera[-1] # last char
   if (year == "2016APV" and era == "B" and ("ver1" not in process)): era = "A" 
 del tokens
 
@@ -107,8 +107,10 @@ if isMC:
 # ------------------ TIMBER Analyzer inputs ------------------
 num_threads = 1
 #file_name = 'root://cmsxrootd.fnal.gov//store/mc/RunIISummer20UL18NanoAODv9/TprimeTprime_M-1500_TuneCP5_13TeV-madgraph-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/40000/447AD74F-034B-FA42-AD05-CD476A98C43D.root'
-#file_name = 'ourtestfile.root'
+#file_name = 'ourtestfile.root' #FOR quick results
 #file_name = 'root://cms-xrd-global.cern.ch//store/data/Run2018A/SingleMuon/NANOAOD/UL2018_MiniAODv2_NanoAODv9-v2/2550000/28FF17A8-95EB-FD41-A55B-2EFAF2D6AF91.root' 
+
+#TODO change back
 file_name = 'trimmed_input.txt'
 
 # Import the C++
@@ -418,7 +420,7 @@ def analyze(jesvar):
   
   # ------------------ Results ------------------
   rframeVars = VarGroup('restFrameVars')
-  rframeVars.Add('RJR_doubles', 'rfc.return_doubles(rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, MET_pt, MET_phi)')
+  rframeVars.Add('RJR_doubles', 'rfc.return_doubles(rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, MET_pt, MET_phi, gcJet_pt, gcJet_eta, gcJet_phi, gcJet_mass, Isolated_AK4)')
   rframeVars.Add('RJR_vecs', 'rfc.return_vecs(rdfslot_)')
 
   rframeVars.Add("R_TTbar_Mass", 'RJR_doubles[0]')

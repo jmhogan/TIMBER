@@ -6,18 +6,13 @@
 #include <ROOT/RVec.hxx>
 #include <algorithm>
 #include <iostream>
-#include <array> //TODO think about replacing std::array<float, 4> with RVec<float>?
+//#include <array> //TODO think about replacing std::array<float, 4> with RVec<float>?
 #include <memory>
 #include <mutex>
 #include <random>
 
 using namespace RestFrames;
 using namespace ROOT::VecOps;
-
-union rfv {
-  double dbl;
-  TLorentzVector vect;
-};
 
 //RVec<union rfv>
 
@@ -45,10 +40,12 @@ class Tprime_RestFrames_Handler : public RestFramesHandler {
         // Jigsaws
 	std::unique_ptr<SetMassInvJigsaw> NuM;
 	std::unique_ptr<SetRapidityInvJigsaw> NuR;
+	std::unique_ptr<MinMassDiffInvJigsaw> MinDeltaMt;
 
-	std::unique_ptr<MinMassChi2CombJigsaw> MinChi2;
-
-        void define_tree() override;
+	//std::unique_ptr<MinMassChi2CombJigsaw> MinChi2;
+	std::unique_ptr<MinMassesCombJigsaw> MinMJets;
+        
+	void define_tree() override;
 	void define_groups_jigsaws() override;
 
     public:
@@ -112,7 +109,7 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     // -------------------- Define Jigsaws for reconstruction trees --------------
     std::string jigsaw_name;
 
-    // 1 Minimize equal (vector) top masses neutrino jigsaws
+    // 1 Minimize difference Mt jigsaws                not: Minimize equal (vector) top masses neutrino jigsaws
     jigsaw_name = "M_{#nu} = f(m_{b#it{l}J_{0}J_{1}} , m_{b#it{l}} , m_{J_{0}J_{1}})";
     NuM.reset(new SetMassInvJigsaw("NuM", jigsaw_name));
     INV->AddJigsaw(*NuM); 
@@ -126,11 +123,23 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     NuR->AddVisibleFrame(*Tbar); 
     //+*b+*Tbar);	//TODO not sure about this line
 
+    // 3
+    jigsaw_name = "min ( M_{T}- M_{Tbar} )^{2}";
+    MinDeltaMt.reset(new MinMassDiffInvJigsaw("MinDeltaMt", jigsaw_name, 2));
+    INV->AddJigsaw(*MinDeltaMt);
+    MinDeltaMt->AddInvisibleFrame(*nu, 0);
+    //MinDeltaMt.AddInvisibleFrame(Nb_R4, 1);
+    MinDeltaMt->AddVisibleFrames(*l+*b, 0);
+    MinDeltaMt->AddVisibleFrame(*Tbar, 1); //OR *J0+*J1, 1) ???
+    MinDeltaMt->AddMassFrame(*T, 0);
+    MinDeltaMt->AddMassFrame(*Tbar, 1);
+    //MinDeltaMt.AddMassFrame(Lb_R4, 1); //???
+
     // 4 Combinatoric Jigsaws 
     // MinMassesSqCombJigsaw worked but same problem as MinMassesCombJigsaw
     // MinMassDiffCombJigsaw Initialized Analysis but fell into some infinite loop
     // MinMassChi2ComJigsaw works very well
-    jigsaw_name = "Minimize Chi^2";
+    /*jigsaw_name = "Minimize Chi^2";
     MinChi2.reset(new MinMassChi2CombJigsaw("MinChi2", jigsaw_name, 2, 2));
     JETS->AddJigsaw(*MinChi2);
     MinChi2->AddObjectFrame(*l, 0);
@@ -141,7 +150,16 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     MinChi2->SetMass(1435, 0);
     MinChi2->SetSigma(205.2, 0);
     MinChi2->SetMass(1456, 1);
-    MinChi2->SetSigma(173.2, 1); 
+    MinChi2->SetSigma(173.2, 1); */ 
+
+    // MinMassesCombJigsaw, combinatoric jigsaws for everything else...
+    jigsaw_name = "Minimize M(b #it{l} ) , M(Tbar)"; //M(J0 J1 )
+    
+    MinMJets.reset(new MinMassesCombJigsaw("MinCombJets", jigsaw_name));
+    JETS->AddJigsaw(*MinMJets);
+    MinMJets->AddFrames(*l+*b,0);
+    MinMJets->AddFrame(*Tbar,1);
+    //MinMJets->AddFrame(*Tbar,1);
 
     /*--------------------jigsaw_name = "Minimize Masses of Jets b, J0, J1";
     MinJJ.reset(new MinMassesCombJigsaw("MinJET", jigsaw_name));
@@ -279,7 +297,7 @@ class Tprime_RestFrames_Container : public RestFramesContainer {
         Tprime_RestFrames_Container(int num_threads);
         RestFramesHandler *create_handler() override;
 
-        RVec<double> return_doubles(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, float met_pt, float met_phi);
+        RVec<double> return_doubles(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> fatjet_pt, RVec<float> fatjet_eta, RVec<float> fatjet_phi, RVec<float> fatjet_mass, float met_pt, float met_phi, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, RVec<float> isoAK4);
 	
 	RVec<TLorentzVector> return_vecs(int thread_index);
 };
@@ -293,14 +311,14 @@ RestFramesHandler * Tprime_RestFrames_Container::create_handler() {
 }
 
 // return_doubles() returns all the masses, cos angles, and deltaPhi angles of the frames in the tree
-RVec<double> Tprime_RestFrames_Container::return_doubles(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, float met_pt, float met_phi) {
+RVec<double> Tprime_RestFrames_Container::return_doubles(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> fatjet_pt, RVec<float> fatjet_eta, RVec<float> fatjet_phi, RVec<float> fatjet_mass, float met_pt, float met_phi, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, RVec<float> isoAK4) {
 
     // This pointer should explicitly not be deleted!
      Tprime_RestFrames_Handler *rfh = static_cast<Tprime_RestFrames_Handler *>(get_handler(thread_index));
 
-    TLorentzVector jet_1;
-    TLorentzVector jet_2;
-    TLorentzVector jet_3;
+    TLorentzVector fatjet_1;
+    TLorentzVector fatjet_2;
+    TLorentzVector fatjet_3;
   //  TLorentzVector jet_4;
 
     TLorentzVector lepton;
@@ -310,16 +328,16 @@ RVec<double> Tprime_RestFrames_Container::return_doubles(int thread_index, float
     lepton.SetPtEtaPhiM(lepton_pt, lepton_eta, lepton_phi, lepton_mass);  //TODO in the future we want to make sure the muon/lepton is good enough
     //lepton.SetPtEtaPhiM(lepton_pt[0], lepton_eta[0], lepton_phi[0], lepton_mass[0]);  //TODO in the future we want to make sure the muon/lepton is good enough
 
-    jet_1.SetPtEtaPhiM(jet_pt[0], jet_eta[0], jet_phi[0], jet_mass[0]);
-    jet_2.SetPtEtaPhiM(jet_pt[1], jet_eta[1], jet_phi[1], jet_mass[1]);
-    jet_3.SetPtEtaPhiM(jet_pt[2], jet_eta[2], jet_phi[2], jet_mass[2]);
+    fatjet_1.SetPtEtaPhiM(fatjet_pt[0], fatjet_eta[0], fatjet_phi[0], fatjet_mass[0]);
+    fatjet_2.SetPtEtaPhiM(fatjet_pt[1], fatjet_eta[1], fatjet_phi[1], fatjet_mass[1]);
+    fatjet_3.SetPtEtaPhiM(fatjet_pt[2], fatjet_eta[2], fatjet_phi[2], fatjet_mass[2]);
 //    jet_4.SetPtEtaPhiM(jet_pt[3], jet_eta[3], jet_phi[3], jet_mass[3]);
     
     double MET_px  = met_pt*std::cos(met_phi);
     double MET_py  = met_pt*std::sin(met_phi);
     met3  = TVector3(MET_px, MET_py, 0.0);
     //std::tuple<float, float> masses = rfh->calculate_doubles(lepton, met3, jet_1, jet_2, jet_3); //, jet_4);
-    RVec<double> observables = rfh->calculate_doubles(lepton, met3, jet_1, jet_2, jet_3); //, jet_4);
+    RVec<double> observables = rfh->calculate_doubles(lepton, met3, fatjet_1, fatjet_2, fatjet_3); //, jet_4);
 
     return observables;
 }
