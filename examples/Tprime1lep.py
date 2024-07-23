@@ -104,6 +104,10 @@ if isMC:
   if (("_ext2" in sampleName)): era = "ext2"
   if (("_ext3" in sampleName)): era = "ext3"
 
+region = "Signal"
+if isSig:   region = "Signal" # TPrimeTPrime or BPrimeBPrime
+elif isTT:  region = "TTToSemiLeptonic" # TTToSemiLeptonic
+
 # ------------------ TIMBER Analyzer inputs ------------------
 num_threads = 1
 #file_name = 'root://cmsxrootd.fnal.gov//store/mc/RunIISummer20UL18NanoAODv9/TprimeTprime_M-1500_TuneCP5_13TeV-madgraph-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/40000/447AD74F-034B-FA42-AD05-CD476A98C43D.root'
@@ -139,9 +143,10 @@ ROOT.gInterpreter.Declare("""
   string year = \"""" + year + """\"; 
   string sample = \"""" + sample + """\";
   string jecera = \"""" + jecera + """\";
+  string region = \"""" + region + """\";
 
   bool isMC = """+str(isMC).lower()+"""; 
-  bool debug = """+str(debug).lower()+"""; 
+  bool debug = """+str(debug).lower()+""";
 """)
 
 
@@ -238,7 +243,6 @@ def analyze(jesvar):
   metCuts = CutGroup('METCuts')
   metCuts.Add('MET Filters', 'Flag_EcalDeadCellTriggerPrimitiveFilter == 1 && Flag_goodVertices == 1 && Flag_HBHENoiseFilter == 1 && Flag_HBHENoiseIsoFilter == 1 && Flag_eeBadScFilter == 1 && Flag_globalSuperTightHalo2016Filter == 1 && Flag_BadPFMuonFilter == 1 && Flag_ecalBadCalibFilter == 1')
   metCuts.Add('Pass MET > 50', 'MET_pt > 50')
-  metCuts.Add('Event has jets',        'nJet > 0 && nFatJet > 0') # need jets 
   
   # ------------------ Golden JSON (Data) || GEN Info (MC) ------------------
   gjsonVars = VarGroup('GoldenJsonVars')
@@ -248,6 +252,7 @@ def analyze(jesvar):
     gjsonCuts.Add("Data passes Golden JSON", "passesJSON == 1") 
   else:
     gjsonVars.Add("PileupWeights", "pufunc(corrPU, Pileup_nTrueInt)")
+  gjsonCuts.Add('Event has jets',  'nJet > 0 && nFatJet > 0') # need jets 
   
   # ------------------ LEPTON Definitions ------------------
   lVars = VarGroup('LeptonVars')
@@ -420,6 +425,7 @@ def analyze(jesvar):
   
   # ------------------ Results ------------------
   rframeVars = VarGroup('restFrameVars')
+
   rframeVars.Add('RJR_doubles', 'rfc.return_doubles(rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, MET_pt, MET_phi, gcJet_pt, gcJet_eta, gcJet_phi, gcJet_mass, Isolated_AK4)')
   rframeVars.Add('RJR_vecs', 'rfc.return_vecs(rdfslot_)')
 
@@ -481,8 +487,12 @@ def analyze(jesvar):
   # ------------------ Apply Var and Cut Groups------------------ 
   
   
-  nodeToPlot = a.Apply([gjsonVars, gjsonCuts, lVars, lCuts]) 
-  
+  nodeToPlot = a.Apply([gjsonVars, gjsonCuts, lVars, lCuts])
+
+# We want the BW decays that go to l + nu
+  a.Define("decayMODE", "decayModeSelection(region, nGenPart,GenPart_pdgId,GenPart_mass,GenPart_pt,GenPart_phi,GenPart_eta,GenPart_genPartIdxMother,GenPart_status)")	
+  a.Cut("bW decay && W --> l nu decay", "decayMODE == 101 || decayMODE == 201 || decayMODE == 105 || decayMODE == 106") 
+
   # Solution to cleanJets() problem:
   #       The analyzer .Apply() calls the analyzer .Define().  This .Define() calls self._collectionOrg.CollectionDefCheck(var, newNode).
   #  This method executes this line: if re.search(r"\b" + re.escape(c+'s') + r"\b", action_str) and (c+'s' not in self._builtCollections):
@@ -493,7 +503,7 @@ def analyze(jesvar):
   newNode = a.ActiveNode.Apply(jVars)
   a.SetActiveNode(newNode)
   
-  a.Apply([jCuts, metVars, rframeVars])
+  a.Apply([jCuts, metVars, metCuts, rframeVars])
   
   allColumns = a.GetColumnNames()
   columns = [] #allColumns
@@ -521,13 +531,14 @@ def analyze(jesvar):
     if col.startswith("nGen") or col.startswith("nIso") or col.startswith("nLow"): continue
     if col.startswith("nOther") or col.startswith("nPS") or col.startswith("nPhoton"): continue
     if col.startswith("nSV") or col.startswith("nSub") or col.startswith("nTau") or col.startswith("nTrig"): continue
-    if col.startswith("nboosted"): continue
+    #if col.startswith("nboosted") or col == "boostedTau_decayMode": continue
     if col.startswith("RJR"): continue
     #TODO need to figure out how to exclude the things related to nSub and Sub.
     columns.append(col)
     i = i + 1
     #if i > 49: continue
   
+
   #TODO think do we really want to recreate this everytime?  or just create?
   
   finalFile = "RDF_" + sample + era + "_" + year + "_" + str(testNum1) + ".root"
@@ -574,8 +585,9 @@ def analyze(jesvar):
 if not isMC:
   analyze("Nominal")
 else:
-  shifts = ["Nominal","JECup","JECdn","JERup","JERdn"]
-  for shift in shifts:
-    analyze(shift)
+  analyze("Nominal")
+  #TODO fix why this not work?  shifts = ["Nominal","JECup","JECdn","JERup","JERdn"]
+  #for shift in shifts:
+  #  analyze(shift)
 
 os.remove('trimmed_input.txt')
