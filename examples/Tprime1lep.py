@@ -114,7 +114,6 @@ num_threads = 1
 #file_name = 'ourtestfile.root' #FOR quick results
 #file_name = 'root://cms-xrd-global.cern.ch//store/data/Run2018A/SingleMuon/NANOAOD/UL2018_MiniAODv2_NanoAODv9-v2/2550000/28FF17A8-95EB-FD41-A55B-2EFAF2D6AF91.root' 
 
-#TODO change back
 file_name = 'trimmed_input.txt'
 
 # Import the C++
@@ -176,7 +175,7 @@ def analyze(jesvar):
   
   # ------------------ Self-derived corrections ------------------
   
-  #TODO more things here
+  #TODO more things here?
   
       # Lepton scale factors not in correctionLib
   ROOT.gInterpreter.ProcessLine('initialize(year);')
@@ -491,7 +490,7 @@ def analyze(jesvar):
 
 # We want the BW decays that go to l + nu
   a.Define("decayMODE", "decayModeSelection(region, nGenPart,GenPart_pdgId,GenPart_mass,GenPart_pt,GenPart_phi,GenPart_eta,GenPart_genPartIdxMother,GenPart_status)")	
-  a.Cut("bW decay && W --> l nu decay", "decayMODE == 101 || decayMODE == 201 || decayMODE == 105 || decayMODE == 106") 
+  a.Cut("bW decay && W --> l nu decay", "decayMODE == 101 || decayMODE == 105 || decayMODE == 106") 
 
   # Solution to cleanJets() problem:
   #       The analyzer .Apply() calls the analyzer .Define().  This .Define() calls self._collectionOrg.CollectionDefCheck(var, newNode).
@@ -539,8 +538,6 @@ def analyze(jesvar):
     #if i > 49: continue
   
 
-  #TODO think do we really want to recreate this everytime?  or just create?
-  
   finalFile = "RDF_" + sample + era + "_" + year + "_" + str(testNum1) + ".root"
   
   mode = 'RECREATE'

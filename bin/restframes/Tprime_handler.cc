@@ -40,11 +40,13 @@ class Tprime_RestFrames_Handler : public RestFramesHandler {
         // Jigsaws
 	std::unique_ptr<SetMassInvJigsaw> NuM;
 	std::unique_ptr<SetRapidityInvJigsaw> NuR;
-	std::unique_ptr<MinMassDiffInvJigsaw> MinDeltaMt;
-
+	//std::unique_ptr<MinMassDiffInvJigsaw> MinDeltaMt;
+        std::unique_ptr<ContraBoostInvJigsaw> MinContraMt;
+	
 	//std::unique_ptr<MinMassChi2CombJigsaw> MinChi2;
-	std::unique_ptr<MinMassesCombJigsaw> MinMJets;
-        
+	//std::unique_ptr<MinMassesCombJigsaw> MinMJets;
+	std::unique_ptr<MinMassDiffCombJigsaw> MinDiffJets;
+
 	void define_tree() override;
 	void define_groups_jigsaws() override;
 
@@ -124,7 +126,16 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     //+*b+*Tbar);	//TODO not sure about this line
 
     // 3
-    jigsaw_name = "min ( M_{T}- M_{Tbar} )^{2}";
+
+    jigsaw_name = "min M_{T}, M_{T} = M_{Tbar}";
+    MinContraMt.reset(new ContraBoostInvJigsaw("MinContraMt", jigsaw_name));
+    INV->AddJigsaw(*MinContraMt);
+    MinContraMt->AddVisibleFrames(*l+*b, 0);
+    MinContraMt->AddVisibleFrame(*Tbar, 1);
+    MinContraMt->AddInvisibleFrame(*nu, 0);
+
+    // MinMassDiffInv was ok, not best
+    /*jigsaw_name = "min ( M_{T}- M_{Tbar} )^{2}";
     MinDeltaMt.reset(new MinMassDiffInvJigsaw("MinDeltaMt", jigsaw_name, 2));
     INV->AddJigsaw(*MinDeltaMt);
     MinDeltaMt->AddInvisibleFrame(*nu, 0);
@@ -134,7 +145,7 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     MinDeltaMt->AddMassFrame(*T, 0);
     MinDeltaMt->AddMassFrame(*Tbar, 1);
     //MinDeltaMt.AddMassFrame(Lb_R4, 1); //???
-
+*/
     // 4 Combinatoric Jigsaws 
     // MinMassesSqCombJigsaw worked but same problem as MinMassesCombJigsaw
     // MinMassDiffCombJigsaw Initialized Analysis but fell into some infinite loop
@@ -153,14 +164,28 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     MinChi2->SetSigma(173.2, 1); */ 
 
     // MinMassesCombJigsaw, combinatoric jigsaws for everything else...
-    jigsaw_name = "Minimize M(b #it{l} ) , M(Tbar)"; //M(J0 J1 )
+/*    jigsaw_name = "Minimize M(b #it{l} ) , M(Tbar)"; //M(J0 J1 )
     
     MinMJets.reset(new MinMassesCombJigsaw("MinCombJets", jigsaw_name));
     JETS->AddJigsaw(*MinMJets);
     MinMJets->AddFrames(*l+*b,0);
     MinMJets->AddFrame(*Tbar,1);
-    //MinMJets->AddFrame(*Tbar,1);
-
+*/
+    // MinMassDiffCombJigsaw
+    jigsaw_name = "min ( M_{T}- M_{Tbar} )^{2}";
+  
+    MinDiffJets.reset(new MinMassDiffCombJigsaw("MinDiffJets", jigsaw_name, 2, 1)); // last param is the # of object frames that need to be calculated.  2 doesn't work
+    JETS->AddJigsaw(*MinDiffJets);
+    MinDiffJets->AddObjectFrames(*l+*b, 0);
+    MinDiffJets->AddCombFrame(*b, 0);
+    MinDiffJets->AddObjectFrame(*Tbar, 1); 
+    MinDiffJets->AddCombFrame(*Tbar, 1);
+    /*
+    MinDiffJets->AddVisibleFrames(*l+*b, 0);
+    MinDiffJets->AddVisibleFrame(*Tbar, 1); //OR *J0+*J1, 1) ???
+    MinDiffJets->AddMassFrame(*T, 0);
+    MinDiffJets->AddMassFrame(*Tbar, 1);
+    */
     /*--------------------jigsaw_name = "Minimize Masses of Jets b, J0, J1";
     MinJJ.reset(new MinMassesCombJigsaw("MinJET", jigsaw_name));
     JETS->AddJigsaw(*MinJJ);
