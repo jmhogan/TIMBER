@@ -18,16 +18,17 @@ using namespace ROOT::VecOps;
 
 class Tprime_RestFrames_Handler : public RestFramesHandler {
     private:
-
+	//bW tree and (H/Z)t tree
         // Reconstruction frames
         std::unique_ptr<DecayRecoFrame> TTbar;
         std::unique_ptr<DecayRecoFrame> T;
         std::unique_ptr<VisibleRecoFrame> Tbar;
-        
+
+	std::unique_ptr<DecayRecoFrame> t;
+	std::unique_ptr<VisibleRecoFrame> J0; // this is the Z/H boson
+		
 	std::unique_ptr<DecayRecoFrame> W;
         std::unique_ptr<VisibleRecoFrame> b;
-        //std::unique_ptr<VisibleRecoFrame> J0;
-        //std::unique_ptr<VisibleRecoFrame> J1;
 
         std::unique_ptr<VisibleRecoFrame> l;
         std::unique_ptr<InvisibleRecoFrame> nu;
@@ -35,7 +36,9 @@ class Tprime_RestFrames_Handler : public RestFramesHandler {
         // Groups
         std::unique_ptr<CombinatoricGroup> JETS;
 
-        std::unique_ptr<InvisibleGroup> INV;
+	std::unique_ptr<CombinatoricGroup> SMTOP;
+       
+       	std::unique_ptr<InvisibleGroup> INV;
         
         // Jigsaws
 	std::unique_ptr<SetMassInvJigsaw> NuM;
@@ -43,16 +46,17 @@ class Tprime_RestFrames_Handler : public RestFramesHandler {
 	//std::unique_ptr<MinMassDiffInvJigsaw> MinDeltaMt;
         std::unique_ptr<ContraBoostInvJigsaw> MinContraMt;
 	
-	//std::unique_ptr<MinMassChi2CombJigsaw> MinChi2;
 	//std::unique_ptr<MinMassesCombJigsaw> MinMJets;
 	std::unique_ptr<MinMassDiffCombJigsaw> MinDiffJets;
+
+	std::unique_ptr<MinMassChi2CombJigsaw> MinChi2;
 
 	void define_tree() override;
 	void define_groups_jigsaws() override;
 
     public:
         Tprime_RestFrames_Handler();
-        RVec<double> calculate_doubles(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3); //, TLorentzVector &jet4);
+        RVec<double> calculate_doubles(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3, RVec<TLorentzVector> &AK4s);
 	//std::tuple<float,float>
 	
 	RVec<TLorentzVector> calculate_vecs();
@@ -72,17 +76,24 @@ void Tprime_RestFrames_Handler::define_tree() {
     Tbar.reset(new VisibleRecoFrame("Tbar", "#bar{T}"));
     TTbar->AddChildFrame(*T);
     TTbar->AddChildFrame(*Tbar);
-    // T -> W b
-    W.reset(new DecayRecoFrame("W","W"));
-    b.reset(new VisibleRecoFrame("b", "b"));
-    T->AddChildFrame(*W);
-    T->AddChildFrame(*b);
+    
+    // T -> t J0 (Z or H) 
+    t.reset(new DecayRecoFrame("t","t"));
+    J0.reset(new VisibleRecoFrame("J0", "J0_{AK8}"));
+    T->AddChildFrame(*t);
+    T->AddChildFrame(*J0);
 
 /*    J1.reset(new VisibleRecoFrame("J1", "J1_{AK8}"));
-    J0.reset(new VisibleRecoFrame("J0","J0_{AK8}"));
+    J2.reset(new VisibleRecoFrame("J2","J2_{AK8}"));
     Tbar->AddChildFrame(*J1);
-    Tbar->AddChildFrame(*J0);	*/
+    Tbar->AddChildFrame(*J2);	*/
     
+    // t -> W b 
+    W.reset(new DecayRecoFrame("W","W"));
+    b.reset(new VisibleRecoFrame("b", "b"));
+    t->AddChildFrame(*W);
+    t->AddChildFrame(*b);
+
     // W -> l nu
     l.reset(new VisibleRecoFrame("l", "#it{l}"));
     nu.reset(new InvisibleRecoFrame("nu", "#nu"));
@@ -93,17 +104,30 @@ void Tprime_RestFrames_Handler::define_tree() {
 void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     // Combinatoric Group for jets
     JETS.reset(new CombinatoricGroup("JETS", "Jet Jigsaws"));
-    JETS->AddFrame(*b);
+    JETS->AddFrame(*J0);
     JETS->AddFrame(*Tbar);
     //JETS->AddFrame(*J1);
-    //JETS->AddFrame(*J0);
+    //JETS->AddFrame(*J2);
 
     // jet frames must have at least one element
-    JETS->SetNElementsForFrame(*b, 1);
+    JETS->SetNElementsForFrame(*J0, 1);
     JETS->SetNElementsForFrame(*Tbar, 2);
     //JETS->SetNElementsForFrame(*J1, 1);
-    //JETS->SetNElementsForFrame(*J0, 1);
+    //JETS->SetNElementsForFrame(*J2, 1);
     
+    // Combinatoric Group for SM top quark reconstruction
+    SMTOP.reset(new CombinatoricGroup("SMTOP", "Standard Model top Jigsaw"));
+    SMTOP->AddFrame(*b);
+    SMTOP->SetNElementsForFrame(*b, 1);  //TODO was 1!
+   /*
+    * So if I put it to 1 it errors cause some events don't have the good ak8 isolated b-tagged jets?
+    * if I put it to 0 it never puts anything to the b
+    *
+    * Is there a way to switch trees for when there are no ak8 isolated b-tagged jets in this event?  revert to the 1st tree?
+    * ah have 2 trees, but then switch which tree you put the stuff in (MET, jets, lepton, etc), and which tree you analyze() 
+    *
+    *
+    */ 
     // Invisible Group for Neutrino
     INV.reset(new InvisibleGroup("INV", "MET Jigsaws"));
     INV->AddFrame(*nu);
@@ -117,12 +141,13 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     INV->AddJigsaw(*NuM); 
     
     // 2 
-    jigsaw_name = "#eta_{#nu} = #eta_{b #it{l} Tbar}";
+    jigsaw_name = "#eta_{#nu} = #eta_{J_{0} b #it{l} Tbar}";
     NuR.reset(new SetRapidityInvJigsaw("NuR", jigsaw_name));
     INV->AddJigsaw(*NuR);
     NuR->AddVisibleFrame(*l); 
     NuR->AddVisibleFrame(*b); 
     NuR->AddVisibleFrame(*Tbar); 
+    NuR->AddVisibleFrame(*J0);
     //+*b+*Tbar);	//TODO not sure about this line
 
     // 3
@@ -130,7 +155,7 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     jigsaw_name = "min M_{T}, M_{T} = M_{Tbar}";
     MinContraMt.reset(new ContraBoostInvJigsaw("MinContraMt", jigsaw_name));
     INV->AddJigsaw(*MinContraMt);
-    MinContraMt->AddVisibleFrames(*l+*b, 0);
+    MinContraMt->AddVisibleFrames(*J0+*l+*b, 0);
     MinContraMt->AddVisibleFrame(*Tbar, 1);
     MinContraMt->AddInvisibleFrame(*nu, 0);
 
@@ -148,20 +173,8 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
 */
     // 4 Combinatoric Jigsaws 
     // MinMassesSqCombJigsaw worked but same problem as MinMassesCombJigsaw
-    // MinMassDiffCombJigsaw Initialized Analysis but fell into some infinite loop
+    // MinMassDiffCombJigsaw Now Works!!!
     // MinMassChi2ComJigsaw works very well
-    /*jigsaw_name = "Minimize Chi^2";
-    MinChi2.reset(new MinMassChi2CombJigsaw("MinChi2", jigsaw_name, 2, 2));
-    JETS->AddJigsaw(*MinChi2);
-    MinChi2->AddObjectFrame(*l, 0);
-    MinChi2->AddObjectFrame(*b, 0);
-    MinChi2->AddCombFrame(*b, 0);
-    MinChi2->AddObjectFrame(*Tbar, 1);
-    MinChi2->AddCombFrame(*Tbar, 1);
-    MinChi2->SetMass(1435, 0);
-    MinChi2->SetSigma(205.2, 0);
-    MinChi2->SetMass(1456, 1);
-    MinChi2->SetSigma(173.2, 1); */ 
 
     // MinMassesCombJigsaw, combinatoric jigsaws for everything else...
 /*    jigsaw_name = "Minimize M(b #it{l} ) , M(Tbar)"; //M(J0 J1 )
@@ -176,16 +189,23 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
   
     MinDiffJets.reset(new MinMassDiffCombJigsaw("MinDiffJets", jigsaw_name, 2, 1)); // last param is the # of object frames that need to be calculated.  2 doesn't work
     JETS->AddJigsaw(*MinDiffJets);
-    MinDiffJets->AddObjectFrames(*l+*b, 0);
-    MinDiffJets->AddCombFrame(*b, 0);
+    MinDiffJets->AddObjectFrames(*J0+*l+*b, 0);
+    MinDiffJets->AddCombFrame(*J0, 0);
     MinDiffJets->AddObjectFrame(*Tbar, 1); 
     MinDiffJets->AddCombFrame(*Tbar, 1);
-    /*
-    MinDiffJets->AddVisibleFrames(*l+*b, 0);
-    MinDiffJets->AddVisibleFrame(*Tbar, 1); //OR *J0+*J1, 1) ???
-    MinDiffJets->AddMassFrame(*T, 0);
-    MinDiffJets->AddMassFrame(*Tbar, 1);
-    */
+    
+    // JET group 2 for SM t quark
+    jigsaw_name = "Minimize Chi^2";
+    MinChi2.reset(new MinMassChi2CombJigsaw("MinChi2", jigsaw_name, 1, 1)); // may need to change second number to 2
+    SMTOP->AddJigsaw(*MinChi2);
+    MinChi2->AddObjectFrame(*l, 0);
+    MinChi2->AddObjectFrame(*b, 0);
+    MinChi2->AddCombFrame(*b, 0);
+    //MinChi2->AddObjectFrame(*t, 0);
+    //MinChi2->AddCombFrame(*t, 0);
+    MinChi2->SetMass(171.77, 0);
+    MinChi2->SetSigma(0.38, 0);
+    
     /*--------------------jigsaw_name = "Minimize Masses of Jets b, J0, J1";
     MinJJ.reset(new MinMassesCombJigsaw("MinJET", jigsaw_name));
     JETS->AddJigsaw(*MinJJ);
@@ -221,7 +241,7 @@ void Tprime_RestFrames_Handler::define_groups_jigsaws() {
     // MinTauTau->AddFrame(*TAUb,1);
 };
 
-RVec<double> Tprime_RestFrames_Handler::calculate_doubles(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3) { //, TLorentzVector &jet4) {
+RVec<double> Tprime_RestFrames_Handler::calculate_doubles(TLorentzVector &lepton, TVector3 &met3, TLorentzVector &jet1, TLorentzVector &jet2, TLorentzVector &jet3, RVec<TLorentzVector> &AK4s) {
     before_analysis();
     
     INV->SetLabFrameThreeVector(met3);	
@@ -233,8 +253,12 @@ RVec<double> Tprime_RestFrames_Handler::calculate_doubles(TLorentzVector &lepton
     JETS_ID.push_back(JETS->AddLabFrameFourVector(jet3));
     JETS_ID.push_back(JETS->AddLabFrameFourVector(jet1));
     JETS_ID.push_back(JETS->AddLabFrameFourVector(jet2));
-    //JETS_ID.push_back(JETS->AddLabFrameFourVector(jet4));
-    //b->SetLabFrameFourVector(jet4));
+    
+    //TODO wait a sec what am I doing here?
+    for (int i = 0; i < AK4s.size(); i++) {
+      JETS_ID.push_back(SMTOP->AddLabFrameFourVector(AK4s[i]));
+    //b->SetLabFrameFourVector(jetak4);
+    } // if this loop is skipped that means there were no T -> t -> b W
 
     LAB->AnalyzeEvent(); // analyze the event
 
@@ -322,7 +346,7 @@ class Tprime_RestFrames_Container : public RestFramesContainer {
         Tprime_RestFrames_Container(int num_threads);
         RestFramesHandler *create_handler() override;
 
-        RVec<double> return_doubles(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> fatjet_pt, RVec<float> fatjet_eta, RVec<float> fatjet_phi, RVec<float> fatjet_mass, float met_pt, float met_phi, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, RVec<float> isoAK4);
+        RVec<double> return_doubles(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> fatjet_pt, RVec<float> fatjet_eta, RVec<float> fatjet_phi, RVec<float> fatjet_mass, float met_pt, float met_phi, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, RVec<float> jet_DeepFlav, RVec<float> isoAK4);
 	
 	RVec<TLorentzVector> return_vecs(int thread_index);
 };
@@ -336,15 +360,15 @@ RestFramesHandler * Tprime_RestFrames_Container::create_handler() {
 }
 
 // return_doubles() returns all the masses, cos angles, and deltaPhi angles of the frames in the tree
-RVec<double> Tprime_RestFrames_Container::return_doubles(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> fatjet_pt, RVec<float> fatjet_eta, RVec<float> fatjet_phi, RVec<float> fatjet_mass, float met_pt, float met_phi, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, RVec<float> isoAK4) {
+RVec<double> Tprime_RestFrames_Container::return_doubles(int thread_index, float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass, RVec<float> fatjet_pt, RVec<float> fatjet_eta, RVec<float> fatjet_phi, RVec<float> fatjet_mass, float met_pt, float met_phi, RVec<float> jet_pt, RVec<float> jet_eta, RVec<float> jet_phi, RVec<float> jet_mass, RVec<float> jet_DeepFlav, RVec<float> isoAK4) {
 
     // This pointer should explicitly not be deleted!
-     Tprime_RestFrames_Handler *rfh = static_cast<Tprime_RestFrames_Handler *>(get_handler(thread_index));
+    Tprime_RestFrames_Handler *rfh = static_cast<Tprime_RestFrames_Handler *>(get_handler(thread_index));
 
     TLorentzVector fatjet_1;
     TLorentzVector fatjet_2;
     TLorentzVector fatjet_3;
-  //  TLorentzVector jet_4;
+    RVec<TLorentzVector> jets;
 
     TLorentzVector lepton;
 
@@ -356,13 +380,29 @@ RVec<double> Tprime_RestFrames_Container::return_doubles(int thread_index, float
     fatjet_1.SetPtEtaPhiM(fatjet_pt[0], fatjet_eta[0], fatjet_phi[0], fatjet_mass[0]);
     fatjet_2.SetPtEtaPhiM(fatjet_pt[1], fatjet_eta[1], fatjet_phi[1], fatjet_mass[1]);
     fatjet_3.SetPtEtaPhiM(fatjet_pt[2], fatjet_eta[2], fatjet_phi[2], fatjet_mass[2]);
-//    jet_4.SetPtEtaPhiM(jet_pt[3], jet_eta[3], jet_phi[3], jet_mass[3]);
     
+
+    int i = 0;
+
+    //for (; isoAK4[i] != 1 && jet_DeepFlav[i] != 1 && i < isoAK4.size(); i++); // find the first stand alone ak4 jet
+    //jet_4.SetPtEtaPhiM(jet_pt[i], jet_eta[i], jet_phi[i], jet_mass[i]);
+
+    // Make an RVec of valid jets for the possible b.
+    TLorentzVector jet;
+    for (i = 0; i < isoAK4.size(); i++) {
+      //  stand alone         b-tagged
+      if (isoAK4[i] == 1 && jet_DeepFlav[i] == 1) {
+	jet.SetPtEtaPhiM(jet_pt[i], jet_eta[i], jet_phi[i], jet_mass[i]);
+	jets.push_back(jet);
+      } 
+    }   
+	
+
     double MET_px  = met_pt*std::cos(met_phi);
     double MET_py  = met_pt*std::sin(met_phi);
     met3  = TVector3(MET_px, MET_py, 0.0);
     //std::tuple<float, float> masses = rfh->calculate_doubles(lepton, met3, jet_1, jet_2, jet_3); //, jet_4);
-    RVec<double> observables = rfh->calculate_doubles(lepton, met3, fatjet_1, fatjet_2, fatjet_3); //, jet_4);
+    RVec<double> observables = rfh->calculate_doubles(lepton, met3, fatjet_1, fatjet_2, fatjet_3, jets); //jet_4);
 
     return observables;
 }

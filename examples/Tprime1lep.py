@@ -26,11 +26,6 @@ saveMode = sys.argv[5]
 savemode = "snapshot"
 if saveMode == "-hist" or saveMode == "--histograms": savemode = "histograms"
 
-#parser = argparse.ArgumentParser()
-#parser.add_argument("-save", "--savemode", dest = "savemode", default = "snapshot", help="Output mode (snapshot or histograms)")
-
-#args = parser.parse_args()
-
 # Make the New .txt file from line testNum1 to testNum2 because TIMBER can handle .txt of .root's files   
 print(f"Input File Path: {inputFiles}")
 with open(inputFiles) as fp:
@@ -397,6 +392,10 @@ def analyze(jesvar):
   jVars.Add("gcJet_phi", "reorder(cleanJet_phi[goodcleanJets == true],gcJet_ptargsort)")
   jVars.Add("gcJet_mass", "reorder(cleanJet_mass[goodcleanJets == true],gcJet_ptargsort)")
   jVars.Add("gcJet_vetomap", "jetvetofunc(jetvetocorr, gcJet_eta, gcJet_phi)")
+  jVars.Add("gcJet_DeepFlav", "reorder(Jet_btagDeepFlavB[goodcleanJets == true],gcJet_ptargsort)")
+  #jVars.Add("gcJet_DeepFlavL", Form("gcJet_DeepFlav > %f",deepjetL)) 
+  jVars.Add("gcJet_DeepFlavL", "gcJet_DeepFlav > deepjetL") 
+  jVars.Add("NJets_DeepFlavL", "Sum(gcJet_DeepFlavL)")
 
           #fatjet vars
   jVars.Add("gcFatJet_pt_unsort", "FatJet_pt[goodcleanFatJets == true]")
@@ -425,7 +424,7 @@ def analyze(jesvar):
   # ------------------ Results ------------------
   rframeVars = VarGroup('restFrameVars')
 
-  rframeVars.Add('RJR_doubles', 'rfc.return_doubles(rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, MET_pt, MET_phi, gcJet_pt, gcJet_eta, gcJet_phi, gcJet_mass, Isolated_AK4)')
+  rframeVars.Add('RJR_doubles', 'rfc.return_doubles(rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, MET_pt, MET_phi, gcJet_pt, gcJet_eta, gcJet_phi, gcJet_mass, gcJet_DeepFlav, Isolated_AK4)')
   rframeVars.Add('RJR_vecs', 'rfc.return_vecs(rdfslot_)')
 
   rframeVars.Add("R_TTbar_Mass", 'RJR_doubles[0]')
@@ -473,7 +472,7 @@ def analyze(jesvar):
   rframeVars.Add("R_J1_4VectTTbar", 'RJR_vecs[]');
   rframeVars.Add("R_J1_4VectTbar", 'RJR_vecs[]');
   '''
-#NONE of the l or nu stuff were able to be received ##TODO try to save as much as possible
+#NONE of the l or nu stuff were able to be received 
 #  rframeVars.Add("R_l_CosAngle", 'RJR_doubles[13]');
   #rframeVars.Add("R_l_DeltaPhiAngle", 'RJR_doubles[17]');
 
@@ -490,7 +489,8 @@ def analyze(jesvar):
 
 # We want the BW decays that go to l + nu
   a.Define("decayMODE", "decayModeSelection(region, nGenPart,GenPart_pdgId,GenPart_mass,GenPart_pt,GenPart_phi,GenPart_eta,GenPart_genPartIdxMother,GenPart_status)")	
-  a.Cut("bW decay && W --> l nu decay", "decayMODE == 101 || decayMODE == 105 || decayMODE == 106") 
+  #a.Cut("bW decay && W --> l nu decay", "decayMODE == 101 || decayMODE == 105 || decayMODE == 106") 
+  a.Cut("leptonic SM top decay", "(1002 <= decayMODE && decayMODE <= 1007) || decayMODE == 1011 || decayMODE == 1012")
 
   # Solution to cleanJets() problem:
   #       The analyzer .Apply() calls the analyzer .Define().  This .Define() calls self._collectionOrg.CollectionDefCheck(var, newNode).

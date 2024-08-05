@@ -416,11 +416,13 @@ int decayModeSelection(string region, unsigned int nGenPart, ROOT::VecOps::RVec<
   for (int i = 0; i < tIDs.size(); i++) {
     index = prev = tIDs.at(i);
     
-    for (++index;index < nGenPart; index++) {
+    for (++index; index < nGenPart; index++) {
       if (GenPart_genPartIdxMother[index] == prev) { // Found a child of t!
         child = abs(GenPart_pdgId[index]);
 
 	if (child == 6) { // it's a t
+	  prev = index;
+	} else if (child == 24) { // it's a W
 	  prev = index;
 	} else if (11 <= child && child <= 16) { // it's a lepton!
           decayMode += 1000;
