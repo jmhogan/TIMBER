@@ -121,14 +121,19 @@ CompileCpp('TIMBER/Framework/Tprime1lep/corr_funcs.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/generatorInfo.cc')
 ROOT.gInterpreter.ProcessLine('#include "TString.h"')
 
-handler_name = 'Tprime_handler.cc'
-class_name = 'Tprime_RestFrames_Container'
+handler_name1 = 'Tprime_handler_W.cc'
+handler_name2 = 'Tprime_handler_t.cc'
+class_name1 = 'Tprime_RestFrames_Container_W'
+class_name2 = 'Tprime_RestFrames_Container_t'
 
 # Enable using 4 threads
 ROOT.ROOT.EnableImplicitMT(num_threads)
 
-# load rest frames handler
-load_restframes(num_threads, handler_name, class_name, 'rfc')
+# load rest frames handlers
+load_restframes(num_threads, handler_name1, class_name1, 'W_rfc')
+load_restframes(num_threads, handler_name2, class_name2, 't_rfc')
+
+CompileCpp('../bin/restframes/helper.cc')
 
 # ------------------ Important Variables ------------------
 debug = False
@@ -142,7 +147,6 @@ ROOT.gInterpreter.Declare("""
   bool isMC = """+str(isMC).lower()+"""; 
   bool debug = """+str(debug).lower()+""";
 """)
-
 
 
 # ------------------ Analyze Function ------------------
@@ -162,7 +166,7 @@ def analyze(jesvar):
   elif (year == "2017"): jsonfile = jsonfile + "Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt"
   elif (year == "2018"): jsonfile = jsonfile + "Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt"
   else: print(f'ERROR: Can\'t parse the year to assign a golden json file. Expected 2016, 2016APV, 2017, or 2018. Got: {year}\n')
-  
+    
   ROOT.gInterpreter.Declare("""
     const auto myLumiMask = lumiMask::fromJSON(\"""" + jsonfile + """\");
     //  std::cout << "Testing the JSON! Known good run/lumi returns: " << myLumiMask.accept(315257, 10) << ", and known bad run returns: " << myLumiMask.accept(315257, 90) << std::endl;
@@ -282,7 +286,6 @@ def analyze(jesvar):
   lVars.Add("VetoIsoEl", "(VetoEl == true && Electron_pt < 55)")
   lVars.Add("nVetoIsoLep", "(int) (Sum(VetoIsoMu)+Sum(VetoIsoEl))")
   
-  
   # ------------------ LEPTON SELECTION ------------------
   
   # ||||||||||||||||||||| TODO ||||||||||||||||||||||||
@@ -330,6 +333,7 @@ def analyze(jesvar):
   jVars.Add("FatJet_P4", "fVectorConstructor(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass)")
   jVars.Add("Jet_EmEF","Jet_neEmEF + Jet_chEmEF")
   jVars.Add("DummyZero","float(0.0)")
+          
           # Clean Jets
   if isMC:          #TODO fix dummy comments
     jVars.Add("GenJet_P4","fVectorConstructor(GenJet_pt,GenJet_eta,GenJet_phi,GenJet_mass)")
@@ -424,60 +428,65 @@ def analyze(jesvar):
   # ------------------ Results ------------------
   rframeVars = VarGroup('restFrameVars')
 
-  rframeVars.Add('RJR_doubles', 'rfc.return_doubles(rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, MET_pt, MET_phi, gcJet_pt, gcJet_eta, gcJet_phi, gcJet_mass, gcJet_DeepFlav, Isolated_AK4)')
-  rframeVars.Add('RJR_vecs', 'rfc.return_vecs(rdfslot_)')
+  #rframeVars.Add('RJR_doubles', 'rfc.return_doubles(rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, MET_pt, MET_phi, gcJet_pt, gcJet_eta, gcJet_phi, gcJet_mass, gcJet_DeepFlav, Isolated_AK4)')
+  rframeVars.Add('RJR_doubles', 'processDecayTree(&W_rfc, &t_rfc, rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, gcJet_DeepFlav, MET_pt, MET_phi, gcJet_pt, gcJet_eta, gcJet_phi, gcJet_mass, gcJet_DeepFlav, Isolated_AK4)')
+  #rframeVars.Add('RJR_vecs', 'rfc.return_vecs(rdfslot_)')
+  rframeVars.Add('RJR_vecs', 'returnVectors(&W_rfc, &t_rfc, rdfslot_, gcJet_DeepFlav, Isolated_AK4)')
 
   rframeVars.Add("R_TTbar_Mass", 'RJR_doubles[0]')
-  rframeVars.Add("R_TTbar_CosAngle", 'RJR_doubles[1]');
-  rframeVars.Add("R_TTbar_DeltaPhiAngle", 'RJR_doubles[2]');
-  rframeVars.Add("R_TTbar_4VectLAB", 'RJR_vecs[0]');
+  rframeVars.Add("R_TTbar_CosAngle", 'RJR_doubles[1]')
+  rframeVars.Add("R_TTbar_DeltaPhiAngle", 'RJR_doubles[2]')
+  rframeVars.Add("R_TTbar_4VectLAB", 'RJR_vecs[0]')
   
-  rframeVars.Add("R_T_Mass", 'RJR_doubles[3]');
-  rframeVars.Add("R_T_CosAngle", 'RJR_doubles[4]');
-  rframeVars.Add("R_T_DeltaPhiAngle", 'RJR_doubles[5]');
-  rframeVars.Add("R_T_4VectLAB", 'RJR_vecs[1]');
-  rframeVars.Add("R_T_4VectTTbar", 'RJR_vecs[2]');
+  rframeVars.Add("R_T_Mass", 'RJR_doubles[3]')
+  rframeVars.Add("R_T_CosAngle", 'RJR_doubles[4]')
+  rframeVars.Add("R_T_DeltaPhiAngle", 'RJR_doubles[5]')
+  rframeVars.Add("R_T_4VectLAB", 'RJR_vecs[1]')
+  rframeVars.Add("R_T_4VectTTbar", 'RJR_vecs[2]')
 
-  rframeVars.Add("R_Tbar_Mass", 'RJR_doubles[6]');
-  rframeVars.Add("R_Tbar_CosAngle", 'RJR_doubles[7]');
-  #rframeVars.Add("R_Tbar_DeltaPhiAngle", 'RJR_doubles[8]');
-  rframeVars.Add("R_Tbar_4VectLAB", 'RJR_vecs[3]');
-  rframeVars.Add("R_Tbar_4VectTTbar", 'RJR_vecs[4]');
+  rframeVars.Add("R_Tbar_Mass", 'RJR_doubles[6]')
+  rframeVars.Add("R_Tbar_CosAngle", 'RJR_doubles[7]')
+  #rframeVars.Add("R_Tbar_DeltaPhiAngle", 'RJR_doubles[8]')
+  rframeVars.Add("R_Tbar_4VectLAB", 'RJR_vecs[3]')
+  rframeVars.Add("R_Tbar_4VectTTbar", 'RJR_vecs[4]')
 
-  rframeVars.Add("R_W_Mass", 'RJR_doubles[8]');
-  rframeVars.Add("R_W_CosAngle", 'RJR_doubles[9]');
-  rframeVars.Add("R_W_DeltaPhiAngle", 'RJR_doubles[10]');
-  rframeVars.Add("R_W_4VectLAB", 'RJR_vecs[5]');
-  rframeVars.Add("R_W_4VectTTbar", 'RJR_vecs[6]');
-  rframeVars.Add("R_W_4VectT", 'RJR_vecs[7]');
+  rframeVars.Add("R_W_Mass", 'RJR_doubles[8]')
+  rframeVars.Add("R_W_CosAngle", 'RJR_doubles[9]')
+  rframeVars.Add("R_W_DeltaPhiAngle", 'RJR_doubles[10]')
+  rframeVars.Add("R_W_4VectLAB", 'RJR_vecs[5]')
+  rframeVars.Add("R_W_4VectTTbar", 'RJR_vecs[6]')
+  rframeVars.Add("R_W_4VectT", 'RJR_vecs[7]')
 
-  rframeVars.Add("R_b_Mass", 'RJR_doubles[11]');
-  rframeVars.Add("R_b_CosAngle", 'RJR_doubles[12]');
-  #rframeVars.Add("R_b_DeltaPhiAngle", 'RJR_doubles[14]');
-  rframeVars.Add("R_b_4VectLAB", 'RJR_vecs[8]');
-  rframeVars.Add("R_b_4VectTTbar", 'RJR_vecs[9]');
-  rframeVars.Add("R_b_4VectT", 'RJR_vecs[10]');
+  rframeVars.Add("R_b_Mass", 'RJR_doubles[11]')
+  rframeVars.Add("R_b_CosAngle", 'RJR_doubles[12]')
+  #rframeVars.Add("R_b_DeltaPhiAngle", 'RJR_doubles[14]')
+  rframeVars.Add("R_b_4VectLAB", 'RJR_vecs[8]')
+  rframeVars.Add("R_b_4VectTTbar", 'RJR_vecs[9]')
+  rframeVars.Add("R_b_4VectT", 'RJR_vecs[10]')
+ 
+  rframeVars.Add("R_treeMODE", 'RJR_doubles[13]')
+
   '''
-  rframeVars.Add("R_J0_Mass", 'RJR_doubles[]');
-  rframeVars.Add("R_J0_CosAngle", 'RJR_doubles[]');
-  rframeVars.Add("R_J0_DeltaPhiAngle", 'RJR_doubles[]');
-  rframeVars.Add("R_J0_4VectLAB", 'RJR_vecs[]');
-  rframeVars.Add("R_J0_4VectTTbar", 'RJR_vecs[]');
-  rframeVars.Add("R_J0_4VectTbar", 'RJR_vecs[]');
+  rframeVars.Add("R_J0_Mass", 'RJR_doubles[]')
+  rframeVars.Add("R_J0_CosAngle", 'RJR_doubles[]')
+  rframeVars.Add("R_J0_DeltaPhiAngle", 'RJR_doubles[]')
+  rframeVars.Add("R_J0_4VectLAB", 'RJR_vecs[]')
+  rframeVars.Add("R_J0_4VectTTbar", 'RJR_vecs[]')
+  rframeVars.Add("R_J0_4VectTbar", 'RJR_vecs[]')
   
-  rframeVars.Add("R_J1_Mass", 'RJR_doubles[]');
-  rframeVars.Add("R_J1_CosAngle", 'RJR_doubles[]');
-  rframeVars.Add("R_J1_DeltaPhiAngle", 'RJR_doubles[]');
-  rframeVars.Add("R_J1_4VectLAB", 'RJR_vecs[]');
-  rframeVars.Add("R_J1_4VectTTbar", 'RJR_vecs[]');
-  rframeVars.Add("R_J1_4VectTbar", 'RJR_vecs[]');
+  rframeVars.Add("R_J1_Mass", 'RJR_doubles[]')
+  rframeVars.Add("R_J1_CosAngle", 'RJR_doubles[]')
+  rframeVars.Add("R_J1_DeltaPhiAngle", 'RJR_doubles[]')
+  rframeVars.Add("R_J1_4VectLAB", 'RJR_vecs[]')
+  rframeVars.Add("R_J1_4VectTTbar", 'RJR_vecs[]')
+  rframeVars.Add("R_J1_4VectTbar", 'RJR_vecs[]')
   '''
 #NONE of the l or nu stuff were able to be received 
-#  rframeVars.Add("R_l_CosAngle", 'RJR_doubles[13]');
-  #rframeVars.Add("R_l_DeltaPhiAngle", 'RJR_doubles[17]');
+#  rframeVars.Add("R_l_CosAngle", 'RJR_doubles[13]')
+  #rframeVars.Add("R_l_DeltaPhiAngle", 'RJR_doubles[17]')
 
-#  rframeVars.Add("R_Nu_CosAngle", 'RJR_doubles[14]');
-  #rframeVars.Add("R_Nu_DeltaPhiAngle", 'RJR_doubles[20]');
+#  rframeVars.Add("R_Nu_CosAngle", 'RJR_doubles[14]')
+  #rframeVars.Add("R_Nu_DeltaPhiAngle", 'RJR_doubles[20]')
   
   rframeVars.Add('R_mass_ratio', 'R_T_Mass/R_Tbar_Mass')
   rframeVars.Add('R_mass_avg', '(R_T_Mass+R_Tbar_Mass)*0.5')
@@ -490,7 +499,7 @@ def analyze(jesvar):
 # We want the BW decays that go to l + nu
   a.Define("decayMODE", "decayModeSelection(region, nGenPart,GenPart_pdgId,GenPart_mass,GenPart_pt,GenPart_phi,GenPart_eta,GenPart_genPartIdxMother,GenPart_status)")	
   #a.Cut("bW decay && W --> l nu decay", "decayMODE == 101 || decayMODE == 105 || decayMODE == 106") 
-  a.Cut("leptonic SM top decay", "(1002 <= decayMODE && decayMODE <= 1007) || decayMODE == 1011 || decayMODE == 1012")
+  a.Cut("leptonic SM top decay", "(1002 <= decayMODE && decayMODE <= 1007) || decayMODE == 1011 || decayMODE == 1012 || decayMODE == 101 || decayMODE == 105 || decayMODE == 106") 
 
   # Solution to cleanJets() problem:
   #       The analyzer .Apply() calls the analyzer .Define().  This .Define() calls self._collectionOrg.CollectionDefCheck(var, newNode).

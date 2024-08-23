@@ -1,6 +1,7 @@
 // Methods in this file:
-// leptonicCheck(), Electron_cutBasedIdNoIso_tight(), genttbarMassCalc(C), fVectorConstructor(), lvConstructor(C), DeltaR_VecAndFloat(), ptRel()
+// leptonicCheck(), Electron_cutBasedIdNoIso_tight(), genttbarMassCalc(C), fVectorConstructor(), lvConstructor(C), DeltaR_VecAndFloat(), ptRel() 
 // I put some of the methods in here becasue I didn't know where else to put them.
+
 
 using namespace std;
 using namespace ROOT::VecOps;
@@ -169,3 +170,4 @@ ROOT::VecOps::RVec<float> floorfunc(ROOT::VecOps::RVec<float> items)
   }
   return floored;
 };
+
