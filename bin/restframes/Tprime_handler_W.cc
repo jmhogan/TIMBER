@@ -222,6 +222,12 @@ RVec<double> Tprime_RestFrames_Handler_W::calculate_doubles(TLorentzVector &lept
     
     observables.push_back(b->GetMass());
     observables.push_back(b->GetCosDecayAngle());
+
+    observables.push_back(TTbar->GetDeltaPhiVisible());
+    observables.push_back(TTbar->GetDeltaPhiDecayVisible());
+    observables.push_back(TTbar->GetDeltaPhiBoostVisible());
+    observables.push_back(TTbar->GetVisibleShape());
+    
   //observables.push_back(b->GetDeltaPhiDecayAngle());		DON'T GET this, doesn't work, ERRORS
     /*
     observables.push_back(J0->GetMass());
@@ -325,14 +331,18 @@ RVec<double> Tprime_RestFrames_Container_W::return_doubles(int thread_index, flo
     //std::tuple<float, float> masses = rfh->calculate_doubles(lepton, met3, jet_1, jet_2, jet_3);
     RVec<double> observables = rfh->calculate_doubles(lepton, met3, fatjet_1, fatjet_2, fatjet_3); 
 
+    //std::cout << "in return_doubles, about to return" << std::endl;
     return observables;
 }
 
 
 // return_vecs() returns all the four vectors/TLorentzVectors of the frames in the tree
 RVec<TLorentzVector> Tprime_RestFrames_Container_W::return_vecs(int thread_index) {
-    // This pointer should explicitly not be deleted!
-    Tprime_RestFrames_Handler_W *rfh = static_cast<Tprime_RestFrames_Handler_W *>(get_handler(thread_index));
+  // This pointer should explicitly not be deleted!
+  //std::cout << "in return_vecs, about to get the handler" << std::endl;
+  Tprime_RestFrames_Handler_W *rfh = static_cast<Tprime_RestFrames_Handler_W *>(get_handler(thread_index));
+  //std::cout << "in return_vecs, about to call calculates_vecs" << std::endl;
+  return rfh->calculate_vecs();
+  //std::cout << "done with calculate vecs" << std::endl;
 
-    return rfh->calculate_vecs();
 }

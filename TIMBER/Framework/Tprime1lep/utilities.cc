@@ -1,8 +1,8 @@
 // Methods in this file:
-// leptonicCheck(), Electron_cutBasedIdNoIso_tight(), genttbarMassCalc(C), fVectorConstructor(), lvConstructor(C), DeltaR_VecAndFloat(), ptRel() 
+// leptonicCheck(), Electron_cutBasedIdNoIso_tight(), genttbarMassCalc(C), fVectorConstructor(), lvConstructor(C), DeltaR_VecAndFloat(), ptRel()
 // I put some of the methods in here becasue I didn't know where else to put them.
 
-
+// genttbarMassCalc(C) MOVED to generatorInfo.cc
 using namespace std;
 using namespace ROOT::VecOps;
 
@@ -67,7 +67,7 @@ auto Electron_cutBasedIdNoIso_tight(unsigned int nElectron, RVec<int> &Electron_
 
 
 // -------------------------------------------
-// 	  TLORENTZVECTOR CONSTRUCTOR
+//    TLORENTZVECTOR CONSTRUCTOR
 // -------------------------------------------
 RVec<TLorentzVector> fVectorConstructor(RVec<float> &pt, RVec<float> &eta, RVec<float> &phi, RVec<float> &mass)
 {
@@ -118,18 +118,21 @@ ROOT::VecOps::RVec<float> DeltaR_VecAndFloat(ROOT::VecOps::RVec<float>& jet_eta,
   return DR;
 };
 
-//cami
+
+// --------------------------------------------
+//           PICK ISOLATED AK4 JETS
+// --------------------------------------------
 ROOT::VecOps::RVec<float> standalone_Jet(ROOT::VecOps::RVec<float>& gcJet_eta, ROOT::VecOps::RVec<float>& gcJet_phi, ROOT::VecOps::RVec<float>& gcFatJet_eta, ROOT::VecOps::RVec<float>& gcFatJet_phi)
 {
   ROOT::VecOps::RVec<float> lone_Jet (gcJet_eta.size());
   for(int i = 0; i < gcJet_eta.size(); i++) {
-	int passes = 1;
-	for (int k = 0; k < gcFatJet_eta.size(); k++) {
-		if (DeltaR(gcJet_eta[i],gcFatJet_eta[k],gcJet_phi[i],gcFatJet_phi[k]) <0.8) {
-			passes = 0;
-		}
-	}
-	lone_Jet[i] = passes;
+ int passes = 1;
+ for (int k = 0; k < gcFatJet_eta.size(); k++) {
+  if (DeltaR(gcJet_eta[i],gcFatJet_eta[k],gcJet_phi[i],gcFatJet_phi[k]) <0.8) {
+   passes = 0;
+  }
+ }
+ lone_Jet[i] = passes;
   }
   return lone_Jet;
 }
@@ -170,4 +173,3 @@ ROOT::VecOps::RVec<float> floorfunc(ROOT::VecOps::RVec<float> items)
   }
   return floored;
 };
-

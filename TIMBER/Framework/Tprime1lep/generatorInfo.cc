@@ -1,6 +1,6 @@
 // Methods in this file:
 // genttbarMassCalc() decayModeSelection() 	//TODO BtoTW generatorInfo.cc has a lot more funcs
-
+#include <iostream>
 using namespace ROOT::VecOps;
 using namespace std;
 
@@ -77,6 +77,7 @@ int genttbarMassCalc(string sample, unsigned int nGenPart, RVec<int> &GenPart_pd
 // ----------------------------------------------------
 int decayModeSelection(string region, unsigned int nGenPart, ROOT::VecOps::RVec<int>& GenPart_pdgId, ROOT::VecOps::RVec<float>& GenPart_mass, ROOT::VecOps::RVec<float>& GenPart_pt, ROOT::VecOps::RVec<float>& GenPart_phi, ROOT::VecOps::RVec<float>& GenPart_eta, ROOT::VecOps::RVec<int>& GenPart_genPartIdxMother, ROOT::VecOps::RVec<int>& GenPart_status)
 {
+  //  std::cout << "Hello! Made it to decayModeSelection!" << std::endl;
   std::vector<int> tPrimeID;
   std::vector<int> bPrimeID;
   std::vector<int> listofQuarkIDs;
@@ -304,7 +305,7 @@ int decayModeSelection(string region, unsigned int nGenPart, ROOT::VecOps::RVec<
   	if(abs(listofBosonIDs.at(0)) == 24 && abs(listofBosonIDs.at(1)) == 24)
   	  {
   	    isTWTW = true;
-  	    decayMode = 1; // TWTW ID!
+  	    decayMode = 7; // TWTW ID!
 	    wIDs.push_back(bosons.at(0));
 	    wIDs.push_back(bosons.at(1));
   	  }
@@ -316,22 +317,22 @@ int decayModeSelection(string region, unsigned int nGenPart, ROOT::VecOps::RVec<
   	if(listofBosonIDs.at(0) == 23 && listofBosonIDs.at(1) == 23)
   	  {
   	    isBZBZ = true;
-  	    decayMode = 2; // BZBZ ID!
+  	    decayMode = 8; // BZBZ ID!
   	  }
   	else if(listofBosonIDs.at(0) == 25 && listofBosonIDs.at(1) == 25)
   	  {
   	    isBHBH = true;
-  	    decayMode = 3; // BHBH ID!
+  	    decayMode = 9; // BHBH ID!
   	  }
   	else if(listofBosonIDs.at(0) == 25 && listofBosonIDs.at(1) == 23)
   	  {
   	    isBZBH = true;
-  	    decayMode = 4; // BZBH ID!
+  	    decayMode = 10; // BZBH ID!
   	  }
   	else if(listofBosonIDs.at(0) == 23 && listofBosonIDs.at(1) == 25)
   	  {
   	    isBZBH = true;
-  	    decayMode = 4; //BZBH ID!
+  	    decayMode = 10; //BZBH ID!
   	  }
   	else
   	  {
@@ -345,13 +346,13 @@ int decayModeSelection(string region, unsigned int nGenPart, ROOT::VecOps::RVec<
   	if(listofBosonIDs.at(0) == 23 && abs(listofBosonIDs.at(1)) == 24)
   	  {
   	    isBZTW = true;
-  	    decayMode = 5; // BZTW ID!
+  	    decayMode = 11; // BZTW ID!
 	    wIDs.push_back(bosons.at(1));
   	  }
   	else if(listofBosonIDs.at(0) == 25 && abs(listofBosonIDs.at(1)) == 24)
   	  {
   	    isBHTW = true;
-  	    decayMode = 6; // BHTW ID!
+  	    decayMode = 12; // BHTW ID!
 	    wIDs.push_back(bosons.at(1));
   	  }
   	else{std::cout<< "b - t pair didn't match Z/H - W pair" << listofBosonIDs.at(0)<<", "<<listofBosonIDs.at(1) << std::endl;}
@@ -363,13 +364,13 @@ int decayModeSelection(string region, unsigned int nGenPart, ROOT::VecOps::RVec<
   	if(listofBosonIDs.at(1) == 23 && abs(listofBosonIDs.at(0)) == 24)
   	  {
   	    isBZTW = true;
-  	    decayMode = 5; // BZTW ID!
+  	    decayMode = 11; // BZTW ID!
 	    wIDs.push_back(bosons.at(0));
   	  }
   	else if(listofBosonIDs.at(1) == 25 && abs(listofBosonIDs.at(0)) == 24)
   	  {
   	    isBHTW = true;
-  	    decayMode = 6; // BHTW ID!
+  	    decayMode = 12; // BHTW ID!
 	    wIDs.push_back(bosons.at(0));
   	  }
   	else{std::cout<< "t - b pair didn't match W - Z/H pair" << listofBosonIDs.at(0)<<", "<<listofBosonIDs.at(1) << std::endl;}
@@ -431,7 +432,8 @@ int decayModeSelection(string region, unsigned int nGenPart, ROOT::VecOps::RVec<
       }
     }
   }
-  
+
+  //  std::cout << "Returning decayMode = " << decayMode << std::endl;
   return decayMode;
 }
 
