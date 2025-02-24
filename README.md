@@ -9,7 +9,7 @@ Default arguments assume the use of the NanoAOD format but any ROOT TTree can be
 These instructions use python3 and CMSSW. The instructions below are for the cmslpc-el9 cluster for the Run 3 BB -> (b tau tau)(b tau tau) search.
 
 ```
-source /cvmfs/cms.cern.ch/cmsset_default.csh # this should go in your ~/.bashrc or ~/.bash_profile so it's done automatically when you log in
+source /cvmfs/cms.cern.ch/cmsset_default.sh # this should go in your ~/.bashrc or ~/.bash_profile so it's done automatically when you log in
 mkdir nobackup/BBto2b4tau
 cd nobackup/BBto2b4tau/
 cmsrel CMSSW_13_2_10
@@ -52,7 +52,7 @@ source setup.sh
 You only need to do the installation and compile instructions once. To get back into your TIMBER environment for editing and running our code: 
 
 ```
-source /cvmfs/cms.cern.ch/cmsset_default.csh # this should go in your ~/.bashrc or ~/.bash_profile so it's done automatically when you log in
+source /cvmfs/cms.cern.ch/cmsset_default.sh # this should go in your ~/.bashrc or ~/.bash_profile so it's done automatically when you log in
 cd nobackup/BBto2b4tau/CMSSW_13_2_10
 cmsenv
 cd ../
