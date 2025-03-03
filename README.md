@@ -53,12 +53,13 @@ You only need to do the installation and compile instructions once. To get back 
 
 ```
 source /cvmfs/cms.cern.ch/cmsset_default.sh # this should go in your ~/.bashrc or ~/.bash_profile so it's done automatically when you log in
+voms-proxy-init --voms cms --valid 168:00 # will be valid for a week, only needed when it's needed
 cd nobackup/BBto2b4tau/CMSSW_13_2_10
 cmsenv
 cd ../
 source timber-env/bin/activate
 cd TIMBER/
-python3 BBto2b4tau.py testfile_SIGNAL_2022.txt 0 0 2022 # args are: file list, first file number, last file number, year
+python3 BBTo2b4tau.py testfile_SIGNAL_2022.txt 0 0 2022 # args are: file list, first file number, last file number, year
 ```
 
 Two test files have been made for the "2022" data segment: `testfile_DATA_2022.txt` and `testfile_SIGNAL_2022.txt`.
