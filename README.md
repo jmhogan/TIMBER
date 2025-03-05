@@ -6,23 +6,24 @@ Default arguments assume the use of the NanoAOD format but any ROOT TTree can be
 
 ## Installation instructions for python3
 
-These instructions use python3 and CMSSW. The instructions below have been tested on el8 (lxplus and lpc). To make it work on lxplus9 (el9), the CMSSW version should be changed to CMSSW_13_2_10.
+These instructions use python3 and CMSSW. The instructions below are for the cmslpc-el9 cluster for the Run 3 BB -> (b tau tau)(b tau tau) search.
 
 ```
-cmsrel CMSSW_12_3_5
-cd CMSSW_12_3_5
+source /cvmfs/cms.cern.ch/cmsset_default.sh # this should go in your ~/.bashrc or ~/.bash_profile so it's done automatically when you log in
+mkdir nobackup/BBto2b4tau
+cd nobackup/BBto2b4tau/
+cmsrel CMSSW_13_2_10
+cd CMSSW_13_2_10
 cmsenv
 cd ..
 python3 -m virtualenv timber-env
-git clone --branch restframes_devel git@github.com:JHU-Tools/TIMBER.git
+git clone --branch restframes_devel git@github.com:jmhogan/TIMBER.git  ## this requires an "SSH key" for cmslpc-el9. If you don't have it, use the https:// clone method
 cd TIMBER/bin/
 git clone git@github.com:fmtlib/fmt.git
 cd ../../
 ```
 
-Boost library path (the boost version as well!) may change depending on the CMSSW version so this may need to be modified by hand. This version works for both CMSSW versions used for lxplus8 and lxplus9. If one does not wish to use CMSSW, boost libraries will have to be installed (and added to the MakeFile).
-
-Copy the whole multi-line string to the environment activation script
+Copy this entire code snippet below to the terminal and hit enter. It will add this information about the boost library paths to the activation script via the "cat" command.
 
 ```
 cat <<EOT >> timber-env/bin/activate
@@ -38,7 +39,7 @@ fi
 EOT
 ```
 
-This will activate the python3 environment, set a proper LD_LIBRARY_PATH for boost libraries and build the TIMBER binaries
+Now you can activate the python3 environment, set a proper LD_LIBRARY_PATH for boost libraries and build the TIMBER binaries
 
 ```
 source timber-env/bin/activate
@@ -46,78 +47,20 @@ cd TIMBER
 source setup.sh
 ```
 
-## Quick install
-Despite the fact that Python 2.7 reached end-of-life on January 1st, 2020, it is still the dominant
-version used by CMS. If you need CMSSW (ex. for JME modules), Python 2.7 is recommended. Otherwise,
-please take this opportunity to start using Python 3! Remember to make sure your 
-ROOT version has been built with Python 3 compatibility. For information on how to do this, see
-[this explanation](doxysetup/Python3.md). Though this does not always work consistently when CMSSW code is needed.
+## Everyday run setup
 
-Working in a virtual environment is also recommended. Below are the commands for using virtualenv but
-you're obviously free to use your favorite tool for the job (you can install virtualenv for Python 3 with 
-`pip install virtualenv` (`pip3` for Python 3)).
+You only need to do the installation and compile instructions once. To get back into your TIMBER environment for editing and running our code: 
 
 ```
-python -m virtualenv timber-env
+source /cvmfs/cms.cern.ch/cmsset_default.sh # this should go in your ~/.bashrc or ~/.bash_profile so it's done automatically when you log in
+voms-proxy-init --voms cms --valid 168:00 # will be valid for a week, only needed when it's needed
+cd nobackup/BBto2b4tau/CMSSW_13_2_10
+cmsenv
+cd ../
 source timber-env/bin/activate
-git clone https://github.com/ammitra/TIMBER.git
-cd TIMBER
-source setup.sh
+cd TIMBER/
+python3 BBTo2b4tau.py testfile_SIGNAL_2022.txt 0 0 2022 # args are: file list, first file number, last file number, year
 ```
 
-Some C++ modules also have the [boost library](https://www.boost.org/) as a dependency.
-The internet has plenty instructions on how to install boost. The standard `apt-get`
-(Ubuntu) and `brew` (macOS) package managers support install as well.
+Two test files have been made for the "2022" data segment: `testfile_DATA_2022.txt` and `testfile_SIGNAL_2022.txt`.
 
-## The RDataFrame Backbone
-TIMBER's speed comes from the use of 
-[ROOT's RDataFrame](https://root.cern/doc/master/classROOT_1_1RDataFrame.html). 
-RDataFrame offers "multi-threading and other low-level optimisations" which make analysis level
-processing faster and more efficient than traditional python `for` loops. However,
-RDataFrame derives its speed from its C++ back-end and while an RDataFrame object can be instantiated
-and manipulated in python, any actions on it are written in C++ (even if you're using python).
-
-## No more `for` loops
-Using RDataFrame means a fundamental re-thinking of how we treat a block of data or simulation.
-Instead of looping over the events or entries of a TTree (or other data format), the TTree is
-converted into a table called the "data frame". A user then books a number of "lazy" actions on 
-the data frame such as filtering out events or calculating new values. These actions aren't performed
-though until the data frame needs to be evaluated (ex. you ask to plot a histogram from it). 
-
-In this way, there are no more `for` loops and instead just actions on the data frame table that 
-transform it into a final table of values that the analyzer cares about. 
-
-## Anatomy of a data frame
-Each row of the table is a separate event and each
-column is a different variable in the event (a branch in TTree terms). Columns can be single values or
-vectors (specifically [ROOT::VecOps:RVec](https://root.cern.ch/doc/v614/classROOT_1_1VecOps_1_1RVec.html)).
-
-Since each row is an event, vectors are necessary for the case of multiple of the same physics object in 
-an event - for example, multiple electrons. 
-
-**NOTE** NanoAOD orders these vectors in \f$p_T\f$ of the objects. So if you'd like the \f$\eta\f$ of the leading electron, it is stored as `Electron_eta[0]`
-
-This can make accessing values tricky! For example, if there's one electron in an event and the analyzer asks for `Electron_eta[1]`, the computer will return a seg fault. These are the types of problems that TIMBER attempts to solve (even if it's just by users sharing their experiences).
-
-## Happy Analyzers
-TIMBER is meant to keep both the processing fast via RDataFrame and the analyzer fast via python scripting.
-
-To maintain python's appeal in HEP as a quick scripting language, TIMBER handles
-interfacing with RDataFrame so the analyzer can focus on writing their analysis.
-
-TIMBER automates opening one or many ROOT files, calculating the number of events generated 
-(provided the ROOT files are NanoAOD simulation), loading in C++ scripts for use while looping over
-the data frame, and grouping actions for easy manipulation.
-
-In addition, TIMBER treats each step in the RDataFrame processing as a "node" and keeps track of these nodes as a larger tree. 
-Each action (or group of actions) performed on a node produces another node and nodes store information about their parents or children. This makes it possible to write tools like `Nminus1()` which takes as input a node and a group of cuts to apply and returns N new nodes, each with every cut but one applied.
-
-Finally, the RDataFrame for each node is always kept easily accessible so that any of the [native RDataFrame tools](https://root.cern/doc/master/classROOT_1_1RDataFrame.html) are at the user's fingertips.
-
-## Sharing is caring
-TIMBER includes a repository of common algorithms used frequently in CMS 
-which access scale factors, calculate pileup weights, and more. These are all written 
-in C++ for use in `Cut` and `Define` arguments and are provided so that users have a common tool box to share. 
-Additionally, the AnalysisModules folder welcomes additions of custom C++ modules on a 
-per-analysis basis so that the code can be properly archived for future reference and for sharing
-with other analyzers.
