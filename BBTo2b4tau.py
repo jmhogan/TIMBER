@@ -251,50 +251,51 @@ def analyze(jesvar):
   #
   # Goal: maximize the signal efficiency without choose like N >= 0, A >= loosest thing, B >= 0
   # Goal: provide a ROOT file (or stage in this TIMBER analyzer) that has the NN inputs we would want for a test
-    
+
+  #### Let's keep this around in case we decide to bring back the idea of leptons in the future
   # ------------------ LEPTON Definitions ------------------
-  lVars = VarGroup('LeptonVars')
+  #lVars = VarGroup('LeptonVars')
   
-  lVars.Add("Electron_cutBasedIdNoIso_tight", "Electron_cutBasedIdNoIso_tight(nElectron, Electron_vidNestedWPBitmap)")
-  lVars.Add("TPassMu", "abs(Muon_eta)<2.4 && Muon_mediumId==1 && Muon_miniIsoId>=3 && abs(Muon_dz) < 0.5 && Muon_dxy < 0.2")
-  lVars.Add("TPassEl", "(abs(Electron_eta)<1.442 || (abs(Electron_eta)>1.566 && abs(Electron_eta)<2.5)) && Electron_cutBasedIdNoIso_tight==1 && Electron_miniPFRelIso_all<0.1")
-  lVars.Add("VetoMu", "TPassMu && (Muon_pt>25)")
-  lVars.Add("VetoEl", "TPassEl && (Electron_pt>25)")
-  lVars.Add("SignalIsoMu", "TPassMu && (Muon_pt>=55)")
-  lVars.Add("SignalIsoEl", "TPassEl && (Electron_pt>=55)")
-  lVars.Add("nVetoLep", "(int) (Sum(VetoMu)+Sum(VetoEl))")
-  lVars.Add("SMuon_pt", "Muon_pt[SignalIsoMu == true]")
-  lVars.Add("SMuon_eta", "Muon_eta[SignalIsoMu == true]")
-  lVars.Add("SMuon_phi", "Muon_phi[SignalIsoMu == true]")
-  lVars.Add("SMuon_mass", "Muon_mass[SignalIsoMu == true]")
-  lVars.Add("SElectron_pt", "Electron_pt[SignalIsoEl == true]")
-  lVars.Add("SElectron_eta", "Electron_eta[SignalIsoEl == true]")
-  lVars.Add("SElectron_phi", "Electron_phi[SignalIsoEl == true]")
-  lVars.Add("SElectron_mass", "Electron_mass[SignalIsoEl == true]")
-  lVars.Add("Muon_P4", "fVectorConstructor(Muon_pt,Muon_eta,Muon_phi,Muon_mass)")
-  lVars.Add("SMuon_P4", "fVectorConstructor(SMuon_pt,SMuon_eta,SMuon_phi,SMuon_mass)")
-  lVars.Add("SElectron_P4", "fVectorConstructor(SElectron_pt,SElectron_eta,SElectron_phi,SElectron_mass)")
-  lVars.Add("SMuon_jetIdx", "Muon_jetIdx[SignalIsoMu == true]")
-  lVars.Add("SElectron_jetIdx", "Electron_jetIdx[SignalIsoEl]")
-  lVars.Add("nSignalIsoMu", "(int) Sum(SignalIsoMu)")
-  lVars.Add("nSignalIsoEl", "(int) Sum(SignalIsoEl)")
-  lVars.Add("VetoIsoMu", "(VetoMu == true && Muon_pt < 55)")
-  lVars.Add("VetoIsoEl", "(VetoEl == true && Electron_pt < 55)")
-  lVars.Add("nVetoIsoLep", "(int) (Sum(VetoIsoMu)+Sum(VetoIsoEl))")
+  #lVars.Add("Electron_cutBasedIdNoIso_tight", "Electron_cutBasedIdNoIso_tight(nElectron, Electron_vidNestedWPBitmap)")
+  # lVars.Add("TPassMu", "abs(Muon_eta)<2.4 && Muon_mediumId==1 && Muon_miniIsoId>=3 && abs(Muon_dz) < 0.5 && Muon_dxy < 0.2")
+  # lVars.Add("TPassEl", "(abs(Electron_eta)<1.442 || (abs(Electron_eta)>1.566 && abs(Electron_eta)<2.5)) && Electron_cutBasedIdNoIso_tight==1 && Electron_miniPFRelIso_all<0.1")
+  # lVars.Add("VetoMu", "TPassMu && (Muon_pt>25)")
+  # lVars.Add("VetoEl", "TPassEl && (Electron_pt>25)")
+  # lVars.Add("SignalIsoMu", "TPassMu && (Muon_pt>=55)")
+  # lVars.Add("SignalIsoEl", "TPassEl && (Electron_pt>=55)")
+  # lVars.Add("nVetoLep", "(int) (Sum(VetoMu)+Sum(VetoEl))")
+  # lVars.Add("SMuon_pt", "Muon_pt[SignalIsoMu == true]")
+  # lVars.Add("SMuon_eta", "Muon_eta[SignalIsoMu == true]")
+  # lVars.Add("SMuon_phi", "Muon_phi[SignalIsoMu == true]")
+  # lVars.Add("SMuon_mass", "Muon_mass[SignalIsoMu == true]")
+  # lVars.Add("SElectron_pt", "Electron_pt[SignalIsoEl == true]")
+  # lVars.Add("SElectron_eta", "Electron_eta[SignalIsoEl == true]")
+  # lVars.Add("SElectron_phi", "Electron_phi[SignalIsoEl == true]")
+  # lVars.Add("SElectron_mass", "Electron_mass[SignalIsoEl == true]")
+  # lVars.Add("Muon_P4", "fVectorConstructor(Muon_pt,Muon_eta,Muon_phi,Muon_mass)")
+  # lVars.Add("SMuon_P4", "fVectorConstructor(SMuon_pt,SMuon_eta,SMuon_phi,SMuon_mass)")
+  # lVars.Add("SElectron_P4", "fVectorConstructor(SElectron_pt,SElectron_eta,SElectron_phi,SElectron_mass)")
+  # lVars.Add("SMuon_jetIdx", "Muon_jetIdx[SignalIsoMu == true]")
+  # lVars.Add("SElectron_jetIdx", "Electron_jetIdx[SignalIsoEl]")
+  # lVars.Add("nSignalIsoMu", "(int) Sum(SignalIsoMu)")
+  # lVars.Add("nSignalIsoEl", "(int) Sum(SignalIsoEl)")
+  # lVars.Add("VetoIsoMu", "(VetoMu == true && Muon_pt < 55)")
+  # lVars.Add("VetoIsoEl", "(VetoEl == true && Electron_pt < 55)")
+  # lVars.Add("nVetoIsoLep", "(int) (Sum(VetoIsoMu)+Sum(VetoIsoEl))")
 
   # ------------------ LEPTON SELECTION ------------------
 
-  lVars.Add("isMu", "(nMuon>0) && (HLT_Mu50 || HLT_HighPtTkMu100) && (nSignalIsoMu==1) && (nVetoIsoLep==0) && (nElectron == 0 || nSignalIsoEl == 0)")
-  lVars.Add("isEl", "(nElectron>0) && (HLT_Ele115_CaloIdVT_GsfTrkIdT || HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 || HLT_Photon200) && (nSignalIsoEl==1) && (nVetoIsoLep==0) && (nMuon == 0 || nSignalIsoMu == 0)")
+  # lVars.Add("isMu", "(nMuon>0) && (HLT_Mu50 || HLT_HighPtTkMu100) && (nSignalIsoMu==1) && (nVetoIsoLep==0) && (nElectron == 0 || nSignalIsoEl == 0)")
+  # lVars.Add("isEl", "(nElectron>0) && (HLT_Ele115_CaloIdVT_GsfTrkIdT || HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 || HLT_Photon200) && (nSignalIsoEl==1) && (nVetoIsoLep==0) && (nMuon == 0 || nSignalIsoMu == 0)")
 
-  lCuts = CutGroup('LeptonCuts')
-  lCuts.Add("Event is either muon or electron", "isMu || isEl")
-  lVars.Add("assignleps", "assign_leps(isMu,isEl,SignalIsoMu,SignalIsoEl,Muon_pt,Muon_eta,Muon_phi,Muon_mass,Muon_miniPFRelIso_all,Electron_pt,Electron_eta,Electron_phi,Electron_mass,Electron_miniPFRelIso_all)")
-  lVars.Add("lepton_pt","assignleps[0]")
-  lVars.Add("lepton_eta","assignleps[1]") 
-  lVars.Add("lepton_phi","assignleps[2]")
-  lVars.Add("lepton_mass","assignleps[3]")
-  lVars.Add("lepton_miniIso","assignleps[4]")
+  # lCuts = CutGroup('LeptonCuts')
+  # lCuts.Add("Event is either muon or electron", "isMu || isEl")
+  # lVars.Add("assignleps", "assign_leps(isMu,isEl,SignalIsoMu,SignalIsoEl,Muon_pt,Muon_eta,Muon_phi,Muon_mass,Muon_miniPFRelIso_all,Electron_pt,Electron_eta,Electron_phi,Electron_mass,Electron_miniPFRelIso_all)")
+  # lVars.Add("lepton_pt","assignleps[0]")
+  # lVars.Add("lepton_eta","assignleps[1]") 
+  # lVars.Add("lepton_phi","assignleps[2]")
+  # lVars.Add("lepton_mass","assignleps[3]")
+  # lVars.Add("lepton_miniIso","assignleps[4]")
   
   # ------------------ JET Cleaning and JERC ------------------
   jVars = VarGroup('JetCleaningVars')
@@ -304,49 +305,47 @@ def analyze(jesvar):
   jVars.Add("Jet_EmEF","Jet_neEmEF + Jet_chEmEF")
   jVars.Add("DummyZero","float(0.0)")
   
-  if isMC:          #TODO fix dummy comments
+  if isMC:          #TODO Can we use overloading even more to remove data/MC distinction?
     jVars.Add("GenJet_P4","fVectorConstructor(GenJet_pt,GenJet_eta,GenJet_phi,GenJet_mass)")
-    jVars.Add("cleanedJets", "cleanJetsMC(debug,year,jesvar,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,GenJet_P4,Jet_genJetIdx,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,Rho_fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call
-    jVars.Add("cleanMets", "cleanJetsMC(debug,year,jesvar,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,GenJet_P4,Jet_genJetIdx,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,Rho_fixedGridRhoFastjetAll,RawMET_pt,RawMET_phi)") # lepton args are unused in this call
-    jVars.Add("GenJetAK8_P4", "fVectorConstructor(GenJetAK8_pt,GenJetAK8_eta,GenJetAK8_phi,GenJetAK8_mass)")
-    jVars.Add("cleanFatJets", "cleanJetsMC(debug,year,jesvar,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,FatJet_P4,FatJet_rawFactor,FatJet_rawFactor,FatJet_area,FatJet_area,FatJet_jetId,GenJetAK8_P4,FatJet_genJetAK8Idx,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,Rho_fixedGridRhoFastjetAll,DummyZero,DummyZero)") # args 12 and 14 are dummies
+    jVars.Add("cleanedJets", "cleanJetsMC(debug,year,jesvar,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,GenJet_P4,Jet_genJetIdx,Rho_fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call
+    jVars.Add("cleanMets", "cleanJetsMC(debug,year,jesvar,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,GenJet_P4,Jet_genJetIdx,Rho_fixedGridRhoFastjetAll,RawMET_pt,RawMET_phi)") # lepton args are unused in this call
+    #jVars.Add("GenJetAK8_P4", "fVectorConstructor(GenJetAK8_pt,GenJetAK8_eta,GenJetAK8_phi,GenJetAK8_mass)")
+    #jVars.Add("cleanFatJets", "cleanJetsMC(debug,year,jesvar,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,FatJet_P4,FatJet_rawFactor,FatJet_rawFactor,FatJet_area,FatJet_area,FatJet_jetId,GenJetAK8_P4,FatJet_genJetAK8Idx,Rho_fixedGridRhoFastjetAll,DummyZero,DummyZero)") # args 12 and 14 are dummies
   else:
-    jVars.Add("cleanedJets", "cleanJetsData(debug,year,ak4corr,ak4corrL1,ak8corr,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,Jet_P4,Jet_jetId,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,Rho_fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call, args 16-17 are dummies
-    jVars.Add("cleanMets", "cleanJetsData(debug,year,ak4corr,ak4corrL1,ak8corr,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,Jet_P4,Jet_jetId,Muon_P4,Muon_jetIdx,SElectron_P4,SElectron_jetIdx,Rho_fixedGridRhoFastjetAll,RawMET_pt,RawMET_phi)") # lepton args unused in this call, args 16-17 are dummies
-    jVars.Add("cleanFatJets", "cleanJetsData(debug,year,ak4corr,ak4corrL1,ak8corr,FatJet_P4,FatJet_rawFactor,FatJet_rawFactor,FatJet_area,FatJet_area,FatJet_jetId,FatJet_P4,FatJet_jetId,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,Rho_fixedGridRhoFastjetAll,DummyZero,DummyZero)") # args 12, 14, 16, 17 are dummies
+    jVars.Add("cleanedJets", "cleanJetsData(debug,year,ak4corr,ak4corrL1,ak8corr,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,Jet_P4,Jet_jetId,Rho_fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call, args 16-17 are dummies
+    jVars.Add("cleanMets", "cleanJetsData(debug,year,ak4corr,ak4corrL1,ak8corr,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,Jet_P4,Jet_jetId,Rho_fixedGridRhoFastjetAll,RawMET_pt,RawMET_phi)") # lepton args unused in this call, args 16-17 are dummies
+    #jVars.Add("cleanFatJets", "cleanJetsData(debug,year,ak4corr,ak4corrL1,ak8corr,FatJet_P4,FatJet_rawFactor,FatJet_rawFactor,FatJet_area,FatJet_area,FatJet_jetId,FatJet_P4,FatJet_jetId,Rho_fixedGridRhoFastjetAll,DummyZero,DummyZero)") # args 12, 14, 16, 17 are dummies
 
   jVars.Add("cleanJet_pt", "cleanedJets[0]")
   jVars.Add("cleanJet_eta", "cleanedJets[1]")
   jVars.Add("cleanJet_phi", "cleanedJets[2]")
   jVars.Add("cleanJet_mass", "cleanedJets[3]")
-  jVars.Add("cleanFatJet_pt", "cleanFatJets[0]")
-  jVars.Add("cleanFatJet_eta", "cleanFatJets[1]")
-  jVars.Add("cleanFatJet_phi", "cleanFatJets[2]")
-  jVars.Add("cleanFatJet_mass", "cleanFatJets[3]")
+  #jVars.Add("cleanFatJet_pt", "cleanFatJets[0]")
+  #jVars.Add("cleanFatJet_eta", "cleanFatJets[1]")
+  #jVars.Add("cleanFatJet_phi", "cleanFatJets[2]")
+  #jVars.Add("cleanFatJet_mass", "cleanFatJets[3]")
 
   # ------------------ MET Selection ------------------
   metVars = VarGroup('METVars')
   metVars.Add("corrMET_pt","cleanMets[4][0]")
   metVars.Add("corrMET_phi","cleanMets[4][1]")
-  metVars.Add("corrMET_dPhiLep","DeltaPhi(lepton_phi, corrMET_phi)")
+  #metVars.Add("corrMET_dPhiLep","DeltaPhi(lepton_phi, corrMET_phi)")
 
-  metCuts = CutGroup('METCuts')
-  metCuts.Add("Pass corr MET > 60", "corrMET_pt > 60")
+  #metCuts = CutGroup('METCuts')
+  #metCuts.Add("Pass corr MET > 60", "corrMET_pt > 60")
 
-  # ------------------ HT Calculation and N Jets cuts ------------------
-  jVars.Add("DR_lepJets","DeltaR_VecAndFloat(cleanJet_eta,cleanJet_phi,lepton_eta,lepton_phi)")
-  jVars.Add("ptrel_lepJets","ptRel(cleanJet_pt,cleanJet_eta,cleanJet_phi,cleanJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)") 
-  jVars.Add("goodcleanJets", "cleanJet_pt > 30 && abs(cleanJet_eta) < 2.4 && Jet_jetId > 1 && (DR_lepJets > 0.4 || ptrel_lepJets > 20)")
+  # ------------------ HT Calculation and N Jets cuts ------------------ 
+  #jVars.Add("minDR_tauJets","Some function to get minimum DeltaR(cleanJet_eta,cleanJet_phi,goodtau_eta,goodtau_phi)") #tau_eta/phi are lists of *say* 4 entries
+  #jVars.Add("ptrel_lepJets","ptRel(cleanJet_pt,cleanJet_eta,cleanJet_phi,cleanJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)")
+
+  ### ADD HERE a calculation of "minDR" to one of our hadronic taus for each jet. Require below that DR(jet, any tau) > 0.4
+  jVars.Add("goodcleanJets", "cleanJet_pt > 30 && abs(cleanJet_eta) < 2.4 && Jet_jetId > 1") # && minDR_tauJets > 0.4")
   jVars.Add("gcJet_HT","Sum(cleanJet_pt[goodcleanJets == true])")
-  jVars.Add("DR_lepFatJets","DeltaR_VecAndFloat(FatJet_eta,FatJet_phi,lepton_eta,lepton_phi)")
-  jVars.Add("ptrel_lepFatJets","ptRel(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)")  
-  jVars.Add("goodcleanFatJets", "FatJet_pt > 200 && abs(FatJet_eta) < 2.4 && FatJet_jetId > 1 && (DR_lepFatJets > 0.8 || ptrel_lepFatJets > 20)")
-  jVars.Add("NFatJets", "(int) Sum(goodcleanFatJets)")
+  #jVars.Add("DR_lepFatJets","DeltaR_VecAndFloat(FatJet_eta,FatJet_phi,lepton_eta,lepton_phi)")
+  #jVars.Add("ptrel_lepFatJets","ptRel(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass,lepton_pt,lepton_eta,lepton_phi,lepton_mass)")  
+  #jVars.Add("goodcleanFatJets", "FatJet_pt > 200 && abs(FatJet_eta) < 2.4 && FatJet_jetId > 1")
+  #jVars.Add("NFatJets", "(int) Sum(goodcleanFatJets)")
   
-  jCuts = CutGroup('JetCuts')  
-  jCuts.Add('Pass HT > 510', 'gcJet_HT > 510')
-  jCuts.Add('3 AK8s Pass', 'NFatJets > 2')      # need to ensure three jets exist
- 
   # ------------------ Jet pt ordering, counting, lepton association ------------------
   jVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
   jVars.Add("gcJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcJet_pt_unsort))")
@@ -359,14 +358,18 @@ def analyze(jesvar):
   jVars.Add("gcJet_DeepFlavL", "gcJet_DeepFlav > deepjetL") 
   jVars.Add("NJets_DeepFlavL", "Sum(gcJet_DeepFlavL)")
 
-  jVars.Add("gcFatJet_pt_unsort", "FatJet_pt[goodcleanFatJets == true]")
-  jVars.Add("gcFatJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcFatJet_pt_unsort))")
-  jVars.Add("gcFatJet_pt","reorder(gcFatJet_pt_unsort,gcFatJet_ptargsort)")  
-  jVars.Add("gcFatJet_eta", "reorder(FatJet_eta[goodcleanFatJets == true],gcFatJet_ptargsort)")
-  jVars.Add("gcFatJet_phi", "reorder(FatJet_phi[goodcleanFatJets == true],gcFatJet_ptargsort)")
-  jVars.Add("gcFatJet_mass", "reorder(FatJet_mass[goodcleanFatJets == true],gcFatJet_ptargsort)")
-  jVars.Add("gcFatJet_sdmass", "reorder(FatJet_msoftdrop[goodcleanFatJets == true],gcFatJet_ptargsort)")
-  jVars.Add("gcFatJet_vetomap", "jetvetofunc(jetvetocorr, gcFatJet_eta, gcFatJet_phi)")
+  jCuts = CutGroup('JetCuts')  
+  #jCuts.Add('Pass HT > 510', 'gcJet_HT > 510') ## will this be helpful? Not sure...
+  jCuts.Add('2 B jets Pass', 'NJets_DeepFlavL >= 2')
+   
+  #jVars.Add("gcFatJet_pt_unsort", "FatJet_pt[goodcleanFatJets == true]")
+  #jVars.Add("gcFatJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcFatJet_pt_unsort))")
+  #jVars.Add("gcFatJet_pt","reorder(gcFatJet_pt_unsort,gcFatJet_ptargsort)")  
+  #jVars.Add("gcFatJet_eta", "reorder(FatJet_eta[goodcleanFatJets == true],gcFatJet_ptargsort)")
+  #jVars.Add("gcFatJet_phi", "reorder(FatJet_phi[goodcleanFatJets == true],gcFatJet_ptargsort)")
+  #jVars.Add("gcFatJet_mass", "reorder(FatJet_mass[goodcleanFatJets == true],gcFatJet_ptargsort)")
+  #jVars.Add("gcFatJet_sdmass", "reorder(FatJet_msoftdrop[goodcleanFatJets == true],gcFatJet_ptargsort)")
+  #jVars.Add("gcFatJet_vetomap", "jetvetofunc(jetvetocorr, gcFatJet_eta, gcFatJet_phi)")
   #WORK ON THIS MORE -- need to just be isolated from the 3 highest-pt fat jets, not any of them...
   #jVars.Add("Isolated_AK4","standalone_Jet(gcJet_eta, gcJet_phi, gcFatJet_eta, gcFatJet_phi)")
 
@@ -393,7 +396,7 @@ def analyze(jesvar):
   
   # # -------------------------------------
 
-  nodeToPlot = a.Apply([flagCuts, gjsonVars, gjsonCuts, lVars, lCuts]) 
+  nodeToPlot = a.Apply([flagCuts, gjsonVars, gjsonCuts])#, lVars, lCuts]) 
 
   # # We want the BW decays that go to l + nu
   # ## These will be meaningless for non-signal, but shouldn't crash...
@@ -411,10 +414,10 @@ def analyze(jesvar):
   newNode = a.ActiveNode.Apply(jVars)
   a.SetActiveNode(newNode)
   
-  a.Apply([jCuts, metVars, metCuts])  #, rframeVars
+  a.Apply([jCuts, metVars])  #, metCuts, rframeVars
   
   allColumns = a.GetColumnNames()
-  columns = ['lepton_pt','gcJet_HT','gcFatJet_mass','leptonRecoSF','NJets_DeepFlavL'] #allColumns
+  columns = ['gcJet_HT','gcFatJet_mass','NJets_DeepFlavL','corrMET_pt'] #allColumns
 
   ## I'm still seeing messages where it's trying to write branches that have a "continue" statement. Something below is not right.
   #i = 0
