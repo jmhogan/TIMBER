@@ -49,6 +49,8 @@ source setup.sh
 
 ## Everyday run setup
 
+Silly update
+
 You only need to do the installation and compile instructions once. To get back into your TIMBER environment for editing and running our code: 
 
 ```
