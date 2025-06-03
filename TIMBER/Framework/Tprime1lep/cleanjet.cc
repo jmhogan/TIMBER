@@ -115,9 +115,12 @@ RVec<RVec<float>> cleanJetsMC (const bool &debug, const string &campaign, const 
     if (met > 0) jet *= (1 - jt_murf[ijet]);                                       // further correct raw to muon-substracted raw for T1.
     float rawpt = jet.Pt();
     
-    if (campaign == "Summer23BPix") jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),jet.Phi(),rawpt,rho}); // Data & MC get jes for 2023BPix
-    else jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho});                 // Data & MC get jes
-    
+    if (campaign == "2023BPix") {
+      jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),jet.Phi(),rawpt,rho}); // Data & MC get jes for 2023BPix
+    }
+    else {
+      jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho}); // Data & MC get jes for other campaigns
+    }
     if (met > 0) jesL1 = ak4corrL1->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho}); // L1-only jes for MET T1
     
     // ----- MC specific: ----- 
@@ -202,9 +205,12 @@ RVec<RVec<float>> cleanJetsMC (const bool &debug, const string &campaign, const 
     if (met > 0) jet *= (1 - jt_murf[ijet]);                                       // further correct raw to muon-substracted raw for T1.
     float rawpt = jet.Pt();
     
-    if (campaign == "Summer23BPix") jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),jet.Phi(),rawpt,rho}); // Data & MC get jes for 2023BPix
-    else jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho});                 // Data & MC get jes
-    
+    if (campaign == "2023BPix") {
+      jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),jet.Phi(),rawpt,rho}); // Data & MC get jes for 2023BPix
+    }
+    else {
+      jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho}); // Data & MC get jes for other campaigns
+    }
     if (met > 0) jesL1 = ak4corrL1->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho}); // L1-only jes for MET T1
     
     // ----- MC specific: ----- 
@@ -304,8 +310,12 @@ RVec<RVec<float>> cleanJetsData (const bool &debug, const string &campaign,
     if (met > 0 && jt_em[ijet] > 0.9) continue;                                    // not these jets for MET 
     if (met > 0) jet *= (1 - jt_murf[ijet]);                                       // further correct raw to muon-substracted raw for T1.
     float rawpt = jet.Pt();
-    if (campaign == "Summer23BPix") jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),jet.Phi(),rawpt,rho}); // Data & MC get jes for 2023BPix
-    else jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho}); // Data & MC get jes for other campaigns
+    if (campaign == "2023BPix") {
+      jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),jet.Phi(),rawpt,rho}); // Data & MC get jes for 2023BPix
+    }
+    else {
+      jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho}); // Data & MC get jes for other campaigns
+    }
     if (met > 0) jesL1 = ak4corrL1->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho}); // L1-only jes for MET T1
     
     TLorentzVector jetL1 = jet*jesL1;
@@ -362,8 +372,13 @@ RVec<RVec<float>> cleanJetsData (const bool &debug, const string &campaign,
     if (met > 0 && jt_em[ijet] > 0.9) continue;                                    // not these jets for MET 
     if (met > 0) jet *= (1 - jt_murf[ijet]);                                       // further correct raw to muon-substracted raw for T1.
     float rawpt = jet.Pt();
-    if (campaign == "Summer23BPix") jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),jet.Phi(),rawpt,rho}); // Data & MC get jes for 2023BPix
-    else jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho}); // Data & MC get jes for other campaigns
+    if (campaign == "2023BPix") {
+      jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),jet.Phi(),rawpt,rho}); // Data & MC get jes for 2023BPix
+    }
+    else {
+      jes = jescorr->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho}); // Data & MC get jes for other campaigns
+    }
+
     if (met > 0) jesL1 = ak4corrL1->evaluate({jt_area[ijet],jet.Eta(),rawpt,rho}); // L1-only jes for MET T1
     
     TLorentzVector jetL1 = jet*jesL1;
