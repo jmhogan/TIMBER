@@ -161,7 +161,7 @@ CompileCpp('TIMBER/Framework/Tprime1lep/lumiMask.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/selfDerived_corrs.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/corr_funcs.cc') 
 CompileCpp('TIMBER/Framework/Tprime1lep/topographInput.cc') 
-CompileCpp('TIMBER/Framework/Tprime1lep/topographinput.cc') 
+CompileCpp('TIMBER/Framework/Tprime1lep/manualreco.cc') 
 ROOT.gInterpreter.ProcessLine('#include "TString.h"')
 
 # Enable using 4 threads
