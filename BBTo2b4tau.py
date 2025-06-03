@@ -144,6 +144,7 @@ CompileCpp('TIMBER/Framework/Tprime1lep/lumiMask.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/selfDerived_corrs.cc')
 CompileCpp('TIMBER/Framework/Tprime1lep/corr_funcs.cc') 
 CompileCpp('TIMBER/Framework/Tprime1lep/topographInput.cc') 
+CompileCpp('TIMBER/Framework/Tprime1lep/manualreco.cc') 
 ROOT.gInterpreter.ProcessLine('#include "TString.h"')
 
 # Enable using 4 threads
@@ -461,10 +462,12 @@ def analyze(jesvar):
   manualVars.Add('B1finalPx', 'manual[0]')
   manualVars.Add('B1finalPy', 'manual[1]')
   manualVars.Add('B1finalPz', 'manual[2]')
-  manualVars.Add('B2finalPx', 'manual[3]')
-  manualVars.Add('B2finalPy', 'manual[4]')
-  manualVars.Add('B2finalPz', 'manual[5]')
-   
+  manualVars.Add('B1finalM', 'manual[3]')
+  manualVars.Add('B2finalPx', 'manual[4]')
+  manualVars.Add('B2finalPy', 'manual[5]')
+  manualVars.Add('B2finalPz', 'manual[6]')
+  manualVars.Add('B2finalM', 'manual[7]')
+
   #jVars.Add("gcFatJet_pt_unsort", "FatJet_pt[goodcleanFatJets == true]")
   #jVars.Add("gcFatJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcFatJet_pt_unsort))")
   #jVars.Add("gcFatJet_pt","reorder(gcFatJet_pt_unsort,gcFatJet_ptargsort)")  
@@ -520,7 +523,7 @@ def analyze(jesvar):
   a.Apply([tCuts, jVars, jCuts, metVars, recoGenVars, manualVars])  #, metCuts, rframeVars
   
   allColumns = a.GetColumnNames()
-  columns = ['gcJet_HT','NJets_DeepFlavM','corrMET_pt', 'NisGood', 'decayTypeSum', 'ObjectList_indices', 'matchability', 'nObjects', 'nbjets', 'PtListObject', 'EtaListObject', 'PhiListObject', 'EnergyListObject', 'TaggedListObject', 'pdgIdListGen', 'ptListGen', 'etaListGen', 'phiListGen', 'massListGen', 'PtListObject', 'EtaListObject', 'PhiListObject', 'EnergyListObject', 'TaggedListObject', 'B1finalPx', 'B1finalPy', 'B1finalPz', 'B2finalPx', 'B2finalPy', 'B2finalPz', 'GenPart_pdgId', 'GenPart_mass', 'GenPart_pt', 'GenPart_phi', 'GenPart_eta', 'GenPart_genPartIdxMother'] 
+  columns = ['gcJet_HT','NJets_DeepFlavM','corrMET_pt', 'NisGood', 'decayTypeSum', 'ObjectList_indices', 'matchability', 'nObjects', 'nbjets', 'PtListObject', 'EtaListObject', 'PhiListObject', 'EnergyListObject', 'TaggedListObject', 'pdgIdListGen', 'ptListGen', 'etaListGen', 'phiListGen', 'massListGen', 'PtListObject', 'EtaListObject', 'PhiListObject', 'EnergyListObject', 'TaggedListObject', 'B1finalPx', 'B1finalPy', 'B1finalPz', 'B1finalM', 'B2finalPx', 'B2finalPy', 'B2finalPz','B2finalM', 'GenPart_pdgId', 'GenPart_mass', 'GenPart_pt', 'GenPart_phi', 'GenPart_eta', 'GenPart_genPartIdxMother'] 
 
   ## I'm still seeing messages where it's trying to write branches that have a "continue" statement. Something below is not right.
   #i = 0
