@@ -20,11 +20,32 @@ int convertMatchToInt(RVec<int> match) {
 
   for (int i = 2; i < arraySize; ++i) {
       if (match[i] == 1) {
-          decimalValue += static_cast<int>(std::pow(2, arraySize - 1 - i));
+          decimalValue += static_cast<int>(std::pow(2, i-2));
       }
   }
   return decimalValue;
 }
+
+
+// ------------------------------------------------------------------------
+//               convert matchibility from RVec to bitstring
+// ------------------------------------------------------------------------
+
+RVec<float> minDR_jets_gtau(unsigned int NcleanJets, RVec<float> &cleanJet_eta, RVec<float> &cleanJet_phi, unsigned int NisGood, RVec<float> &GoodTau_eta, RVec<float> &GoodTau_phi) {
+  RVec<float> minDR(NcleanJets);
+  for (int i = 0; i < NcleanJets; i++) {
+    minDR[i] = DeltaR(GoodTau_eta[0], cleanJet_eta[i], GoodTau_phi[0], cleanJet_phi[i]);
+    for (int j = 1; j < NisGood; j++) {
+      float tempMinDR = DeltaR(GoodTau_eta[j], cleanJet_eta[i], GoodTau_phi[j], cleanJet_phi[i]);
+      if (tempMinDR < minDR[i]) {
+        minDR[i] = tempMinDR;
+      }
+    }
+  }
+  return minDR;
+}
+
+
 
 // -------------------------------------------------------
 //               figure out this event’s taus
@@ -97,6 +118,7 @@ RVec<RVec<int>> recoGenMatch(bool isSig, unsigned int NisGood, RVec<float> &Good
   int tau = 0;
   int tauH = 0;
   int bjet = 0;
+  int bjetcount = 0;
   int tauIndex = 0;
   int vecb = 0;
   int bjetIndex = NisGood;
@@ -168,7 +190,6 @@ RVec<RVec<int>> recoGenMatch(bool isSig, unsigned int NisGood, RVec<float> &Good
       }
     }
 
-
     // Find the bjets and their indices
     for(unsigned int i = 0; i < nGenPart; i++){
       if (abs(GenPart_pdgId[i]) == 5 && abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 9000005) { // && GenPart_pdgId[GenPart_genPartIdxMother[i]] >= 6000000 && GenPart_pdgId[GenPart_genPartIdxMother[i]] <= 6000009
@@ -189,7 +210,6 @@ RVec<RVec<int>> recoGenMatch(bool isSig, unsigned int NisGood, RVec<float> &Good
       }
     }    
 
-
     // ---------------------- Matching ----------------------
 
 
@@ -207,10 +227,12 @@ RVec<RVec<int>> recoGenMatch(bool isSig, unsigned int NisGood, RVec<float> &Good
               ObjectList_indices[tauIndex] = b;
               matchability[b+2] = 1; //index 3,4
               b++;
+              tauH++;
             } else {
               ObjectList_indices[tauIndex] = antiB;
               matchability[antiB+2] = 1; //index 6,7
               antiB++;
+              tauH++;
             }
           } else {
             if (i == 0) {
@@ -221,7 +243,6 @@ RVec<RVec<int>> recoGenMatch(bool isSig, unsigned int NisGood, RVec<float> &Good
         }
       }
     }
-
     // Match B Jets
     for(unsigned int i = 0; i < bjet; i++){
       double delta = DeltaR(gcBJet_eta[0], GenPart_eta[bjetArr[i]], gcBJet_phi[0], GenPart_phi[bjetArr[i]]);
@@ -236,9 +257,11 @@ RVec<RVec<int>> recoGenMatch(bool isSig, unsigned int NisGood, RVec<float> &Good
           if (GenPart_pdgId[GenPart_genPartIdxMother[bjetArrOriginal[i]]] > 0) {
             ObjectList_indices[bjetIndex] = 0;
             matchability[2] = 1;
+            bjetcount++;
           } else {
             ObjectList_indices[bjetIndex] = 3;
             matchability[5] = 1;
+            bjetcount++;
           }
         } else {
           if (i == 0) {
@@ -252,7 +275,8 @@ RVec<RVec<int>> recoGenMatch(bool isSig, unsigned int NisGood, RVec<float> &Good
 
   }
 
-  int nObjects = tauH + bjet + vecb;
+  // int nObjects = tauH + bjet + vecb;
+  int nObjects = tauH + bjetcount;
   return {ObjectList_indices, matchability, {nObjects}, {bjet}, tauArr, bjetArr, vecbArr};
 }
 
@@ -297,123 +321,46 @@ RVec<RVec<float>> ObjectList(bool isSig, unsigned int NisGood, RVec<float> &Good
 // ------------------------------------------------------------------------
 
 // Transpose here as well
-RVec<RVec<float>> GenList(bool isSig, RVec<int> nObjects, RVec<int> nbjets, RVec<int> tauArr, RVec<int> bjetArr, RVec<int> vecbArr, unsigned int nGenPart, RVec<int> &GenPart_pdgId, RVec<float> &GenPart_pt, RVec<float> &GenPart_eta, RVec<float> &GenPart_phi, RVec<float> &GenPart_mass) {
-  RVec<float> pdgIdList(nObjects[0]);
-  RVec<float> ptList(nObjects[0]);
-  RVec<float> etaList(nObjects[0]);
-  RVec<float> phiList(nObjects[0]);
-  RVec<float> massList(nObjects[0]);
-  RVec<int> objectArrTemp = Concatenate(vecbArr, tauArr); 
-  RVec<int> objectArr = Concatenate(objectArrTemp, bjetArr); 
+RVec<RVec<float>> GenList(bool isSig, RVec<int> tauArr, RVec<int> bjetArr, RVec<int> vecbArr, unsigned int nGenPart, RVec<int> &GenPart_pdgId, RVec<float> &GenPart_pt, RVec<float> &GenPart_eta, RVec<float> &GenPart_phi, RVec<float> &GenPart_mass) {
+  int num = 8;
+  for (int i = 0; i < 4; i++) {
+    if (tauArr[i] == -1) {
+      //cout << "-1" << endl;
+      num--;
+    }
+  }
+  RVec<float> pdgIdList(num);
+  RVec<float> ptList(num);
+  RVec<float> etaList(num);
+  RVec<float> phiList(num);
+  RVec<float> massList(num);
+  RVec<int> objectArrTemp = Concatenate(vecbArr, bjetArr); 
+  RVec<int> objectArr = Concatenate(objectArrTemp, tauArr); 
 
-  int Ntaus = nObjects[0] - nbjets[0];  
-  //tau = 1.777
-  //b = 4.18
+  // tau = 1.777
+  // b = 4.18
 
   if (isSig) {
     float mass = 1.777;
-    for (int i = 0; i < (nObjects[0]); i++) {
-      if (i == Ntaus) {
-        mass = 4.18;
+    for (int i = 0; i < num; i++) {
+      if (objectArr[i] > -1) {
+        mass = GenPart_mass[objectArr[i]];
+        if (i >= 2) {
+          mass = 4.18;
+        }
+        if (i >= 4) {
+          mass = 1.777;
+        }
+        // cout << "Index: " << objectArr[i] << " ID: " << GenPart_pdgId[objectArr[i]] << " Mass: " << mass << endl;
+        pdgIdList[i] = static_cast<float>(GenPart_pdgId[objectArr[i]]);
+        ptList[i] = GenPart_pt[objectArr[i]];
+        etaList[i] = GenPart_eta[objectArr[i]];
+        phiList[i] = GenPart_phi[objectArr[i]];
+        massList[i] = mass;
       }
-      pdgIdList[i] = static_cast<float>(GenPart_pdgId[objectArr[i]]);
-      ptList[i] = GenPart_pt[objectArr[i]];
-      etaList[i] = GenPart_eta[objectArr[i]];
-      phiList[i] = GenPart_phi[objectArr[i]];
-      massList[i] = mass;
     }
   }
   RVec<RVec<float>> GenList = {pdgIdList, ptList, etaList, phiList, massList};
   return GenList;
 }
 
-
-
-
-
-// ------------------manual reco fxn----------------------
-//mass difference function--updated version is in Tprime1lep/topographinput.cc
-/*
-RVec<float> funcmassdiff(RVec<float> goodtau_pt, RVec<float> goodtau_eta, RVec<float> goodtau_phi, RVec<float> goodtau_mass, RVec<float> goodbjet_pt, RVec<float> goodbjet_eta, RVec<float> goodbjet_phi, RVec<float> goodbjet_mass) {
-  TLorentzVector B1, B2;
-  TLorentzVector B1final, B2final;
-  TLorentzVector b1, b2;
-  TLorentzVector tauA, tauB, tauC, tauD;
-
-  float massdiff = 999999999.0;
-  float massdifftemp;
-
-  b1.SetPtEtaPhiM(goodbjet_pt[0], goodbjet_eta[0], goodbjet_phi[0], goodbjet_mass[0]);
-  b2.SetPtEtaPhiM(goodbjet_pt[1], goodbjet_eta[1], goodbjet_phi[1], goodbjet_mass[1]);
-
-  tauA.SetPtEtaPhiM(goodtau_pt[0], goodtau_eta[0], goodtau_phi[0], goodtau_mass[0]);
-  tauB.SetPtEtaPhiM(goodtau_pt[1], goodtau_eta[1], goodtau_phi[1], goodtau_mass[1]);
-  tauC.SetPtEtaPhiM(goodtau_pt[2], goodtau_eta[2], goodtau_phi[2], goodtau_mass[2]);
-  tauD.SetPtEtaPhiM(goodtau_pt[3], goodtau_eta[3], goodtau_phi[3], goodtau_mass[3]);
-  
-  //'looping' through the options
-  //First
-  B1 = b1+tauA+tauB;
-  B2 = b2+tauC+tauD;
-  massdifftemp = abs(B1.M() - B2.M());
-
-  if(massdifftemp < massdiff) {
-    massdiff = massdifftemp;
-    B1final = B1;
-    B2final = B2;
-  }
-
-  //Second
-  B1 = b1+tauA+tauC;
-  B2 = b2+tauB+tauD;
-  massdifftemp = abs(B1.M() - B2.M());
-  if(massdifftemp < massdiff) {
-    massdiff = massdifftemp;
-    B1final = B1;
-    B2final = B2;
-  }
-
-  //Third
-  B1 = b1+tauA+tauD;
-  B2 = b2+tauB+tauC;
-  massdifftemp = abs(B1.M() - B2.M());
-  if(massdifftemp < massdiff) {
-    massdiff = massdifftemp;
-    B1final = B1;
-    B2final = B2;
-  }
-
-  //Fourth
-  B1 = b1+tauB+tauC;
-  B2 = b2+tauA+tauD;
-  massdifftemp = abs(B1.M() - B2.M());
-  if(massdifftemp < massdiff) {
-    massdiff = massdifftemp;
-    B1final = B1;
-    B2final = B2;
-  }
-
-  //Fifth
-  B1 = b1+tauB+tauD;
-  B2 = b2+tauA+tauC;
-  massdifftemp = abs(B1.M() - B2.M());
-  if(massdifftemp < massdiff) {
-    massdiff = massdifftemp;
-    B1final = B1;
-    B2final = B2;
-  }
-
-  //Sixth
-  B1 = b1+tauC+tauD;
-  B2 = b2+tauA+tauB;
-  massdifftemp = abs(B1.M() - B2.M());
-  if(massdifftemp < massdiff) {
-    massdiff = massdifftemp;
-    B1final = B1;
-    B2final = B2;
-  }
-
-  //return the remaining B1/B2final
-  RVec<float> returnVec = {static_cast<float>(B1final.Px()), static_cast<float>(B1final.Py()), static_cast<float>(B1final.Pz()), static_cast<float>(B2final.Px()), static_cast<float>(B2final.Py()), static_cast<float>(B2final.Pz())}; 
-  return returnVec;
-}*/
