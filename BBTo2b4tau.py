@@ -119,8 +119,8 @@ ROOT.gInterpreter.ProcessLine('#include "TString.h"')
 ROOT.ROOT.EnableImplicitMT(num_threads)
 
 # load rest frames handler
-#handler_name = 'Tprime_handler_W.cc'
-#class_name = 'Tprime_RestFrames_Container_W'
+#handler_name = 'Bprime_handler.cc'
+#class_name = 'gc_Container'
 #load_restframes(num_threads, handler_name, class_name, 'rfc')
 
 # ------------------ Important Variables ------------------
@@ -330,7 +330,7 @@ def analyze(jesvar):
   metVars.Add("corrMET_phi","cleanMets[4][1]")
   metVars.Add("corrMET_dPhiLep","DeltaPhi(lepton_phi, corrMET_phi)")
 
-  metCuts = CutGroup('METCuts')
+  metCuts = CutGroup('METCuts') #remove these two lines?
   metCuts.Add("Pass corr MET > 60", "corrMET_pt > 60")
 
   # ------------------ HT Calculation and N Jets cuts ------------------
@@ -343,7 +343,7 @@ def analyze(jesvar):
   jVars.Add("goodcleanFatJets", "FatJet_pt > 200 && abs(FatJet_eta) < 2.4 && FatJet_jetId > 1 && (DR_lepFatJets > 0.8 || ptrel_lepFatJets > 20)")
   jVars.Add("NFatJets", "(int) Sum(goodcleanFatJets)")
   
-  jCuts = CutGroup('JetCuts')  
+  jCuts = CutGroup('JetCuts')  # remove some of these?
   jCuts.Add('Pass HT > 510', 'gcJet_HT > 510')
   jCuts.Add('3 AK8s Pass', 'NFatJets > 2')      # need to ensure three jets exist
  
