@@ -1639,12 +1639,13 @@ class Node(object):
         elif type(columns) == str:
             self.DataFrame.Snapshot(treename,outfilename,columns,opts)
         else:
-            column_vec = ''
-            for c in columns:
-                if c == '': continue
-                column_vec += c+'|'
-            column_vec = column_vec[:-1]
-            self.DataFrame.Snapshot(treename,outfilename,column_vec,opts)
+            #column_vec = ''
+            #for c in columns:
+            #    if c == '': continue
+            #    column_vec += c+'|'
+            #column_vec = column_vec[:-1]
+            #print(len(column_vec))
+            self.DataFrame.Snapshot(treename,outfilename,columns,opts)
 
     def GetBaseNode(self):
         '''Returns the top-most parent Node by climbing node tree until a Node with no parent is reached.
