@@ -107,7 +107,7 @@ if isMC:
 
 region = "Signal"
 if isSig:   region = "Signal" # TPrimeTPrime or BPrimeBPrime
-else isTT:  region = "TTToSemiLeptonic" # TTToSemiLeptonic
+else: isTT:  region = "TTToSemiLeptonic" # TTToSemiLeptonic
 
 # ------------------ TIMBER Analyzer inputs ------------------
 num_threads = 1

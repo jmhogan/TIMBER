@@ -10,6 +10,29 @@ using namespace ROOT::VecOps;
 #include "TLorentzVector.h"
 #include <ROOT/RVec.hxx>
 
+// -----------------------------------------------------------------------
+// 		fxn for filtering events with bosonish mass
+// -----------------------------------------------------------------------
+bool hasBosonishMfunc(RVec<float> G4L_pt, RVec<float> G4L_eta, RVec<float> G4L_phi, RVec<float> G4L_mass, RVec<int> G4L_ID, RVec<int> G4L_charge) {
+
+	for(int i = 0; i < G4L_ID.size(); i++) {
+		for(int j = i+1; j < G4L_ID.size(); j++) {
+			if (G4L_ID[i] != G4L_ID[j]) continue;
+			if (G4L_charge[i] == G4L_charge[j]) continue;
+
+			TLorentzVector Lep1, Lep2;
+			Lep1.SetPtEtaPhiM(G4L_pt[i], G4L_eta[i], G4L_phi[i], G4L_mass[i]);
+			Lep2.SetPtEtaPhiM(G4L_pt[j], G4L_eta[j], G4L_phi[j], G4L_mass[j]);
+		
+			if ((Lep1 + Lep2).M() < 12) return 1;
+			else if ((Lep1 + Lep2).M() > 85 && (Lep1 + Lep2).M() < 97) return 1;
+			//else if (G4L_ID[i] == 15 && (Lep1 + Lep2).M() > 115 && (Lep1 + Lep2).M() < 135) return 1; //taking out
+
+		}
+	}
+	return 0;	
+}
+
 // ------------------------------------------------------------------------
 //               convert matchibility from RVec to bitstring
 // ------------------------------------------------------------------------
@@ -76,14 +99,14 @@ RVec<int> decayType(bool isSig, unsigned int nGenPart, RVec<int> &GenPart_pdgId,
       }
     }
 
-    // See if they come from E or Mu
+    // See if they decay to E or Mu
     int countTauE = 0;
     int countTauMu = 0;
     for(unsigned int i = 0; i < nGenPart; i++){
       if (abs(GenPart_pdgId[i]) == 11) {
         // It is a electron
         for(int j = 0; j < 4; j++) {
-          if (GenPart_genPartIdxMother[i] == tauArr[j]) {
+          if (GenPart_genPartIdxMother[i] == tauArr[j]) { //see if mother is tau
             countTauE++;
           } 
         }
@@ -106,6 +129,321 @@ RVec<int> decayType(bool isSig, unsigned int nGenPart, RVec<int> &GenPart_pdgId,
   return counts;
 };
 
+// ---------------------------------------------------------------
+//                  decays including e,mu,pions
+// ---------------------------------------------------------------
+
+RVec<RVec<double>> GenInfo(bool isSig, unsigned int nGenPart, RVec<int> &GenPart_pdgId, RVec<float> &GenPart_mass, RVec<float> &GenPart_pt, RVec<float> &GenPart_phi, RVec<float> &GenPart_eta, RVec<short> &GenPart_genPartIdxMother)
+{	
+	RVec<double> ElecPt;
+	RVec<double> ElecDRb;
+	RVec<double> MuonPt;
+	RVec<double> MuonDRb;
+	RVec<double> TauPt;
+	RVec<double> TauEta;
+	RVec<double> TauDRb;
+	RVec<double> Bvisible = {0,0,0,0,0,0,0,0};
+	RVec<double> Neutrino;
+
+	if(isSig)
+	{
+		//cout << "-----------------------------------------------------" << endl;
+		int tauArrB[2] = {-1, -1};
+		int tauArrBbar[2] = {-1, -1};
+		int tauB = 0;
+		int tauBbar = 0;
+
+		TLorentzVector B;
+		TLorentzVector Bbar;
+
+		TLorentzVector b1;
+		TLorentzVector b2;
+		bool haveb1 = false;
+		bool haveb2 = false;
+		
+		TLorentzVector neut;
+
+		for(unsigned int i = 0; i < nGenPart; i++)
+		{
+			//first finding the b jets (1)		
+			if (abs(GenPart_pdgId[i]) == 5 && GenPart_pdgId[GenPart_genPartIdxMother[i]] == 9000005 && haveb1 == false) 
+			{
+				b1.SetPtEtaPhiM(GenPart_pt[i], GenPart_eta[i], GenPart_phi[i], 4.18);
+				B += b1;
+
+				//cout << "b1: " << b1.Pt() << " " << b1.M() << endl;
+				//cout << "B is " << B.Pt() << " " << B.M() << endl;
+
+				haveb1 = true;
+			}
+		
+			//here is the second b jet
+			if (abs(GenPart_pdgId[i]) == 5 && GenPart_pdgId[GenPart_genPartIdxMother[i]] == -9000005 && haveb2 == false) 
+			{
+				b2.SetPtEtaPhiM(GenPart_pt[i], GenPart_eta[i], GenPart_phi[i], 4.18);
+				Bbar += b2;
+				
+				//cout << "b2: " << b2.Pt() << " " << b2.M() << endl;
+				//cout << "Bbar is " << Bbar.Pt() << " " << Bbar.M() << endl;
+			
+				haveb2 = true;
+			}	
+
+			//now finding the taus from B
+			if (abs(GenPart_pdgId[i]) == 15 && GenPart_pdgId[GenPart_genPartIdxMother[i]] == 9000005) 
+			{
+				double mass = 1.77686;
+				
+				TLorentzVector taus1, taus1A;
+				taus1.SetPtEtaPhiM(GenPart_pt[i], GenPart_eta[i], GenPart_phi[i], mass);
+
+				TauPt.push_back(taus1.Pt()); 
+				TauEta.push_back(taus1.Eta());
+				TauDRb.push_back(taus1.DeltaR(b1));
+
+				//cout << "genID " << GenPart_pdgId[i] << " genMother " << GenPart_genPartIdxMother[i] << " genIdofMother " << GenPart_pdgId[GenPart_genPartIdxMother[i]] << endl;
+
+				int igen = i;
+				//cout << "found tau " << igen << " " << i << endl;
+				for(unsigned int j = i; j < nGenPart; j++)
+				{
+					if (GenPart_pdgId[j] != GenPart_pdgId[i]) {continue;} //is different particle?
+					if (GenPart_genPartIdxMother[j] != igen) {continue;}  
+					
+					igen = j;
+				}
+
+				tauArrB[tauB] = igen;
+				//cout << "tauEB " << tauEsB[tauB] << " mass " << taus1.M() << " pt " << taus1.Pt() << " eta " << taus1.Eta() << " phi " << taus1.Phi() << endl;
+				
+				taus1A.SetPtEtaPhiM(GenPart_pt[igen], GenPart_eta[igen], GenPart_phi[igen], mass);
+				//cout << "tauEB igen mass " << taus1A.M() << " pt " << taus1A.Pt() << " eta " << taus1A.Eta() << " phi " << taus1A.Phi() << " E " << taus1A.E() << " otrE " << tauEsB[tauB] << endl;
+				
+				//cout << "stored tau " << igen << " " << tauB << " " << tauArrB[tauB] << endl;
+        			tauB++;
+			}
+		
+			//finding the taus from Bbar
+			if (abs(GenPart_pdgId[i]) == 15 && GenPart_pdgId[GenPart_genPartIdxMother[i]] == -9000005) 
+			{
+				double mass = 1.77686;
+
+				TLorentzVector taus2, taus2A;
+				taus2.SetPtEtaPhiM(GenPart_pt[i], GenPart_eta[i], GenPart_phi[i], mass);
+
+				TauPt.push_back(taus2.Pt()); 
+				TauEta.push_back(taus2.Eta());
+				TauDRb.push_back(taus2.DeltaR(b2));
+
+				int igen = i;
+				//cout << "found tau " << igen << " " << i << endl;
+				for(unsigned int j = i; j < nGenPart; j++)
+				{
+					if (GenPart_pdgId[j] != GenPart_pdgId[i]) {continue;}
+					if (GenPart_genPartIdxMother[j] != igen) {continue;}
+					
+					igen = j;
+				}
+			
+				tauArrBbar[tauBbar] = igen;
+				//cout << "tauEBbar " << tauEsB[tauBbar] << " mass " << taus2.M() << " pt " << taus2.Pt() << " eta " << taus2.Eta() << " phi " << taus2.Phi() << endl;
+				
+				taus2A.SetPtEtaPhiM(GenPart_pt[igen], GenPart_eta[igen], GenPart_phi[igen], mass);
+				//cout << "tauEBbar igen mass " << taus2A.M() << " pt " << taus2A.Pt() << " eta " << taus2A.Eta() << " phi " << taus2A.Phi() << " E " << taus2A.E() << " otrE " << tauEsBbar[tauBbar]<< endl;
+				
+				//cout << "stored tau " << igen << " " << tauBbar << " " << tauArrBbar[tauBbar] << endl;
+        			tauBbar++;
+			}
+
+		}
+		
+		//cout << "tauArrB: " << tauArrB[0] << " " << tauArrB[1] << "tauArrBbar:" << tauArrBbar[0] << " " << tauArrBbar[1] << endl;
+				
+		//matches of e, mu, pis, in tauArrB or tauArrBbar; and now adding neutrinos
+		for(unsigned int i = 0; i < nGenPart; i++)
+		{
+      			if (abs(GenPart_pdgId[i]) == 11 || abs(GenPart_pdgId[i]) == 13 || abs(GenPart_pdgId[i]) == 111 || abs(GenPart_pdgId[i]) == 211)  
+			{
+				double mass = 0.000511;
+				if (abs(GenPart_pdgId[i]) == 13) { mass = 0.1057; }
+				else if (abs(GenPart_pdgId[i]) == 111) { mass = 0.135; }
+				else if (abs(GenPart_pdgId[i]) == 211) { mass = 0.139570; }
+
+        			for(int j = 0; j < 2; j++) 
+				{
+          				if (GenPart_genPartIdxMother[i] == tauArrB[j]) 
+					{
+            					TLorentzVector theVec;
+						theVec.SetPtEtaPhiM(GenPart_pt[i], GenPart_eta[i], GenPart_phi[i], mass);
+						
+						B += theVec;
+							
+						if (abs(GenPart_pdgId[i]) == 11) {	
+							ElecPt.push_back(theVec.Pt()); 
+							ElecDRb.push_back(theVec.DeltaR(b1));
+						} else if (abs(GenPart_pdgId[i]) == 13) {
+							MuonPt.push_back(theVec.Pt()); 
+							MuonDRb.push_back(theVec.DeltaR(b1));
+						}
+					
+						//cout << "theVec: " << theVec.Pt() << " " << theVec.M() << " " << GenPart_pdgId[i] << " " << j << endl;
+						//cout << "B is " << B.Pt() << " " << B.M() << endl;
+          				} 
+
+          				if (GenPart_genPartIdxMother[i] == tauArrBbar[j]) 
+					{
+            					TLorentzVector theVec;
+						theVec.SetPtEtaPhiM(GenPart_pt[i], GenPart_eta[i], GenPart_phi[i], mass);
+						
+						Bbar += theVec;
+						
+						if (abs(GenPart_pdgId[i]) == 11) {	
+							ElecPt.push_back(theVec.Pt()); 
+							ElecDRb.push_back(theVec.DeltaR(b2));
+						} else if (abs(GenPart_pdgId[i]) == 13) {
+							MuonPt.push_back(theVec.Pt()); 
+							MuonDRb.push_back(theVec.DeltaR(b2));
+						}
+	
+						//cout << "theVec: " << theVec.Pt() << " " << theVec.M() << " " << GenPart_pdgId[i] << " " << j << endl;
+						//cout << "Bbar is " << Bbar.Pt() << " " << Bbar.M() << endl;
+
+          				} 
+        			}
+      			}
+    		
+      			if (abs(GenPart_pdgId[i]) == 12 || abs(GenPart_pdgId[i]) == 14 || abs(GenPart_pdgId[i]) == 16)
+			{
+				double mass = 0.0;
+        			
+				for(int j = 0; j < 2; j++) 
+				{
+          				if (GenPart_genPartIdxMother[i] == tauArrB[j]) 
+					{
+						TLorentzVector theNuVec;
+						theNuVec.SetPtEtaPhiM(GenPart_pt[i], GenPart_eta[i], GenPart_phi[i], mass);
+						
+						neut += theNuVec;
+						//cout << "theNuVec: " << theNuVec.Pt() << " " << theNuVec.Phi() << " " << theNuVec.M() << endl;
+						//cout << "neut: " << neut.Pt() << " " << neut.Phi() << " " << neut.M() << endl;					
+					} 
+          				
+					if (GenPart_genPartIdxMother[i] == tauArrBbar[j]) 
+					{
+						TLorentzVector theNuVec;
+						theNuVec.SetPtEtaPhiM(GenPart_pt[i], GenPart_eta[i], GenPart_phi[i], mass);
+						
+						neut += theNuVec;
+						//cout << "theNuVec: " << theNuVec.Pt() << " " << theNuVec.Phi() << " " << theNuVec.M() << endl;
+						//cout << "neut: " << neut.Pt() << " " << neut.Phi() << " " << neut.M() << endl;					
+					
+					}
+        			}
+			}	
+      			
+		}
+
+		Bvisible = {B.Pt(), B.Eta(), B.Phi(), B.M(), Bbar.Pt(), Bbar.Eta(), Bbar.Phi(), Bbar.M()};
+
+		Neutrino = {neut.Pt(), neut.Phi()};	
+	} 
+
+	RVec<RVec<double>> theOutput = {ElecPt, ElecDRb, MuonPt, MuonDRb, TauPt, TauDRb, Bvisible, Neutrino, TauEta};
+
+		return theOutput;
+}
+
+// -------------------------------------------------------------
+//                understanding the tau bug
+// -------------------------------------------------------------
+
+RVec<RVec<double>> tauBUG(bool isSig, unsigned int nGenPart, RVec<int> &GenPart_pdgId, RVec<float> &GenPart_mass, RVec<float> &GenPart_pt, RVec<float> &GenPart_phi, RVec<float> &GenPart_eta, RVec<short> &GenPart_genPartIdxMother, RVec<float> &GenVisTau_pt, RVec<float> &GenVisTau_eta, RVec<float> &GenVisTau_phi, RVec<float> &GenVisTau_mass, RVec<short> &GenVisTau_genPartIdxMother, RVec<unsigned char> &GenVisTau_status, unsigned int nGenVisTau) {
+
+	RVec<double> piplusTauR;
+	RVec<double> pinegTauR;
+	float tauMass = 1.77686;
+	float pionMass = 0.13957;
+	
+
+	if (isSig) {
+ 	 		
+		for (int i = 0; i < nGenVisTau; i++) {
+			
+			if (GenVisTau_status[i] != 0) { continue; }
+			TLorentzVector genVisTau, genPartTau;
+			genVisTau.SetPtEtaPhiM(GenVisTau_pt[i], GenVisTau_eta[i], GenVisTau_phi[i], tauMass);
+			
+			float minDR = 999999;
+			int minDRi = -1;
+			
+			for (int j = 0; j < nGenPart; j++) {
+				
+				if (abs(GenPart_pdgId[j]) == 15 && abs(GenPart_pdgId[GenPart_genPartIdxMother[j]]) == 9000005) {
+						
+					int igen = j;
+
+					for(unsigned int ii = j; ii < nGenPart; ii++) {
+						if (GenPart_pdgId[ii] != GenPart_pdgId[j]) {continue;}
+						if (GenPart_genPartIdxMother[ii] != igen) {continue;}
+						igen = ii;
+					}
+							
+					genPartTau.SetPtEtaPhiM(GenPart_pt[igen], GenPart_eta[igen], GenPart_phi[igen], tauMass);
+					
+					float tempDR = genVisTau.DeltaR(genPartTau);
+					if (tempDR < minDR) {
+						minDR = tempDR;
+						minDRi = igen;
+					}	
+				}
+
+			}	
+
+			TLorentzVector PionNeg, PionPos;
+
+
+			for (int k = 0; k < nGenPart; k++) {
+				
+				//cout << "----------------------------------------------------" << endl;
+				if (GenPart_pdgId[k] == 211 && GenPart_genPartIdxMother[k] == minDRi) {
+
+					PionPos.SetPtEtaPhiM(GenPart_pt[k], GenPart_eta[k], GenPart_phi[k], pionMass);
+					piplusTauR.push_back( (PionPos.E() / genPartTau.E()) );
+
+					if ( (PionPos.E() / genPartTau.E()) > 5 ) {
+						//cout << "Pion Pos stuff " << PionPos.Pt() << " " << PionPos.E() << " " << PionPos.Eta() << endl;
+						//cout << "Pion Pos from Gen " << GenPart_pt[k] << "          " << GenPart_eta[k] << endl;		
+					}
+
+				}
+				
+				if (GenPart_pdgId[k] == -211 && GenPart_genPartIdxMother[k] == minDRi) {
+
+					PionNeg.SetPtEtaPhiM(GenPart_pt[k], GenPart_eta[k], GenPart_phi[k], pionMass);
+					pinegTauR.push_back( (PionNeg.E() / genPartTau.E()) );
+					
+					if ( (PionNeg.E() / genPartTau.E()) > 5 ) {
+						//cout << "Pion Neg stuff " << PionNeg.Pt() << " " << PionNeg.E() << " " << PionNeg.Eta() << endl;		
+						//cout << "Pion Neg from Gen " << GenPart_pt[k] << "          " << GenPart_eta[k] << endl;		
+					}
+
+				}
+
+			}
+
+
+
+			//cout << "minDR: " << minDR << endl;			
+			//cout << "Vis tau: " << genVisTau.Pt() << " " << genVisTau.Eta() << " " << genVisTau.Phi() << " " << genVisTau.M() << " " << genVisTau.E() <<endl;
+			//cout << "Part tau: " << genPartTau.Pt() << " " << genPartTau.Eta() << " " << genPartTau.Phi() << " " << genPartTau.M() << " " << genVisTau.E() << endl;
+		}	
+
+	}
+	
+	RVec<RVec<double>> returnVec = {piplusTauR, pinegTauR};
+	return returnVec;
+}
+
 // -------------------------------------------------------
 //               figure out this event’s taus and bjets
 // -------------------------------------------------------
@@ -122,6 +460,7 @@ RVec<RVec<int>> recoGenMatch(bool isSig, unsigned int NisGood, RVec<float> &Good
   int tauIndex = 0;
   int vecb = 0;
   int bjetIndex = NisGood;
+  int HadrTau = 0;
 
   // ---------------------- Variables ----------------------
   RVec<int> tauArr(4);
@@ -208,7 +547,9 @@ RVec<RVec<int>> recoGenMatch(bool isSig, unsigned int NisGood, RVec<float> &Good
         bjetArrOriginal[bjet] = i;
         bjet++;
       }
-    }    
+    }
+
+    HadrTau = tauH;	    
 
     // ---------------------- Matching ----------------------
 
@@ -275,9 +616,11 @@ RVec<RVec<int>> recoGenMatch(bool isSig, unsigned int NisGood, RVec<float> &Good
 
   }
 
+  //cout << "My Htau: " << HadrTau << " otr tau " << tauH << endl;
+
   // int nObjects = tauH + bjet + vecb;
   int nObjects = tauH + bjetcount;
-  return {ObjectList_indices, matchability, {nObjects}, {bjet}, tauArr, bjetArr, vecbArr};
+  return {ObjectList_indices, matchability, {nObjects}, {bjet}, tauArr, bjetArr, vecbArr, {HadrTau}};
 }
 
 
