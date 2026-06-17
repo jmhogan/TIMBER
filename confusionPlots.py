@@ -15,16 +15,17 @@ readFile = True
 if readFile:
     inFile = TFile.Open("root://cmseos.fnal.gov//store/user/jmanagan/BtoTW_Jan2024_pNetAlt3/RDF_BprimeBtoTW_M-1400_NWALO_TuneCP5_13TeV-madgraph-pythia8_2018_0.root")
 
-    decaymodes_den = TH2D("B_decays_den",";reconstructed decay mode;true decay mode",4,0,4,4,0,4)
-    decaymodes_alt = TH2D("B_decays_alt",";reconstructed decay mode;true decay mode",4,0,4,4,0,4)
+    decaymodes_den = TH2D("B_decays_den",";reconstructed decay mode;true decay mode",4,0,4,4,0,6) #need 6 instead
+#    decaymodes_alt = TH2D("B_decays_alt",";reconstructed decay mode;true decay mode",4,0,4,4,0,4)
+#if den is the same btwen the 2, num becomes PNet and GloParT
     decaymodes_num = TH2D("B_decays",";reconstructed decay mode;true decay mode",4,0,4,4,0,4)
-    decaymodes_den.Sumw2()
+    decaymodes_den.Sumw2() #Sum weights squared -> account for uncertainties. in future we divide this
     decaymodes_num.Sumw2()
     decaymodes_alt.Sumw2()
 
     leptonmodes_den = TH2D("lepton_source_den",";reconstructed lepton source;true lepton source",2,0,2,2,0,2)
     leptonmodes_num = TH2D("lepton_source",";reconstructed lepton source;true lepton source",2,0,2,2,0,2)
-    leptonmodes_alt = TH2D("lepton_alt",";reconstructed lepton source;true lepton source",2,0,2,2,0,2)
+#    leptonmodes_alt = TH2D("lepton_alt",";reconstructed lepton source;true lepton source",2,0,2,2,0,2)
     leptonmodes_den.Sumw2()
     leptonmodes_num.Sumw2()
     leptonmodes_alt.Sumw2()
@@ -32,15 +33,16 @@ if readFile:
     t = inFile.Get("Events_Nominal")
 
     for ievent in range(t.GetEntries()):
-
+        
         t.GetEntry(ievent)
+        #need to loop over the jets too
         i = 0
         j = 0
         
         # Fill truth info into all x-axis values
-        if t.trueLeptonicT == 1:
-            if t.W_gen_pt <= 200:
-                i = 3.5
+        if t.trueLeptonicT == 1:   #deciding on the truth, we can just look at the truth from our truth vector
+            if t.W_gen_pt <= 200:  #we need to choose an order (j,b,W,Z,H,t) etc <- whichever value is the truth, assign den there
+                i = 3.5      
                 j = 1.5
             else:
                 i = 2.5
@@ -53,7 +55,7 @@ if readFile:
                 i = 0.5
                 j = 0.5
                 
-        for imode in range(0,5):
+        for imode in range(0,5):  #fill the denoms into the correct ROW
             decaymodes_den.Fill(imode,i)
         
         for imode in range(0,2):
@@ -115,12 +117,12 @@ leptonmodes_num = histFile.Get("lepton_source")
 leptonmodes_alt = histFile.Get("lepton_alt")
 
 canv1 = TCanvas("c1","c1",800,600)
-xlabels = ['t jet','untagged t','W jet','untagged W']
+xlabels = ['t jet','untagged t','W jet','untagged W'] #need to change these
 for ibin in range(1,decaymodes_num.GetNbinsX()+1):
     decaymodes_num.GetXaxis().SetBinLabel(ibin,xlabels[ibin-1])
     decaymodes_alt.GetXaxis().SetBinLabel(ibin,xlabels[ibin-1])
     
-ylabels = ['boosted t','unboosted t','boosted W','unboosted W']
+ylabels = ['boosted t','unboosted t','boosted W','unboosted W'] #and change these
 for ibin in range(1,decaymodes_num.GetNbinsY()+1):
     decaymodes_num.GetYaxis().SetBinLabel(ibin,ylabels[ibin-1])
     decaymodes_alt.GetYaxis().SetBinLabel(ibin,ylabels[ibin-1])
