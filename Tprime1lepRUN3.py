@@ -5,7 +5,7 @@ import ROOT
 from ROOT import TFile
 import sys, os
 import gc
-from rates import to_cpp_vec2d, pnet_loose
+from rates import to_cpp_vec2d, pnet_loose, upart_med
 
 gc.disable()
 
@@ -215,6 +215,10 @@ def analyze(jesvar):
   btagname = {'2022':"particleNet_comb",'2022EE':"particleNet_comb",'2023':"deepJet_comb",'2023BPix':"deepJet_comb",'2024':"UParTAK4_comb",'2025':"UParTAK4_comb"}
   puweights = {'2022':"puWeights",'2022EE':'puWeights','2023':'puWeights','2023BPix':'puWeights','2024':"puWeights_BCDEFGHI",'2025':"puWeights_2025pp_Golden_Summer24_25ns_69200ub"}
   lightwps = {'2022':"particleNet_light", '2022EE':"particleNet_light",'2023':"particleNet_light",'2023BPix':"particleNet_light",'2024':"UParTAK4_light"} #Needs 2025
+
+  tagger = pnet_loose
+  if year == "2024":
+    tagger = upart_med
   
   year_hack='2023'
   ROOT.gInterpreter.Declare("""
@@ -238,7 +242,7 @@ def analyze(jesvar):
   string lightwp = \""""+lightwps[year]+"""\";
   
   std::vector<int> btagptbins = {15,20,30,50,70,100,150,200,300,400,500,600,800,1000,1200,1500};
-  std::vector<std::vector<float>> btageffs = """ + to_cpp_vec2d(pnet_loose[year_hack]) + """;
+  std::vector<std::vector<float>> btageffs = """ + to_cpp_vec2d(tagger[year]) + """;
   """)
 
   # print(f"/cvmfs/cms-griddata.cern.ch/cat/metadata/LUM/{yrstr[year]}/{lumtags[year]}/{puweights[year]}.json.gz  ->  {puname[year]}")
@@ -380,7 +384,8 @@ def analyze(jesvar):
   lVars.Add("lepton_phi","assignleps[2]")
   lVars.Add("lepton_mass","assignleps[3]")
   lVars.Add("lepton_miniIso","assignleps[4]")
-  
+  lVars.Add("lepton_ID","isMu ? 13 : 11")
+
   # ------------------ JET Cleaning and JERC ------------------
   jVars = VarGroup('JetCleaningVars')
   
@@ -489,11 +494,18 @@ def analyze(jesvar):
   #jVars.Add("Isolated_AK4","standalone_Jet(gcJet_eta, gcJet_phi, gcFatJet_eta, gcFatJet_phi)")
 
   # ------------------ Add scale factors and MC jet-based calcs ------------------
+  lepSFs = VarGroup('Lepton Scale Factors')
+  
   if isMC:
-    #jVars.Add("leptonRecoSF", "recofunc(electroncorr, muonidcorr, yrstr, lepton_pt, lepton_eta, isEl)") ## this is not right, but we'll figure out what corrections we need later
-    #jVars.Add("leptonIDSF", "idfunc(muonidcorr,elid_pts,elid_etas,elecidsfs,elecidsfuncs,yrstr, lepton_pt, lepton_eta, isEl)") #at(0) 
-    #jVars.Add("leptonIsoSF", "isofunc(muiso_pts,muiso_etas,muonisosfs,muonisosfunc,elid_pts,elid_etas,elecisosfs,elecisosfunc, lepton_pt, lepton_eta, isEl)")
-    #jVars.Add("leptonHLTSF", "hltfunc(muonhltcorr,elhlt_pts,elhlt_etas,elechltsfs,elechltuncs,yrstr, lepton_pt, lepton_eta, isEl)")
+    lepSFs.Add('elrecoSF', 'elrecofunc(electroncorr,elecyr,lepton_pt,lepton_eta,lepton_phi,lepton_ID)')
+    lepSFs.Add('elidSF', 'elidfunc(electroncorr,elecyr,"wp80iso",elecidWP,lepton_pt,lepton_eta,lepton_phi,lepton_ID)')
+    lepSFs.Add('muonidSF', 'muidfunc(muonidcorr,lepton_pt,lepton_eta,lepton_ID)')
+    lepSFs.Add('muonisoSF', 'muisofunc(muonisocorr,lepton_pt,lepton_eta,lepton_ID)')
+   
+#    jVars.Add("leptonRecoSF", "recofunc(electroncorr, muonidcorr, yrstr, lepton_pt, lepton_eta, isEl)") ## this is not right, but we'll figure out what corrections we need later
+#    jVars.Add("leptonIDSF", "idfunc(muonidcorr,elid_pts,elid_etas,elecidsfs,elecidsfuncs,yrstr, lepton_pt, lepton_eta, isEl)") #at(0) 
+#    jVars.Add("leptonIsoSF", "isofunc(muiso_pts,muiso_etas,muonisosfs,muonisosfunc,elid_pts,elid_etas,elecisosfs,elecisosfunc, lepton_pt, lepton_eta, isEl)")
+#    jVars.Add("leptonHLTSF", "hltfunc(muonhltcorr,elhlt_pts,elhlt_etas,elechltsfs,elechltuncs,yrstr, lepton_pt, lepton_eta, isEl)")
 
     jVars.Add("gcJet_PNet", "reorder(Jet_btagPNetB[goodcleanJets == true],gcJet_ptargsort)")
     jVars.Add("gcJet_PNetM", "gcJet_PNet > PNetM") 
@@ -585,7 +597,6 @@ def analyze(jesvar):
   if jesvar == "Nominal":
     print("Cut statistics:")
     rep = a.DataFrame.Report()
-    print("DataFrame.Report exists")
     rep.Print()
 
   print("--------- Analysis End ---------")
