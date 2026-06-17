@@ -470,6 +470,7 @@ def analyze(jesvar):
   tagVars.Add("gcFatJet_PNWM_Hcc", "reorder(((FatJet_particleNetWithMass_HccvsQCD * FatJet_particleNetWithMass_QCD) / (1.0 - FatJet_particleNetWithMass_HccvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_PNWM_H", "gcFatJet_PNWM_Hcc + gcFatJet_PNWM_Hbb + gcFatJet_PNWM_H4q")
   tagVars.Add("gcFatJet_PNWM_QCD", "reorder(FatJet_particleNetWithMass_QCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_PNWM_regressedMass", "reorder((FatJet_mass * FatJet_particleNet_massCorr)[goodcleanFatJets == true], gcFatJet_ptargsort)")
 
   tagVars.Add("gcFatJet_GPT_T", "reorder((FatJet_globalParT3_TopbWqq + FatJet_globalParT3_TopbWtauhv)[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_W", "reorder((FatJet_globalParT3_Xqq + FatJet_globalParT3_Xcs)[goodcleanFatJets == true], gcFatJet_ptargsort)")
