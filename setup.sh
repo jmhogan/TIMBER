@@ -9,11 +9,11 @@ pip install -e .
 
 # Add TIMBERPATH to activate script if not already there
 activate_path=$VIRTUAL_ENV/bin/activate
-TIMBERPATH="$PWD/"
-export TIMBERPATH="$TIMBERPATH"
 
-if ! grep -q "$TIMBERPATH" "$activate_path"; then
-  echo "export TIMBERPATH=${TIMBERPATH}" >> "$activate_path"
+# 1. Use single quotes around the search pattern so grep looks for the literal '$PWD'
+if ! grep -q 'export TIMBERPATH=\$PWD' "$activate_path"; then
+  # 2. Use single quotes here to append the literal string instead of expanding it
+  echo 'export TIMBERPATH="$PWD/TIMBER/"' >> "$activate_path"
   echo "Added TIMBERPATH to $activate_path"
 fi
 

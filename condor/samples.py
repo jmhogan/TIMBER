@@ -681,6 +681,17 @@ QCDPT20002024 = sample("QCDPT20002024",0.04264,"2024","QCDPT20002024NanoList.txt
 QCDPT25002024 = sample("QCDPT25002024",0.004454,"2024","QCDPT25002024NanoList.txt","/QCD_Bin-PT-2500to3000_TuneCP5_13p6TeV_pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM")
 QCDPT30002024 = sample("QCDPT30002024",0.0005539,"2024","QCDPT30002024NanoList.txt","/QCD_Bin-PT-3000_TuneCP5_13p6TeV_pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM")
 
+## Diboson and ttHbb
+# Electing not to run the versions without any prompt leptons. 3-4 leptons are above
+WW1L2024 = sample("WW1L2024", 48.94, "2024", "WW1L2024NanoList.txt", "/WWtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM")
+WW2L2024 = sample("WW2L2024", 11.79, "2024", "WW2L2024NanoList.txt", "/WWto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM")
+WZ1L2Q2024 = sample("WZ1L2Q2024", 15.87, "2024", "WZ1L2Q2024NanoList.txt", "/WZtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM")
+WZ1L3Nu2024 = sample("WZ1L3Nu2024", 3.077, "2024", "WZ1L3Nu2024NanoList.txt", "/WZtoL3Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM")
+WZ2L2024 = sample("WZ2L2024", 7.568, "2024", "WZ2L2024NanoList.txt", "/WZto2L2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM")
+ZZ2L2Q2024 = sample("ZZ2L2Q2024", 6.788, "2024", "ZZ2L2Q2024NanoList.txt", "/ZZto2L2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM")
+ZZ2L2Nu2024 = sample("ZZ2L2Nu2024", 1.031, "2024", "ZZ2L2Nu2024NanoList.txt", "/ZZto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM")
+TTH2B2024 = sample("TTH2B2024", 0.5742, "2024", "TTH2B2024NanoList.txt", "/TTH-Hto2B_Par-M-125_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM")
+
 sample_test = {
     "SingleElecRun2022C":      SingleElecRun2022C,
 }
@@ -1005,35 +1016,12 @@ samples_mc_standard = {
     "TTZM502023BPixext": TTZM502023BPixext,
 
     #tz + qb
-<<<<<<< HEAD
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # "
-    # " 
-=======
     "TZQB2022"      : TZQB2022,
     "TZQB2022EE"    : TZQB2022EE,
     "TZQB2023"      : TZQB2023,
     "TZQB2023BPix"  : TZQB2023BPix,
     "TZQB2024"      : TZQB2024 
 }           
->>>>>>> 944def3cc9b711d09975b43d3bd4fa7d5c1700f0
 
 samples_mc_test = {
     "BpBp_M1200_2024": BpBp_M1200_2024
