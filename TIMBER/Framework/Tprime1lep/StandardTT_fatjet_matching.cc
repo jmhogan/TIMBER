@@ -1,6 +1,8 @@
+//contains fatjet_matching() and jet_tagging() 
 using namespace std;
 using namespace ROOT::VecOps;
 
+//'private' function for fatjet_matching
 auto get_daughters(int idx, unsigned int length, RVec<short> GenPart_genPartIdxMother) 
 {
   vector<unsigned int> daughters;
@@ -343,12 +345,13 @@ auto fatjet_matching(string sample, unsigned int nGenPart, RVec<int> &GenPart_pd
   return fatjet_truth;
 }
 
-auto jet_tagging(RVec<float> gcFatJet_PNWM_T, RVec<float> gcFatJet_PNWM_W, RVec<float> gcFatJet_PNWM_Z, RVec<float> gcFatJet_PNWM_H, RVec<float> gcFatJet_PNWM_QCD, RVec<float> gcFatJet_GPT_T, RVec<float> gcFatJet_GPT_W, RVec<float> gcFatJet_GPT_ZH, RVec<float> gcFatJet_GPT_QCD, RVec<float> gcFatJet_GPT_regressedMass, RVec<float> gcFatJet_subJetIdx1, RVec<float> gcFatJet_subJetIdx2, RVec<float> SubJet_btagUParTAK4B, RVec<float> gcFatJet_truth, float UparTmed) 
+auto jet_tagging(RVec<float> gcFatJet_PNWM_T, RVec<float> gcFatJet_PNWM_W, RVec<float> gcFatJet_PNWM_Z, RVec<float> gcFatJet_PNWM_H, RVec<float> gcFatJet_PNWM_QCD, RVec<float> gcFatJet_GPT_T, RVec<float> gcFatJet_GPT_W, RVec<float> gcFatJet_GPT_ZH, RVec<float> gcFatJet_GPT_QCD, RVec<float> gcFatJet_GPT_regressedMass, RVec<float> gcFatJet_GPTWM_T, RVec<float> gcFatJet_GPTWM_W, RVec<float> gcFatJet_GPTWM_Z, RVec<float> gcFatJet_subJetIdx1, RVec<float> gcFatJet_subJetIdx2, RVec<float> SubJet_btagUParTAK4B, RVec<float> gcFatJet_truth, float UparTmed,RVec<TLorentzVector> gcJet_P4,RVec<TLorentzVector> gcFatJet_P4, RVec<float> gcJet_UParTM) 
 {
   //std::cout << "Entering jet_tagging" << std::endl;
   RVec<int> PNWMtag;
   RVec<int> GPTtag;
-
+  RVec<int> GPTWMtag;
+  
   for(int i = 0; i < gcFatJet_PNWM_T.size(); i++)
   {
     std::vector<float> PNWMscores = {gcFatJet_PNWM_T[i], gcFatJet_PNWM_W[i], gcFatJet_PNWM_Z[i], gcFatJet_PNWM_H[i], gcFatJet_PNWM_QCD[i]};
@@ -361,11 +364,16 @@ auto jet_tagging(RVec<float> gcFatJet_PNWM_T, RVec<float> gcFatJet_PNWM_W, RVec<
     if(max_index == 3) PNWMtag.push_back(25);
     if(max_index == 4)
     {
-      int subjetIdx1 = gcFatJet_subJetIdx1[i];
-      int subjetIdx2 = gcFatJet_subJetIdx2[i];
-      if((subjetIdx1 >= 0 &&  SubJet_btagUParTAK4B[subjetIdx1] >= 0.8) || (subjetIdx2 >= 0 &&  SubJet_btagUParTAK4B[subjetIdx2] >= UparTmed))
-      {
-        PNWMtag.push_back(5);
+      // int subjetIdx1 = gcFatJet_subJetIdx1[i];
+      // int subjetIdx2 = gcFatJet_subJetIdx2[i];
+      // if((subjetIdx1 >= 0 &&  SubJet_btagUParTAK4B[subjetIdx1] >= 0.8) || (subjetIdx2 >= 0 &&  SubJet_btagUParTAK4B[subjetIdx2] >= UparTmed))
+
+      bool isBTagged = false;
+      for(int k = 0; k < gcJet_P4.size(); k++) {
+	if(gcJet_P4[k].DeltaR(gcFatJet_P4[i]) < 0.8 && gcJet_UParTM[k] >= UparTmed) {isBTagged = true;}
+      }
+      if(isBTagged){	
+	PNWMtag.push_back(5);
       }else{PNWMtag.push_back(0);}
     }
 
@@ -380,16 +388,37 @@ auto jet_tagging(RVec<float> gcFatJet_PNWM_T, RVec<float> gcFatJet_PNWM_W, RVec<
       if(gcFatJet_GPT_regressedMass[i] > 105) GPTtag.push_back(25);
     }
     if(max_index == 3){
-      int subjetIdx1 = gcFatJet_subJetIdx1[i];
-      int subjetIdx2 = gcFatJet_subJetIdx2[i];
-      if((subjetIdx1 >= 0 &&  SubJet_btagUParTAK4B[subjetIdx1] >= 0.8) || (subjetIdx2 >= 0 &&  SubJet_btagUParTAK4B[subjetIdx2] >= UparTmed)) 
-      {
+      bool isBTagged = false;
+      for(int k = 0; k < gcJet_P4.size(); k++) {
+	if(gcJet_P4[k].DeltaR(gcFatJet_P4[i]) < 0.8 && gcJet_UParTM[k] >= UparTmed) {isBTagged = true;}
+      }
+      if(isBTagged){	
         GPTtag.push_back(5);
       }else{GPTtag.push_back(0);}
     }
     //std::cout << "PNWM, GPT, Truth = " << PNWMtag[i] << ", " << GPTtag[i] << ", " << gcFatJet_truth[i] << std::endl;
 
+    std::vector<float> GPTWMscores = {gcFatJet_GPTWM_T[i], gcFatJet_GPTWM_W[i], gcFatJet_GPTWM_Z[i], gcFatJet_GPT_QCD[i]};
+    max_addr = std::max_element(GPTWMscores.begin(), GPTWMscores.end());
+    max_index = std::distance(GPTWMscores.begin(), max_addr);
+
+    if(max_index == 0) GPTWMtag.push_back(6);
+    if(max_index == 1) GPTWMtag.push_back(24);
+    if(max_index == 2){
+      if(gcFatJet_GPT_regressedMass[i] < 105) GPTWMtag.push_back(23);
+      if(gcFatJet_GPT_regressedMass[i] > 105) GPTWMtag.push_back(25);
+    }
+    if(max_index == 3){
+      bool isBTagged = false;
+      for(int k = 0; k < gcJet_P4.size(); k++) {
+	if(gcJet_P4[k].DeltaR(gcFatJet_P4[i]) < 0.8 && gcJet_UParTM[k] >= UparTmed) {isBTagged = true;}
+      }
+      if(isBTagged){	
+	GPTWMtag.push_back(5);
+      }else{GPTWMtag.push_back(0);}
+    }
+    
   }
-  std::pair<RVec<float>, RVec<float>> taggerResults = {PNWMtag, GPTtag};
-  return taggerResults;
+    RVec<RVec<int>> taggerResults = {PNWMtag, GPTtag, GPTWMtag};
+    return taggerResults;
 }
