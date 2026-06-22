@@ -477,6 +477,9 @@ def analyze(jesvar):
   tagVars.Add("gcFatJet_PNWM_QCD", "reorder(FatJet_particleNetWithMass_QCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_PNWM_regressedMass", "reorder((FatJet_mass * FatJet_particleNet_massCorr)[goodcleanFatJets == true], gcFatJet_ptargsort)")
 
+  tagVars.Add("gcFatJet_GPTWM_T", "reorder(FatJet_globalParT3_withMassTopvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_W", "reorder(FatJet_globalParT3_withMassWvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_Z", "reorder(FatJet_globalParT3_withMassZvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_T", "reorder((FatJet_globalParT3_TopbWqq + FatJet_globalParT3_TopbWtauhv)[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_W", "reorder((FatJet_globalParT3_Xqq + FatJet_globalParT3_Xcs)[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_ZH", "reorder((FatJet_globalParT3_Xbb + FatJet_globalParT3_Xcc + FatJet_globalParT3_Xqq + FatJet_globalParT3_XWW4q)[goodcleanFatJets == true], gcFatJet_ptargsort)")
@@ -486,7 +489,10 @@ def analyze(jesvar):
   if isMC:
     tagVars.Add("gcFatJet_truth", "fatjet_matching(region, nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status, GenPart_statusFlags, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, gcFatJet_hadronFlavour)")
   
-  tagVars.Add("gcFatJet_tags", "jet_tagging(gcFatJet_PNWM_T, gcFatJet_PNWM_W, gcFatJet_PNWM_Z, gcFatJet_PNWM_H, gcFatJet_PNWM_QCD, gcFatJet_GPT_T, gcFatJet_GPT_W, gcFatJet_GPT_ZH, gcFatJet_GPT_QCD, gcFatJet_GPT_regressedMass, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, SubJet_btagUParTAK4B, gcFatJet_truth, PNetM)")
+  tagVars.Add("gcFatJet_tags", "jet_tagging(gcFatJet_PNWM_T, gcFatJet_PNWM_W, gcFatJet_PNWM_Z, gcFatJet_PNWM_H, gcFatJet_PNWM_QCD, gcFatJet_GPT_T, gcFatJet_GPT_W, gcFatJet_GPT_ZH, gcFatJet_GPT_QCD, gcFatJet_GPT_regressedMass, gcFatJet_GPTWM_T, gcFatJet_GPTWM_W, gcFatJet_GPTWM_Z, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, SubJet_btagUParTAK4B, gcFatJet_truth, PNetM)")
+  tagVars.Add("gcFatJet_PNWMtags", "gcFatJet_tags[0]")
+  tagVars.Add("gcFatJet_GPTtags", "gcFatJet_tags[1]")
+  tagVars.Add("gcFatJet_GPTWMtags", "gcFatJet_tags[2]")
 
   if isSig:
     tagVars.Add("decayFinds", "decayModeSelection(nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status)")
@@ -581,6 +587,7 @@ def analyze(jesvar):
      if col.startswith("iLepton"): continue
      if col.startswith("MET"): continue
      if col.startswith("RawPuppiMET"): continue
+     if col.startswith("gcFatJet_tags"): continue
 
      columns.append(col)
 
