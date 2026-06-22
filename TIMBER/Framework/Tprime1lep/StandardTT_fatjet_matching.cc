@@ -1,6 +1,8 @@
+//contains fatjet_matching() and jet_tagging() 
 using namespace std;
 using namespace ROOT::VecOps;
 
+//'private' function for fatjet_matching
 auto get_daughters(int idx, unsigned int length, RVec<short> GenPart_genPartIdxMother) 
 {
   vector<unsigned int> daughters;
@@ -343,13 +345,13 @@ auto fatjet_matching(string sample, unsigned int nGenPart, RVec<int> &GenPart_pd
   return fatjet_truth;
 }
 
-auto jet_tagging(RVec<float> gcFatJet_PNWM_T, RVec<float> gcFatJet_PNWM_W, RVec<float> gcFatJet_PNWM_Z, RVec<float> gcFatJet_PNWM_H, RVec<float> gcFatJet_PNWM_QCD, RVec<float> gcFatJet_GPT_T, RVec<float> gcFatJet_GPT_W, RVec<float> gcFatJet_GPT_ZH, RVec<float> gcFatJet_GPT_QCD, RVec<float> gcFatJet_GPT_regressedMass, RVec<float> gcFatJet_GPTWM_T, RVec<float> gcFatJet_GPTWM_W, RVec<float> gcFatJet_GPTWM_Z, RVec<float> gcFatJet_subJetIdx1, RVec<float> gcFatJet_subJetIdx2, RVec<float> SubJet_btagUParTAK4B, RVec<float> gcFatJet_truth, float UparTmed) 
+auto jet_tagging(RVec<float> gcFatJet_PNWM_T, RVec<float> gcFatJet_PNWM_W, RVec<float> gcFatJet_PNWM_Z, RVec<float> gcFatJet_PNWM_H, RVec<float> gcFatJet_PNWM_QCD, RVec<float> gcFatJet_GPT_T, RVec<float> gcFatJet_GPT_W, RVec<float> gcFatJet_GPT_ZH, RVec<float> gcFatJet_GPT_QCD, RVec<float> gcFatJet_GPT_regressedMass, RVec<float> gcFatJet_GPTWM_T, RVec<float> gcFatJet_GPTWM_W, RVec<float> gcFatJet_GPTWM_Z, RVec<float> gcFatJet_subJetIdx1, RVec<float> gcFatJet_subJetIdx2, RVec<float> SubJet_btagUParTAK4B, RVec<float> gcFatJet_truth, float UparTmed,RVec<TLorentzVector> gcJet_P4,RVec<TLorentzVector> gcFatJet_P4, RVec<float> gcJet_UParTM) 
 {
   //std::cout << "Entering jet_tagging" << std::endl;
   RVec<int> PNWMtag;
   RVec<int> GPTtag;
   RVec<int> GPTWMtag;
-
+  
   for(int i = 0; i < gcFatJet_PNWM_T.size(); i++)
   {
     std::vector<float> PNWMscores = {gcFatJet_PNWM_T[i], gcFatJet_PNWM_W[i], gcFatJet_PNWM_Z[i], gcFatJet_PNWM_H[i], gcFatJet_PNWM_QCD[i]};
