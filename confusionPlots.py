@@ -3,7 +3,7 @@ from ROOT import TFile, TTree, TH1D, TH2D, TCanvas, gStyle, gPad
 
 readFile = True
 if readFile:
-    inFile = TFile.Open("RDF_TprimeTprime_Par-M-1900_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root")
+    inFile = TFile.Open("RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root")
 
     truth = TH2D("jet_truth",";tagger ID;true ID",6,0,6,6,0,6) #need 6 instead
     PNWM = TH2D("jet_PNWMid",";PNWM ID;true ID",6,0,6,6,0,6)
