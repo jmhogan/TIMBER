@@ -1,0 +1,230 @@
+import os, sys, math, re
+from ROOT import TFile, TTree, TH1D, TH2D, TCanvas, gStyle, gPad, TLegend, kBlue, kRed, kGreen, TLatex, kRainBow
+
+callAlgoEff = False
+callMassEff = True
+algo_files = ["RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root"]
+mass_files = ["RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root"]
+
+def algoEff(file_str):
+    inFile = TFile.Open(file_str)
+    t = inFile.Get("Events_Nominal")
+    
+    for matched in {"matched","mismatched"}:
+        for part in {"t_quark","W_boson","Z_boson","H_boson"}:
+            if part == "t_quark":
+                ID = 6
+            elif part == "W_boson":
+                ID = 24
+            elif part == "Z_boson":
+                ID = 23
+            else:
+                ID = 25
+
+            axis_str = ";" + part + "jet pt GeV;N(tagged " + matched + " jets)/N(" + matched + " jets)"
+            truth = TH1D("truth",axis_str,20,200,2000)
+            PNWM = TH1D("PNWM",axis_str,20,200,2000)
+            GPT = TH1D("GPT",axis_str,20,200,2000)
+            GPTWM = TH1D("GPTWM",axis_str,20,200,2000)
+            
+            truth.Sumw2() #Sum weights squared -> account for uncertainties. in future we divide this
+            PNWM.Sumw2()
+            GPT.Sumw2()
+            GPTWM.Sumw2()
+    
+            for ievent in range(t.GetEntries()):
+                t.GetEntry(ievent)
+                nJets = t.nFatJet
+                
+                for ijet in range(nJets):
+                    if t.gcFatJet_truth[ijet] == ID and matched == "matched":
+                        truth.Fill(t.gcFatJet_pt[ijet])
+            
+                        if t.gcFatJet_PNWMtags[ijet] == ID:
+                            PNWM.Fill(t.gcFatJet_pt[ijet])
+
+                        if t.gcFatJet_GPTtags[ijet] == ID:
+                            GPT.Fill(t.gcFatJet_pt[ijet])
+
+                        if t.gcFatJet_GPTWMtags[ijet] == ID:
+                            GPTWM.Fill(t.gcFatJet_pt[ijet])
+
+                    elif t.gcFatJet_truth[ijet] == ID and matched == "mismatched":
+                        truth.Fill(t.gcFatJet_pt[ijet])
+            
+                        if t.gcFatJet_PNWMtags[ijet] != ID:
+                            PNWM.Fill(t.gcFatJet_pt[ijet])
+
+                        if t.gcFatJet_GPTtags[ijet] != ID:
+                            GPT.Fill(t.gcFatJet_pt[ijet])
+
+                        if t.gcFatJet_GPTWMtags[ijet] != ID:
+                            GPTWM.Fill(t.gcFatJet_pt[ijet])
+                        
+            PNWM.Divide(PNWM, truth, 1, 1, "B")
+            GPT.Divide(GPT, truth, 1, 1, "B")
+            GPTWM.Divide(GPTWM, truth, 1, 1, "B")
+
+            PNWM.SetMarkerStyle(20)
+            GPT.SetMarkerStyle(20)
+            GPTWM.SetMarkerStyle(20)
+            
+            PNWM.SetMarkerColor(kBlue)
+            GPT.SetMarkerColor(kRed)
+            GPTWM.SetMarkerColor(kGreen)
+            
+            PNWM.SetLineColor(kBlue)
+            GPT.SetLineColor(kRed)
+            GPTWM.SetLineColor(kGreen)
+            
+            #text = "M(T) = 1.7TeV"
+            #tex = TLatex()
+            #tex.DrawLatex(0.2, 0.8, text)
+
+            canvas_name = f"canv_{part}_{matched}"            
+            print(f"create {canvas_name} below")
+            canv1 = TCanvas(canvas_name,part,800,600)
+            
+            gStyle.SetOptStat(0)
+            canv1.SetLeftMargin(0.15)
+            
+            PNWM.Draw("pe")    
+            GPT.Draw("pe same")
+            GPTWM.Draw("pe same")
+            
+            png_name = part + "_" + matched + "_tagger_eff.png"
+            canv1.BuildLegend()
+            canv1.SaveAs(png_name)
+            
+            truth.Reset()
+            PNWM.Reset()
+            GPT.Reset()
+            GPTWM.Reset()
+            canv1.Close()
+            del canv1
+
+
+def massEff(file_strs):
+    mass_branches = []
+    for file_str in file_strs: #RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root
+        pattern = r"RDF_([TB]).*?Par-M-(\d+)"
+        mass = re.search(pattern, file_str)
+        mass_name = f"M({mass.group(1)})_1.{mass.group(2)[1]}TeV"
+        
+        inFile = TFile.Open(file_str)
+        t = inFile.Get("Events_Nominal")
+        
+        for matched in {"matched","mismatched"}:
+            for part in {"t_quark","W_boson","Z_boson","H_boson"}:
+                if part == "t_quark":
+                    ID = 6
+                elif part == "W_boson":
+                    ID = 24
+                elif part == "Z_boson":
+                    ID = 23
+                else:
+                    ID = 25
+
+                axis_str = ";" + part + "jet pt GeV;N(tagged " + matched + " jets)/N(" + matched + " jets)"
+                truth = TH1D("truth",axis_str,20,200,2000)
+                PNWM = TH1D(f"PNWM_{mass_name}", axis_str,20,200,2000)
+                GPT = TH1D(f"GPT_{mass_name}", axis_str,20,200,2000)
+                GPTWM = TH1D(f"GPTWM_{mass_name}", axis_str,20,200,2000)
+                
+                truth.Sumw2() #Sum weights squared -> account for uncertainties. in future we divide this
+                PNWM.Sumw2()
+                GPT.Sumw2()
+                GPTWM.Sumw2()
+    
+                for ievent in range(t.GetEntries()):
+                    t.GetEntry(ievent)
+                    nJets = t.nFatJet
+                
+                    for ijet in range(nJets):
+                        if t.gcFatJet_truth[ijet] == ID and matched == "matched":
+                            truth.Fill(t.gcFatJet_pt[ijet])
+            
+                            if t.gcFatJet_PNWMtags[ijet] == ID:
+                                PNWM.Fill(t.gcFatJet_pt[ijet])
+
+                            if t.gcFatJet_GPTtags[ijet] == ID:
+                                GPT.Fill(t.gcFatJet_pt[ijet])
+
+                            if t.gcFatJet_GPTWMtags[ijet] == ID:
+                                GPTWM.Fill(t.gcFatJet_pt[ijet])
+
+                        elif t.gcFatJet_truth[ijet] == ID and matched == "mismatched":
+                            truth.Fill(t.gcFatJet_pt[ijet])
+            
+                            if t.gcFatJet_PNWMtags[ijet] != ID:
+                                PNWM.Fill(t.gcFatJet_pt[ijet])
+
+                            if t.gcFatJet_GPTtags[ijet] != ID:
+                                GPT.Fill(t.gcFatJet_pt[ijet])
+
+                            if t.gcFatJet_GPTWMtags[ijet] != ID:
+                                GPTWM.Fill(t.gcFatJet_pt[ijet])
+                        
+                PNWM.Divide(PNWM, truth, 1, 1, "B")
+                GPT.Divide(GPT, truth, 1, 1, "B")
+                GPTWM.Divide(GPTWM, truth, 1, 1, "B")
+
+                histFile = TFile.Open(f"massEff_PNWM.root", "recreate")
+                PNWM.Write()
+                histFile.Write()
+                histFile.Close()
+                PNWM.Reset()
+                
+                histFile = TFile.Open(f"massEff_GPT.root", "recreate")
+                GPT.Write()
+                histFile.Write()
+                histFile.Close()
+                GPT.Reset()
+                
+                histFile = TFile.Open(f"massEff_GPTWM.root", "recreate")
+                GPTWM.Write()
+                histFile.Write()
+                histFile.Close()
+                GPTWM.Reset()
+                
+        mass_branches.append(mass_name)
+    
+    for matched in {"matched","mismatched"}:
+        for part in {"t_quark","W_boson","Z_boson","H_boson"}:
+            for tagger in {"PNWM","GPT","GPTWM"}:
+                canvas_name = f"canv_{part}_{matched}"
+                canv1 = TCanvas(canvas_name,part,800,600)
+                gStyle.SetOptStat(0)
+                canv1.SetLeftMargin(0.15)
+                gStyle.SetPalette(kRainBow)
+                
+                tagger_tree = TFile.Open(f"massEff_{tagger}.root")
+        
+                for i,mass_name in enumerate(mass_branches):
+                    
+                    print(i)
+                    if i == 0:
+                        tagger_tree.Draw(f"{tagger}_{mass_name}","pe")
+                    else:
+                        tagger_tree.Draw(f"{tagger}_{mass_name}","pe","same")
+
+                    color_index = int(i * (gStyle.GetNumberOfColors() / mass_branches.len()))
+                    color = gStyle.GetColorPalette(color_index)
+                    mass_branch.SetMarkerStyle(20)
+                    mass_branch.SetMarkerColor(color)
+                    mass_branch.SetLineColor(color)
+                    mass_branch.Reset()
+            
+                png_name = "{tagger}_{part}_{matched}_mass_eff.png"
+                canv1.BuildLegend()
+                canv1.SaveAs(png_name)
+                canv1.Close()
+                del canv1
+
+            
+
+if callAlgoEff:
+    for file in algo_files:
+        algoEff(file)
+if callMassEff:
+    massEff(mass_files)
