@@ -1,14 +1,24 @@
 import os, sys, math, re
 from ROOT import TFile, TTree, TH1D, TH2D, TCanvas, gStyle, gPad, TLegend, kBlue, kRed, kGreen, TLatex, kRainBow
+from array import array
 
 callAlgoEff = False
 callMassEff = True
 algo_files = ["RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root"]
 mass_files = ["RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root"]
+ptbins = array('d',[200,380,470,560,650,740,1280,1640,2000])
+nbins = len(ptbins) - 1
+print(nbins)
 
-def algoEff(file_str):
+def algoEff(file_str, ptbins,nbins):
     inFile = TFile.Open(file_str)
     t = inFile.Get("Events_Nominal")
+
+    pattern = r"RDF_([TB]).*?Par-M-(\d+)"
+    mass = re.search(pattern, file_str)
+    mass_name = f"{mass.group(1)}_1.{mass.group(2)[1]}TeV"
+
+    print(mass_name)
     
     for matched in {"matched","mismatched"}:
         for part in {"t_quark","W_boson","Z_boson","H_boson"}:
@@ -22,10 +32,10 @@ def algoEff(file_str):
                 ID = 25
 
             axis_str = ";" + part + "jet pt GeV;N(tagged " + matched + " jets)/N(" + matched + " jets)"
-            truth = TH1D("truth",axis_str,20,200,2000)
-            PNWM = TH1D("PNWM",axis_str,20,200,2000)
-            GPT = TH1D("GPT",axis_str,20,200,2000)
-            GPTWM = TH1D("GPTWM",axis_str,20,200,2000)
+            truth = TH1D("truth",axis_str,nbins,ptbins)
+            PNWM = TH1D(f"{part}_{matched}_PNWM",axis_str,nbins,ptbins)
+            GPT = TH1D(f"{part}_{matched}_GPT",axis_str,nbins,ptbins)
+            GPTWM = TH1D(f"{part}_{matched}_GPTWM",axis_str,nbins,ptbins)
             
             truth.Sumw2() #Sum weights squared -> account for uncertainties. in future we divide this
             PNWM.Sumw2()
@@ -65,6 +75,8 @@ def algoEff(file_str):
             GPT.Divide(GPT, truth, 1, 1, "B")
             GPTWM.Divide(GPTWM, truth, 1, 1, "B")
 
+            print("divided done")
+            
             PNWM.SetMarkerStyle(20)
             GPT.SetMarkerStyle(20)
             GPTWM.SetMarkerStyle(20)
@@ -92,9 +104,17 @@ def algoEff(file_str):
             GPT.Draw("pe same")
             GPTWM.Draw("pe same")
             
-            png_name = part + "_" + matched + "_tagger_eff.png"
+            png_name = f"taggerEff/{part}_{matched}_{mass_name}_taggerEff.png"
             canv1.BuildLegend()
             canv1.SaveAs(png_name)
+
+            print(f"taggerEff/{mass_name}_taggerEff.root")
+            
+            histFile = TFile.Open(f"taggerEff/{mass_name}_taggerEff.root", "recreate")
+            GPT.Write()
+            histFile.Write()
+            histFile.Close()
+
             
             truth.Reset()
             PNWM.Reset()
@@ -104,12 +124,12 @@ def algoEff(file_str):
             del canv1
 
 
-def massEff(file_strs):
+def massEff(file_strs,ptbins,nbins):
     mass_branches = []
     for file_str in file_strs: #RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root
         pattern = r"RDF_([TB]).*?Par-M-(\d+)"
         mass = re.search(pattern, file_str)
-        mass_name = f"M({mass.group(1)})_1.{mass.group(2)[1]}TeV"
+        mass_name = f"{mass.group(1)}_1.{mass.group(2)[1]}TeV"
         
         inFile = TFile.Open(file_str)
         t = inFile.Get("Events_Nominal")
@@ -126,10 +146,10 @@ def massEff(file_strs):
                     ID = 25
 
                 axis_str = ";" + part + "jet pt GeV;N(tagged " + matched + " jets)/N(" + matched + " jets)"
-                truth = TH1D("truth",axis_str,20,200,2000)
-                PNWM = TH1D(f"PNWM_{mass_name}", axis_str,20,200,2000)
-                GPT = TH1D(f"GPT_{mass_name}", axis_str,20,200,2000)
-                GPTWM = TH1D(f"GPTWM_{mass_name}", axis_str,20,200,2000)
+                truth = TH1D("truth",axis_str,nbins,ptbins)
+                PNWM = TH1D(f"{part}_{matched}_PNWM_{mass_name}", axis_str,nbins,ptbins)
+                GPT = TH1D(f"{part}_{matched}_GPT_{mass_name}", axis_str,nbins,ptbins)
+                GPTWM = TH1D(f"{part}_{matched}_GPTWM_{mass_name}", axis_str,nbins,ptbins)
                 
                 truth.Sumw2() #Sum weights squared -> account for uncertainties. in future we divide this
                 PNWM.Sumw2()
@@ -169,19 +189,19 @@ def massEff(file_strs):
                 GPT.Divide(GPT, truth, 1, 1, "B")
                 GPTWM.Divide(GPTWM, truth, 1, 1, "B")
 
-                histFile = TFile.Open(f"massEff_PNWM.root", "recreate")
+                histFile = TFile.Open(f"massEff/{part}_{matched}_PNWM_massEff.root", "recreate")
                 PNWM.Write()
                 histFile.Write()
                 histFile.Close()
                 PNWM.Reset()
                 
-                histFile = TFile.Open(f"massEff_GPT.root", "recreate")
+                histFile = TFile.Open(f"massEff/{part}_{matched}_GPT_massEff.root", "recreate")
                 GPT.Write()
                 histFile.Write()
                 histFile.Close()
                 GPT.Reset()
                 
-                histFile = TFile.Open(f"massEff_GPTWM.root", "recreate")
+                histFile = TFile.Open(f"massEff/{part}_{matched}_GPTWM_massEff.root", "recreate")
                 GPTWM.Write()
                 histFile.Write()
                 histFile.Close()
@@ -192,32 +212,36 @@ def massEff(file_strs):
     for matched in {"matched","mismatched"}:
         for part in {"t_quark","W_boson","Z_boson","H_boson"}:
             for tagger in {"PNWM","GPT","GPTWM"}:
-                canvas_name = f"canv_{part}_{matched}"
+                canvas_name = f"canv_{part}_{matched}_{tagger}"
                 canv1 = TCanvas(canvas_name,part,800,600)
                 gStyle.SetOptStat(0)
                 canv1.SetLeftMargin(0.15)
                 gStyle.SetPalette(kRainBow)
                 
-                tagger_tree = TFile.Open(f"massEff_{tagger}.root")
-        
+                tagger_file = TFile.Open(f"massEff/{part}_{matched}_{tagger}_massEff.root")
+                tagger_file.ls()
+                
                 for i,mass_name in enumerate(mass_branches):
-                    
-                    print(i)
-                    if i == 0:
-                        tagger_tree.Draw(f"{tagger}_{mass_name}","pe")
-                    else:
-                        tagger_tree.Draw(f"{tagger}_{mass_name}","pe","same")
-
-                    color_index = int(i * (gStyle.GetNumberOfColors() / mass_branches.len()))
+                    print(f"{part}_{matched}_{tagger}_{mass_name}")
+                    mass_hist = tagger_file.Get(f"{part}_{matched}_{tagger}_{mass_name}")
+                    color_index = int(i * (gStyle.GetNumberOfColors() / len(mass_branches)))
                     color = gStyle.GetColorPalette(color_index)
-                    mass_branch.SetMarkerStyle(20)
-                    mass_branch.SetMarkerColor(color)
-                    mass_branch.SetLineColor(color)
-                    mass_branch.Reset()
+                    
+                    mass_hist.SetMarkerStyle(20)
+                    mass_hist.SetMarkerColor(color)
+                    mass_hist.SetLineColor(color)
+                    
+                    if i == 0:
+                        mass_hist.Draw("pe")    
+                    else:
+                        mass_hist.Draw("pe same")
+
+                    #mass_hist.Reset()
             
-                png_name = "{tagger}_{part}_{matched}_mass_eff.png"
+                png_name = f"massEff/{part}_{matched}_{tagger}_massEff.png"
                 canv1.BuildLegend()
                 canv1.SaveAs(png_name)
+                tagger_file.Close()
                 canv1.Close()
                 del canv1
 
@@ -225,6 +249,6 @@ def massEff(file_strs):
 
 if callAlgoEff:
     for file in algo_files:
-        algoEff(file)
+        algoEff(file,ptbins,nbins)
 if callMassEff:
-    massEff(mass_files)
+    massEff(mass_files,ptbins,nbins)
