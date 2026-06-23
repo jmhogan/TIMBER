@@ -26,9 +26,9 @@ if len(sys.argv) >= 4:
     prefix = sys.argv[3] # 'singleTb'
     textlist = prefix + "NanoList.txt"
     
-relbase = '/uscms/home/cai/nobackup/Run3VLQ/'
+relbase = '/uscms/home/cai/nobackup/run3VLQ/'
 outDir='/store/user/lpchtop/TTBB_Jun2026_Run3/'
-condorDir='/uscms/home/cai/nobackup/Run3VLQ/condor_Jun2026_Run3/' # recommend this be outside git area!
+condorDir='/uscms/home/cai/nobackup/run3VLQ/condor_Jun2026_Run3/' # recommend this be outside git area!
 tarfile = '/uscms/home/cai/nobackup/rdfjobs.tar' 
 
 runDir=os.getcwd()
