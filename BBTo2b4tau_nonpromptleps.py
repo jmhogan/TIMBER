@@ -159,16 +159,17 @@ def analyze(jesvar):
 
   # ------------------ correctionsLib corrections ------------------
 
-  PNetL = {'2022':0.047,'2022EE':0.0499,'2023':0.0358,'2023BPix':0.0359} #PN
-  yrstr = {'2022':"Run3-22CDSep23-Summer22-NanoAODv12",'2022EE':"Run3-22EFGSep23-Summer22EE-NanoAODv12",'2023':"Run3-23CSep23-Summer23-NanoAODv12",'2023BPix':"Run3-23DSep23-Summer23BPix-NanoAODv12"}
-  jmetags = {'2022':'2025-09-23','2022EE':'2025-10-07','2023':'2025-10-07','2023BPix':'2025-10-07'}
-  jecyr = {'2022':"Summer22_22Sep2023_RunCD",'2022EE':"Summer22EE_22Sep2023_Run"+jecera,'2023':"Summer23Prompt23",'2023BPix':"Summer23BPixPrompt23"}
-  jecver = {'2022':"V3",'2022EE':"V3",'2023':"V2",'2023BPix':"V3"}
-  jetvetoname = {'2022':"Summer22_23Sep2023_RunCD_V1",'2022EE':"Summer22EE_23Sep2023_RunEFG_V1",'2023':"Summer23Prompt23_RunC_V1",'2023BPix':"Summer23BPixPrompt23_RunD_V1"}
-
+  BTagL = {'2022':0.047,'2022EE':0.0499,'2023':0.0358,'2023BPix':0.0359, '2024':0.0246, '2025':0.0246} #PNet for 22-23BPix, UParT for 2024-2025
+  yrstr = {'2022':"Run3-22CDSep23-Summer22-NanoAODv12",'2022EE':"Run3-22EFGSep23-Summer22EE-NanoAODv12",'2023':"Run3-23CSep23-Summer23-NanoAODv12",'2023BPix':"Run3-23DSep23-Summer23BPix-NanoAODv12",'2024':"Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15",'2025':"Run3-25Prompt-Summer24-NanoAODv15"}
+  jmetags = {'2022':'2026-06-05','2022EE':'2026-06-05','2023':'2026-06-05','2023BPix':'2026-06-05','2024':'2026-06-05', '2025':'2026-06-05'} 
+  jecver = {'2022':"V4",'2022EE':"V4",'2023':"V4",'2023BPix':"V4",'2024':"V3",'2025':"V3"}   
+  jmeyrstr = {'2022':yrstr['2022'],'2022EE':yrstr['2022EE'],'2023':yrstr['2023'],'2023BPix':yrstr['2023BPix'],'2024':yrstr['2024'],'2025':'Run3-25Prompt-Winter25-NanoAODv15'} # yes, really use 24 for 25
+  jecyr = {'2022':"Summer22_22Sep2023",'2022EE':"Summer22EE_22Sep2023",'2023':"Summer23Prompt23",'2023BPix':"Summer23BPixPrompt23",'2024':"Summer24Prompt24", '2025':"Winter25Prompt25"}
+  jeryr = {'2022':"Summer22_22Sep2023_JRV2",'2022EE':"Summer22EE_22Sep2023_JRV2",'2023':"Summer23Prompt23_RunCv1234_JRV2",'2023BPix':"Summer23BPixPrompt23_RunD_JRV2",'2024':"Summer24Prompt24_JRV1",'2025':"Summer24Prompt25_JRV1"}
+  jetvetoname = {'2022':"Summer22_23Sep2023_RunCD_V1",'2022EE':"Summer22EE_23Sep2023_RunEFG_V1",'2023':"Summer23Prompt23_RunC_V1",'2023BPix':"Summer23BPixPrompt23_RunD_V1",'2024':"Summer24Prompt24_RunBCDEFGHI_V1",'2025':"Winter25Prompt25_RunCDEFG_V1"    }      
  
   ROOT.gInterpreter.Declare("""
-  float PNetL = """+str(PNetL[year])+""";
+  float BTagL = """+str(BTagL[year])+""";
   string yrstr = \""""+yrstr[year]+"""\";
   string jmetag = \""""+jmetags[year]+"""\";
   string jecyr = \""""+jecyr[year]+"""\";
@@ -269,7 +270,7 @@ def analyze(jesvar):
   eandmuVars.Add('LooseEl_mass', 'Electron_mass[looseElectrons == true]')
   eandmuVars.Add('LooseEl_charge', 'Electron_charge[looseElectrons == true]')
   eandmuVars.Add('LooseEl_ID', 'ROOT::VecOps::RVec<int>(NlooseElecs, 11)')
-  eandmuVars.Add('LooseEl_isTight','Electron_mvaIso_WP90[looseElectrons == true] == 1')
+  eandmuVars.Add('LooseEl_isTight','Electron_mvaIso_WP80[looseElectrons == true] == 1')
 
   # eandmuVars.Add('GoodEl_pt','Electron_pt[goodElectrons == true]')
   # eandmuVars.Add('GoodEl_eta','Electron_eta[goodElectrons == true]')
@@ -340,12 +341,13 @@ def analyze(jesvar):
   lVars.Add("Loose4Lepton_ID", "NlooseLeptons >= 4 ? ROOT::VecOps::Take(LooseLepton_ID, 4) : ROOT::VecOps::Take(LooseLepton_ID, 3)")
   lVars.Add("Loose4Lepton_isTight", "NlooseLeptons >= 4 ? ROOT::VecOps::Take(LooseLepton_isTight, 4) : ROOT::VecOps::Take(LooseLepton_isTight, 3)")
 
-  lVars.Add("hasBosonishMass", "hasBosonishMfunc(Loose4Lepton_pt, Loose4Lepton_eta, Loose4Lepton_phi, Loose4Lepton_mass, Loose4Lepton_ID, Loose4Lepton_charge)")
+  lVars.Add("hasQuarkonia", "hasQuarkoniafunc(Loose4Lepton_pt, Loose4Lepton_eta, Loose4Lepton_phi, Loose4Lepton_mass, Loose4Lepton_ID, Loose4Lepton_charge)")
+  lVars.Add("Loose4Lepton_fromZ", "hasZfunc(Loose4Lepton_pt, Loose4Lepton_eta, Loose4Lepton_phi, Loose4Lepton_mass, Loose4Lepton_ID, Loose4Lepton_charge)")
+  lVars.Add("hasZ", "Sum(Loose4Lepton_fromZ) > 0")
 
   lCuts = CutGroup('Lepton Cuts')
   lCuts.Add('NlooseLeptons >= 3', 'NlooseLeptons >= 3')
-  lCuts.Add('hasBosonishMass == 0', 'hasBosonishMass == 0')
- 
+  lCuts.Add('hasQuarkonia == 0', 'hasQuarkonia == 0') 
 
   # ------------------ JET Cleaning and JERC ------------------
   jVars = VarGroup('JetCleaningVars')
@@ -440,21 +442,24 @@ def analyze(jesvar):
   if (isMC):
       jVars.Add("gcJet_hflav", "reorder(Jet_hadronFlavour[goodcleanJets == true],gcJet_ptargsort)")
  
-  jVars.Add("gcJet_PNet", "reorder(Jet_btagPNetB[goodcleanJets == true],gcJet_ptargsort)")
-  jVars.Add("gcJet_PNetL", "gcJet_PNet > PNetL") 
-  jVars.Add("NJets_PNetL", "Sum(gcJet_PNetL)")
+  if year != '2024' and year != '2025':
+    jVars.Add("gcJet_BTag", "reorder(Jet_btagPNetB[goodcleanJets == true],gcJet_ptargsort)")
+  else:
+    jVars.Add("gcJet_BTag", "reorder(Jet_btagUParTAK4B[goodcleanJets == true],gcJet_ptargsort)")
+  jVars.Add("gcJet_BTagL", "gcJet_BTag > BTagL") 
+  jVars.Add("NJets_BTagL", "Sum(gcJet_BTagL)")
   
-  jVars.Add("gcBJet_eta", "gcJet_eta[gcJet_PNetL]")
-  jVars.Add("gcBJet_phi", "gcJet_phi[gcJet_PNetL]")
-  jVars.Add("gcBJet_pt", "gcJet_pt[gcJet_PNetL]")
-  jVars.Add("gcBJet_mass", "gcJet_mass[gcJet_PNetL]")
+  jVars.Add("gcBJet_eta", "gcJet_eta[gcJet_BTagL]")
+  jVars.Add("gcBJet_phi", "gcJet_phi[gcJet_BTagL]")
+  jVars.Add("gcBJet_pt", "gcJet_pt[gcJet_BTagL]")
+  jVars.Add("gcBJet_mass", "gcJet_mass[gcJet_BTagL]")
 
   jVars.Add("gcJet_ht", "Sum(gcJet_pt)")
 
   jCuts = CutGroup('JetCuts')
   jCuts.Add('Event has no vetoed jets', 'Sum(gcJet_vetomap) == 0')
   jCuts.Add('NgoodcleanJets >= 2', 'NgoodcleanJets >= 2')
-  jCuts.Add('2 B Jets Pass (Loose)', 'NJets_PNetL >= 2')
+  jCuts.Add('2 B Jets Pass (Loose)', 'NJets_BTagL >= 2')
 
   # ---------------- Nonprompt Weight ----------------
   npVars = VarGroup('NonpromptVars')
@@ -508,7 +513,7 @@ def analyze(jesvar):
   
   newNode = a.ActiveNode.Apply(jVars)
   a.SetActiveNode(newNode)
-  a.Apply([jCuts, metVars, metCuts, npVars]) #, manualVars, rframeVars])
+  a.Apply([jCuts, metVars, metCuts, npVars, manualVars])#, rframeVars])
   
   allColumns = a.GetColumnNames()
      
@@ -527,9 +532,9 @@ def analyze(jesvar):
      if col.startswith("SV") or col.startswith("Photon") or col.startswith("Low"): continue
      if col.startswith("HLT") or col.startswith("HT") or col.startswith("boosted") or col.startswith("Deep"): continue
      if col.startswith("Flag") or col == "Bprime_gen_info" or col == "t_gen_info" or col == "W_gen_info" or col == "metxyoutput": continue
-     if col == "assignleps" or col == "pnetoutput" or col == "t_output" or col == "Bprime_output" or col.startswith("Other"): continue
+     if col == "assignleps" or col == "pnetoutput" or col == "t_output" or col == "Bprime_output" or col == "hasZoutput": continue
      if col.startswith("PS") or col.startswith("Tk") or col.startswith("Trig"): continue
-     if col.startswith("nCorr") or col.startswith("nFsr"): continue
+     if col.startswith("nCorr") or col.startswith("nFsr") or col.startswith("Other"): continue
      if col.startswith("nGen") or col.startswith("nIso") or col.startswith("nLow"): continue
      if col.startswith("nOther") or col.startswith("nPS") or col.startswith("nPhoton"): continue
      if col.startswith("nSV") or col.startswith("nSub") or col.startswith("nTau") or col.startswith("nTrig"): continue

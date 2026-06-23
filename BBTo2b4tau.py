@@ -4,7 +4,7 @@ import ROOT
 from ROOT import TFile
 import sys, os
 import gc
-from rates import to_cpp_vec2d, pnet_loose
+from rates import to_cpp_vec2d, pnet_loose, upart_loose
 
 gc.disable()
 
@@ -161,6 +161,10 @@ def analyze(jesvar):
     jsonfile = jsonfile + "Cert_Collisions2022_355100_362760_Golden.json"
   elif '2023' in year:
     jsonfile = jsonfile + "Cert_Collisions2023_366442_370790_Golden.json"
+  elif '2024' in year:
+      jsonfile = jsonfile + "Cert_Collisions2024_378981_386951_Golden.json"
+  elif '2025' in year:
+      jsonfile = jsonfile + "Cert_Collisions2025_391658_398903_Golden.json"
   else:
     print(f'ERROR: Can\'t parse the year to assign a golden json file. Expected 2022(EE) or 2023(BPix). Got: {year}\n')
     
@@ -179,107 +183,125 @@ def analyze(jesvar):
 
   # ------------------ correctionsLib corrections ------------------
 
-  PNetL = {'2022':0.047,'2022EE':0.0499,'2023':0.0358,'2023BPix':0.0359} #PN
-  yrstr = {'2022':"Run3-22CDSep23-Summer22-NanoAODv12",'2022EE':"Run3-22EFGSep23-Summer22EE-NanoAODv12",'2023':"Run3-23CSep23-Summer23-NanoAODv12",'2023BPix':"Run3-23DSep23-Summer23BPix-NanoAODv12"}
-  jmetags = {'2022':'2025-09-23','2022EE':'2025-10-07','2023':'2025-10-07','2023BPix':'2025-10-07'}
-  btvtags = {'2022':'2025-08-20','2022EE':'2025-08-20','2023':'2025-08-20','2023BPix':'2025-08-20'}
-  egmtags = {'2022':'2025-10-22','2022EE':'2025-10-22','2023':'2025-10-22','2023BPix':'2025-10-22'}
-  muotags = {'2022':'2025-08-14','2022EE':'2025-08-14','2023':'2025-08-14','2023BPix':'2025-08-14'}
-  tautags = {'2022':'2025-10-01','2022EE':'2025-10-01','2023':'2025-10-01','2023BPix':'2025-10-01'}
-  lumtags = {'2022':'2024-01-31','2022EE':'2024-01-31','2023':'2024-01-31','2023BPix':'2024-01-31'}      
-  jecyr = {'2022':"Summer22_22Sep2023",'2022EE':"Summer22EE_22Sep2023",'2023':"Summer23Prompt23",'2023BPix':"Summer23BPixPrompt23"}
-  if not isMC:
-      jecyr = {'2022':"Summer22_22Sep2023_RunCD",'2022EE':"Summer22EE_22Sep2023_Run"+jecera,'2023':"Summer23Prompt23",'2023BPix':"Summer23BPixPrompt23"}
-  jeryr = {'2022':"Summer22_22Sep2023",'2022EE':"Summer22EE_22Sep2023",'2023':"Summer23Prompt23_RunCv1234",'2023BPix':"Summer23BPixPrompt23_RunD"}
-  jecver = {'2022':"V3",'2022EE':"V3",'2023':"V2",'2023BPix':"V3"}
-  puname = {'2022':"Collisions2022_355100_357900_eraBCD_GoldenJson",'2022EE':"Collisions2022_359022_362760_eraEFG_GoldenJson",'2023':"Collisions2023_366403_369802_eraBC_GoldenJson",'2023BPix':"Collisions2023_369803_370790_eraD_GoldenJson"}
-  jetvetoname = {'2022':"Summer22_23Sep2023_RunCD_V1",'2022EE':"Summer22EE_23Sep2023_RunEFG_V1",'2023':"Summer23Prompt23_RunC_V1",'2023BPix':"Summer23BPixPrompt23_RunD_V1"}
-  elecyr = {'2022':"2022Re-recoBCD",'2022EE':"2022Re-recoE+PromptFG",'2023':"2023PromptC",'2023BPix':"2023PromptD"}
-  tauyr = {'2022':"2022_preEE",'2022EE':"2022_postEE",'2023':"2023_preBPix",'2023BPix':"2023_postBPix"} 
-  METyr = {'2022':"2022",'2022EE':"2022EE",'2023':"2023",'2023BPix':"2023BPix"} 
-  METsimpleyr = {'2022':"2022",'2022EE':"2022",'2023':"2023",'2023BPix':"2023"} 
-  btagname = {'2022':"particleNet_comb",'2022EE':"particleNet_comb",'2023':"deepJet_comb",'2023BPix':"deepJet_comb"}
+  BTagL = {'2022':0.047,'2022EE':0.0499,'2023':0.0358,'2023BPix':0.0359, '2024':0.0246, '2025':0.0246} #PNet for 22-23BPix, UParT for 2024-2025
+  yrstr = {'2022':"Run3-22CDSep23-Summer22-NanoAODv12",'2022EE':"Run3-22EFGSep23-Summer22EE-NanoAODv12",'2023':"Run3-23CSep23-Summer23-NanoAODv12",'2023BPix':"Run3-23DSep23-Summer23BPix-NanoAODv12",'2024':"Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15",'2025':"Run3-25Prompt-Summer24-NanoAODv15"}
+  jmetags = {'2022':'2026-06-05','2022EE':'2026-06-05','2023':'2026-06-05','2023BPix':'2026-06-05','2024':'2026-06-05', '2025':'2026-06-05'} 
+  btvtags = {'2022':'2025-08-20','2022EE':'2025-08-20','2023':'2025-08-20','2023BPix':'2025-08-20','2024':'2026-03-10','2025':'2026-05-27'}
+  egmtags = {'2022':'2025-12-15','2022EE':'2025-12-15','2023':'2025-12-15','2023BPix':'2025-12-15','2024':'2025-12-15','2025':'2026-05-06'}
+  muotags = {'2022':'2026-04-28','2022EE':'2026-04-28','2023':'2026-04-28','2023BPix':'2026-04-28','2024':'2026-04-28','2025':'2026-04-28'}
+  tautags = {'2022':'2025-12-25','2022EE':'2025-12-25','2023':'2025-12-25','2023BPix':'2025-12-25','2024':'2026-01-14','2025':'dev'}
+  lumtags = {'2022':'2024-01-31','2022EE':'2024-01-31','2023':'2024-01-31','2023BPix':'2024-01-31','2024':'2026-04-15','2025':'2026-06-05'}
 
-  print("jecyr and jecver below")
+  jmeyrstr = {'2022':yrstr['2022'],'2022EE':yrstr['2022EE'],'2023':yrstr['2023'],'2023BPix':yrstr['2023BPix'],'2024':yrstr['2024'],'2025':yrstr['2024']} # yes, really use 24 for 25
+  jecyr = {'2022':"Summer22_22Sep2023",'2022EE':"Summer22EE_22Sep2023",'2023':"Summer23Prompt23",'2023BPix':"Summer23BPixPrompt23",'2024':"Summer24Prompt24", '2025':"Summer24Prompt24"}
+  jeryr = {'2022':"Summer22_22Sep2023_JRV2",'2022EE':"Summer22EE_22Sep2023_JRV2",'2023':"Summer23Prompt23_RunCv1234_JRV2",'2023BPix':"Summer23BPixPrompt23_RunD_JRV2",'2024':"Summer24Prompt24_JRV1",'2025':"Summer24Prompt25_JRV1"}
+  jetvetoname = {'2022':"Summer22_23Sep2023_RunCD_V1",'2022EE':"Summer22EE_23Sep2023_RunEFG_V1",'2023':"Summer23Prompt23_RunC_V1",'2023BPix':"Summer23BPixPrompt23_RunD_V1",'2024':"Summer24Prompt24_RunBCDEFGHI_V1",'2025':"Summer24Prompt24_RunBCDEFGHI_V1"}      
+  if not isMC: #is DATA
+    jmeyrstr['2025'] = 'Run3-25Prompt-Winter25-NanoAODv15'
+    jecyr['2025'] = "Winter25Prompt25"
+    jetvetoname['2025'] = "Winter25Prompt25_RunCDEFG_V1"    
+  
+  jecver = {'2022':"V4",'2022EE':"V4",'2023':"V4",'2023BPix':"V4",'2024':"V3",'2025':"V3"}   
+  puname = {'2022':"Collisions2022_355100_357900_eraBCD_GoldenJson",'2022EE':"Collisions2022_359022_362760_eraEFG_GoldenJson",'2023':"Collisions2023_366403_369802_eraBC_GoldenJson",'2023BPix':"Collisions2023_369803_370790_eraD_GoldenJson",'2024':"Collisions24_BCDEFGHI_goldenJSON",'2025':"Collisions25_goldenJSON"}  
+  puweights = {'2022':"puWeights",'2022EE':'puWeights','2023':'puWeights','2023BPix':'puWeights','2024':"puWeights_BCDEFGHI",'2025':"puWeights_2025pp_Golden_Summer24_25ns_69200ub"}
+  elecyr = {'2022':"2022Re-recoBCD",'2022EE':"2022Re-recoE+PromptFG",'2023':"2023PromptC",'2023BPix':"2023PromptD",'2024':"2024Prompt",'2025':"2025Prompt"}
+  muonisoname = {'2022':'NUM_TightPFIso_DEN_MediumID','2022EE':'NUM_TightPFIso_DEN_MediumID','2023':'NUM_TightPFIso_DEN_MediumID','2023BPix':'NUM_TightPFIso_DEN_MediumID','2024':'NUM_MediumPFIso_DEN_MediumID','2025':'NUM_TightPFIso_DEN_MediumID'}
+  #tauyr = {'2022':"2022_preEE",'2022EE':"2022_postEE",'2023':"2023_preBPix",'2023BPix':"2023_postBPix",'2024':,'2025':} 
+  METyr = {'2022':"2022",'2022EE':"2022EE",'2023':"2023",'2023BPix':"2023BPix",'2024':"2024",'2025':"2025"}                            
+  METsimpleyr = {'2022':"2022",'2022EE':"2022",'2023':"2023",'2023BPix':"2023",'2024':"2024",'2025':"2025"} 
+  btagname = {'2022':"particleNet_comb",'2022EE':"particleNet_comb",'2023':"deepJet_comb",'2023BPix':"deepJet_comb",'2024':"UParTAK4_comb",'2025':"UParTAK4_comb"}
+  lightwps = {'2022':"particleNet_light", '2022EE':"particleNet_light",'2023':"particleNet_light",'2023BPix':"particleNet_light",'2024':"UParTAK4_light"} #Needs 2025
+  btageffsdict = pnet_loose
+  if year == '2024' or year == '2025':
+    btageffsdict = upart_loose
+
   print(jecyr[year]+"_"+jecver[year]+"_DATA_L1L2L3Res_AK4PFPuppi")
  
+  #string tauyr = \""""+tauyr[year]+"""\";
   ROOT.gInterpreter.Declare("""
-  float PNetL = """+str(PNetL[year])+""";
+  float BTagL = """+str(BTagL[year])+""";
   string yrstr = \""""+yrstr[year]+"""\";
+  string jmeyrstr = \""""+jmeyrstr[year]+"""\";
   string jecyr = \""""+jecyr[year]+"""\";
-  string jeryr = \""""+jeryr[year]+"""\";
   string jecver = \""""+jecver[year]+"""\";
   string jmetag = \""""+jmetags[year]+"""\";
   string btvtag = \""""+btvtags[year]+"""\";
   string egmtag = \""""+egmtags[year]+"""\";
   string muotag = \""""+muotags[year]+"""\";
+  string muonisoname = \""""+muonisoname[year]+"""\";
   string tautag = \""""+tautags[year]+"""\";
-  string lumtag = \""""+lumtags[year]+"""\";
+  string lumtag = \""""+lumtags[year]+"""\"; 
   string puname = \""""+puname[year]+"""\";
+  string puweight = \""""+puweights[year]+"""\";
   string jetvetoname = \""""+jetvetoname[year]+"""\";
   string elecyr = \""""+elecyr[year]+"""\";
-  string tauyr = \""""+tauyr[year]+"""\";
   string METyr = \""""+METyr[year]+"""\";
   string METsimpleyr = \""""+METsimpleyr[year]+"""\";
   string btagname = \""""+btagname[year]+"""\";
-
+  string lightwp = \""""+lightwps[year]+"""\";
+  
   std::vector<int> btagptbins = {15,20,30,50,70,100,150,200,300,400,500,600,800,1000,1200,1500};
-  std::vector<std::vector<float>> btageffs = """ + to_cpp_vec2d(pnet_loose[year]) + """;
+  std::vector<std::vector<float>> btageffs = """ + to_cpp_vec2d(btageffsdict[year]) + """;
   """)
 
   # *************** muonisocorr does not match the muon definition !!!!! (change to mediumPFIso hopefully) *****************
   ROOT.gInterpreter.Declare("""
-  auto pileupcorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/LUM/"+yrstr+"/"+lumtag+"/puWeights.json.gz");
+  auto pileupcorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/LUM/"+yrstr+"/"+lumtag+"/"+puweight+".json.gz");
   auto btagcorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/BTV/"+yrstr+"/"+btvtag+"/btagging.json.gz");
-  auto jetvetocorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+yrstr+"/"+jmetag+"/jetvetomaps.json.gz");
   auto electroncorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/EGM/"+yrstr+"/"+egmtag+"/electron.json.gz");
   auto muoncorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/MUO/"+yrstr+"/"+muotag+"/muon_Z.json.gz");
-  auto taucorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/TAU/"+yrstr+"/"+tautag+"/tau_DeepTau2018v2p5_"+tauyr+".json.gz");
-  auto METcorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+yrstr+"/"+jmetag+"/met_xyCorrections_"+METsimpleyr+"_"+METyr+".json.gz");
+  auto taucorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/TAU/"+yrstr+"/"+tautag+"/tau.json.gz");
+  auto jetvetocorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+jmeyrstr+"/"+jmetag+"/jetvetomaps.json.gz");
+  auto jetidcorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+jmeyrstr+"/"+jmetag+"/jetid.json.gz");
 
-  std::print("Available keys in pileupcorrset:");
-  for (const auto& pair : *pileupcorrset) {
-    std::print("  ", pair.first, std::endl);
-  }
-
+  auto jetidAK4Tcorr = jetidcorrset->at("AK4PUPPI_Tight");
+  auto jetidAK4TLcorr = jetidcorrset->at("AK4PUPPI_TightLeptonVeto");
+  auto jetidAK8Tcorr = jetidcorrset->at("AK8PUPPI_Tight");
+  auto jetidAK8TLcorr = jetidcorrset->at("AK8PUPPI_TightLeptonVeto");
+  auto jetvetocorr = jetvetocorrset->at(jetvetoname);
   auto pileupcorr = pileupcorrset->at(puname);
   auto btagwpbccorr = btagcorrset->at(btagname);
-  auto btagwplcorr = btagcorrset->at("particleNet_light");
-  auto jetvetocorr = jetvetocorrset->at(jetvetoname);
+  auto btagwplcorr = btagcorrset->at(lightwp);
   auto electroncorr = electroncorrset->at("Electron-ID-SF");
   auto muonidcorr = muoncorrset->at("NUM_MediumID_DEN_TrackerMuons");
-  auto muonisocorr = muoncorrset->at("NUM_LoosePFIso_DEN_MediumID"); 
+  auto muonisocorr = muoncorrset->at(muonisoname); 
   auto tauidVSecorr = taucorrset->at("DeepTau2018v2p5VSe"); 
   auto tauidVSmucorr = taucorrset->at("DeepTau2018v2p5VSmu");
   auto tauidVSjetcorr = taucorrset->at("DeepTau2018v2p5VSjet");
-  auto METcorr = METcorrset->at("met_xy_corrections");
   """)
 
+  if year != '2024' and year != '2025':
+    ROOT.gInterpreter.Declare("""
+    auto METcorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+yrstr+"/"+jmetag+"/met_xyCorrections_"+METsimpleyr+"_"+METyr+".json.gz");
+    auto METcorr = METcorrset->at("met_xy_corrections");
+  """)
+  
   if not isMC:
     ROOT.gInterpreter.Declare("""
-    auto ak4corrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+yrstr+"/"+jmetag+"/jet_jerc.json.gz"); 
-    auto ak8corrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+yrstr+"/"+jmetag+"/fatJet_jerc.json.gz"); 
-
+    auto ak4corrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+jmeyrstr+"/"+jmetag+"/jet_jerc.json.gz"); 
+    auto ak8corrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+jmeyrstr+"/"+jmetag+"/fatJet_jerc.json.gz"); 
     auto ak4corr = ak4corrset->compound().at(jecyr+"_"+jecver+"_DATA_L1L2L3Res_AK4PFPuppi");
     auto ak4corrL1 = ak4corrset->at(jecyr+"_"+jecver+"_DATA_L1FastJet_AK4PFPuppi");
     auto ak8corr = ak8corrset->compound().at(jecyr+"_"+jecver+"_DATA_L1L2L3Res_AK8PFPuppi");
     """)
+    print('made it')    
   else:
+    print(jeryr[year]+"_JRV1_MC_PtResolution_AK4PFPuppi")
     ROOT.gInterpreter.Declare("""
-    auto ak4corrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+yrstr+"/"+jmetag+"/jet_jerc.json.gz"); 
-    auto ak8corrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+yrstr+"/"+jmetag+"/fatJet_jerc.json.gz"); 
+    string jeryr = \""""+jeryr[year]+"""\";
+    auto ak4corrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+jmeyrstr+"/"+jmetag+"/jet_jerc.json.gz"); 
+    auto ak8corrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+jmeyrstr+"/"+jmetag+"/fatJet_jerc.json.gz"); 
 
     auto ak4corr = ak4corrset->compound().at(jecyr+"_"+jecver+"_MC_L1L2L3Res_AK4PFPuppi");
     auto ak4corrL1 = ak4corrset->at(jecyr+"_"+jecver+"_MC_L1FastJet_AK4PFPuppi");
     auto ak4corrUnc = ak4corrset->at(jecyr+"_"+jecver+"_MC_Total_AK4PFPuppi");
-    auto ak4ptres = ak4corrset->at(jeryr+"_JRV1_MC_PtResolution_AK4PFPuppi");
-    auto ak4jer = ak4corrset->at(jeryr+"_JRV1_MC_ScaleFactor_AK4PFPuppi");
+    auto ak4ptres = ak4corrset->at(jeryr+"_MC_PtResolution_AK4PFPuppi");
+    auto ak4jer = ak4corrset->at(jeryr+"_MC_ScaleFactor_AK4PFPuppi");
     auto ak8corr = ak8corrset->compound().at(jecyr+"_"+jecver+"_MC_L1L2L3Res_AK8PFPuppi");
     auto ak8corrUnc = ak8corrset->at(jecyr+"_"+jecver+"_MC_Total_AK8PFPuppi");
     """)
-    
  
- # ------------------ Flag Cuts ------------------
+  # ------------------ Flag Cuts ------------------
   flagCuts = CutGroup('FlagCuts')
   flagCuts.Add('Bad Event Filters', 'Flag_EcalDeadCellTriggerPrimitiveFilter == 1 && Flag_goodVertices == 1 && Flag_eeBadScFilter == 1 && Flag_globalSuperTightHalo2016Filter == 1 && Flag_BadPFMuonFilter == 1 && Flag_BadPFMuonDzFilter == 1')
   flagCuts.Add('Event has jets', 'nJet > 0') # need jets   && nFatJet > 0
@@ -331,7 +353,8 @@ def analyze(jesvar):
   eandmuVars = VarGroup('ElandMuVars')
 
   #Good Electrons
-  eandmuVars.Add('goodElectrons', 'Electron_pt > 10 && abs(Electron_eta) < 2.5 && (Electron_mvaIso_WP80 == 1)')
+  eandmuVars.Add("Electron_passIP", "elIP(Electron_dz, Electron_dxy, Electron_eta)")
+  eandmuVars.Add('goodElectrons', 'Electron_pt > 10 && abs(Electron_eta) < 2.5 && (Electron_mvaIso_WP80 == 1) && Electron_passIP == 1')
   eandmuVars.Add('NgoodElecs', 'Sum(goodElectrons)')
 
   # Use for generator-level checks
@@ -427,11 +450,13 @@ def analyze(jesvar):
      lVars.Add("Good4Lepton_TauMch", "NgoodLeptons >= 4 ? ROOT::VecOps::Take(GoodLepton_TauMch, 4) : ROOT::VecOps::Take(GoodLepton_TauMch, 3)")
   lVars.Add("Good4Lepton_charge", "NgoodLeptons >= 4 ? ROOT::VecOps::Take(GoodLepton_charge, 4) : ROOT::VecOps::Take(GoodLepton_charge, 3)")
 
-  lVars.Add("hasBosonishMass", "hasBosonishMfunc(Good4Lepton_pt, Good4Lepton_eta, Good4Lepton_phi, Good4Lepton_mass, Good4Lepton_ID, Good4Lepton_charge)")
+  lVars.Add("hasQuarkonia", "hasQuarkoniafunc(Good4Lepton_pt, Good4Lepton_eta, Good4Lepton_phi, Good4Lepton_mass, Good4Lepton_ID, Good4Lepton_charge)")
+  lVars.Add("Good4Lepton_fromZ", "hasZfunc(Good4Lepton_pt, Good4Lepton_eta, Good4Lepton_phi, Good4Lepton_mass, Good4Lepton_ID, Good4Lepton_charge)")
+  lVars.Add("hasZ", "Sum(Good4Lepton_fromZ) > 0")
 
   lCuts = CutGroup('Lepton Cuts')
   lCuts.Add('NgoodLeptons >= 3', 'NgoodLeptons >= 3')
-  lCuts.Add('hasBosonishMass == 0', 'hasBosonishMass == 0')
+  lCuts.Add('hasQuarkonia == 0', 'hasQuarkonia == 0')
  
   # ----------------- corrections/SFs for el/mu/tau ----------------------
   lepSFs = VarGroup('Lepton Scale Factors')
@@ -493,6 +518,9 @@ def analyze(jesvar):
   #jVars.Add("FatJet_P4", "fVectorConstructor(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass)")
   jVars.Add("Jet_EmEF","Jet_neEmEF + Jet_chEmEF")
   jVars.Add("DummyZero","float(0.0)")
+  if year == '2024' or year == '2025':
+    jVars.Add("Jet_jetId","jetidfunc(jetidAK4Tcorr,jetidAK4TLcorr,Jet_eta,Jet_chHEF,Jet_neHEF,Jet_chEmEF,Jet_neEmEF,Jet_muEF,Jet_chMultiplicity,Jet_neMultiplicity)")
+    jVars.Add("FatJet_jetId","fatjetidfunc(jetidAK8Tcorr,jetidAK8TLcorr,FatJet_eta,FatJet_chHEF,FatJet_neHEF,FatJet_chEmEF,FatJet_neEmEF,FatJet_muEF,FatJet_chMultiplicity,FatJet_neMultiplicity)")
   
   if isMC:          #TODO Can we use overloading even more to remove data/MC distinction?
     jVars.Add("GenJet_P4","fVectorConstructor(GenJet_pt,GenJet_eta,GenJet_phi,GenJet_mass)")
@@ -546,25 +574,27 @@ def analyze(jesvar):
   jVars.Add("gcJet_mass", "reorder(cleanJet_mass[goodcleanJets == true],gcJet_ptargsort)")
   
   jVars.Add("gcJet_vetomap", "jetvetofunc(jetvetocorr, gcJet_eta, gcJet_phi)")
- 
-  jVars.Add("gcJet_PNet", "reorder(Jet_btagPNetB[goodcleanJets == true],gcJet_ptargsort)")
-  jVars.Add("gcJet_PNetL", "gcJet_PNet > PNetL") 
-  jVars.Add("NJets_PNetL", "Sum(gcJet_PNetL)")
+
+  if year != '2024' and year != '2025':
+    jVars.Add("gcJet_BTag", "reorder(Jet_btagPNetB[goodcleanJets == true],gcJet_ptargsort)")
+  else:
+    jVars.Add("gcJet_BTag", "reorder(Jet_btagUParTAK4B[goodcleanJets == true],gcJet_ptargsort)")
+  jVars.Add("gcJet_BTagL", "gcJet_BTag > BTagL") 
+  jVars.Add("NJets_BTagL", "Sum(gcJet_BTagL)")
   
-  jVars.Add("gcBJet_eta", "gcJet_eta[gcJet_PNetL]")
-  jVars.Add("gcBJet_phi", "gcJet_phi[gcJet_PNetL]")
-  jVars.Add("gcBJet_pt", "gcJet_pt[gcJet_PNetL]")
-  jVars.Add("gcBJet_mass", "gcJet_mass[gcJet_PNetL]")
+  jVars.Add("gcBJet_eta", "gcJet_eta[gcJet_BTagL]")
+  jVars.Add("gcBJet_phi", "gcJet_phi[gcJet_BTagL]")
+  jVars.Add("gcBJet_pt", "gcJet_pt[gcJet_BTagL]")
+  jVars.Add("gcBJet_mass", "gcJet_mass[gcJet_BTagL]")
 
   jVars.Add("gcJet_ht", "Sum(gcJet_pt)")
   if isMC:
     jVars.Add("gcJet_hflav", "reorder(Jet_hadronFlavour[goodcleanJets == true],gcJet_ptargsort)")
-    jVars.Add('btagWeights', 'btagshapefunc(year,jesvar,btagwpbccorr,btagwplcorr,btagptbins,btageffs,PNetL,gcJet_pt,gcJet_eta,gcJet_PNet,gcJet_hflav)')
+    jVars.Add('btagWeights', 'btagshapefunc("L",year,jesvar,btagwpbccorr,btagwplcorr,btagptbins,btageffs,BTagL,gcJet_pt,gcJet_eta,gcJet_BTag,gcJet_hflav)')
 
   jCuts = CutGroup('JetCuts')  
-  jCuts.Add('Event has no vetoed jets', 'Sum(gcJet_vetomap) == 0')
   jCuts.Add('NgoodcleanJets >= 2', 'NgoodcleanJets >= 2')
-  jCuts.Add('2 B Jets Pass (Loose)', 'NJets_PNetL >= 2')
+  jCuts.Add('2 B Jets Pass (Loose)', 'NJets_BTagL >= 2')
 
   # -------------------- Generator-level info for the event, only gets run on signal ----------------
   GenVars = VarGroup('GenVars')
@@ -598,7 +628,7 @@ def analyze(jesvar):
 
   # --------------------- Old Topograph info, keeping for now ------------------
   recoGenVars = VarGroup('recoGenVars')
-  recoGenVars.Add('Matching', 'recoGenMatch(isSig, NgoodLeptons, Good4Lepton_eta, Good4Lepton_phi, NJets_PNetL, gcJet_PNet, gcBJet_eta, gcBJet_phi, gcBJet_pt, nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status)')
+  recoGenVars.Add('Matching', 'recoGenMatch(isSig, NgoodLeptons, Good4Lepton_eta, Good4Lepton_phi, NJets_BTagL, gcJet_BTag, gcBJet_eta, gcBJet_phi, gcBJet_pt, nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status)')
   recoGenVars.Add('ObjectList_indices', 'Matching[0]') # Topograph thing
   recoGenVars.Add('matchabilityArr', 'Matching[1]') # Topograph thing
   recoGenVars.Add('nObjects', 'Matching[2]') # Topograph thing
@@ -609,7 +639,7 @@ def analyze(jesvar):
   recoGenVars.Add('matchability', 'convertMatchToInt(matchabilityArr)')
   recoGenVars.Add('genHadrTauCount', 'Matching[7]')
   
-  recoGenVars.Add('ObjectList', 'ObjectList(isSig, NgoodLeptons, Good4Lepton_pt, Good4Lepton_eta, Good4Lepton_phi, Good4Lepton_mass, NJets_PNetL, gcBJet_pt, gcBJet_eta, gcBJet_phi, gcBJet_mass)') # Topograph thing
+  recoGenVars.Add('ObjectList', 'ObjectList(isSig, NgoodLeptons, Good4Lepton_pt, Good4Lepton_eta, Good4Lepton_phi, Good4Lepton_mass, NJets_BTagL, gcBJet_pt, gcBJet_eta, gcBJet_phi, gcBJet_mass)') # Topograph thing
   recoGenVars.Add('PtListObject', 'ObjectList[0]') # PtListObject, EtaListObject, PhiListObject, EnergyListObject, TaggedListObject
   recoGenVars.Add('EtaListObject', 'ObjectList[1]')
   recoGenVars.Add('PhiListObject', 'ObjectList[2]')
@@ -661,8 +691,8 @@ def analyze(jesvar):
 
   nodeToPlot = a.Apply([flagCuts, gjsonVars, gjsonCuts, tVars, eandmuVars, lVars, lCuts, TrigVars, TrigCuts])
   
-  if isSig:
-    a.Apply([GenVars])
+  #if isSig:
+  #  a.Apply([GenVars])
 
   # # Solution to cleanJets() problem:
   # #       The analyzer .Apply() calls the analyzer .Define().  This .Define() calls self._collectionOrg.CollectionDefCheck(var, newNode).
@@ -673,9 +703,9 @@ def analyze(jesvar):
   
   newNode = a.ActiveNode.Apply(jVars)
   a.SetActiveNode(newNode)
-  if isSig:
-      a.Apply([recoGenVars])
-  a.Apply([jCuts, metVars, metCuts, lepSFs, manualVars, rframeVars]) 
+  #if isSig:
+  #    a.Apply([recoGenVars])
+  a.Apply([jCuts, metVars, metCuts, lepSFs, manualVars])#, rframeVars]) 
   
   allColumns = a.GetColumnNames()
      
@@ -694,9 +724,9 @@ def analyze(jesvar):
      if col.startswith("SV") or col.startswith("Photon") or col.startswith("Low"): continue
      if col.startswith("HLT") or col.startswith("HT") or col.startswith("boosted") or col.startswith("Deep"): continue
      if col.startswith("Flag") or col == "Bprime_gen_info" or col == "t_gen_info" or col == "W_gen_info" or col == "metxyoutput": continue
-     if col == "assignleps" or col == "pnetoutput" or col == "t_output" or col == "Bprime_output" or col.startswith("Other"): continue
+     if col == "assignleps" or col == "pnetoutput" or col == "t_output" or col == "Bprime_output" or col == "hasZoutput": continue
      if col.startswith("PS") or col.startswith("Tk") or col.startswith("Trig"): continue
-     if col.startswith("nCorr") or col.startswith("nFsr"): continue
+     if col.startswith("nCorr") or col.startswith("nFsr") or col.startswith("Other"): continue
      if col.startswith("nGen") or col.startswith("nIso") or col.startswith("nLow"): continue
      if col.startswith("nOther") or col.startswith("nPS") or col.startswith("nPhoton"): continue
      if col.startswith("nSV") or col.startswith("nSub") or col.startswith("nTau") or col.startswith("nTrig"): continue
@@ -741,3 +771,5 @@ else:
   #TODO fix why this not work?  shifts = ["Nominal","JECup","JECdn","JERup","JERdn"]
   #for shift in shifts:
   #  analyze(shift)
+  ## WHEN YOU FIX THIS, ADD THE UNCERTAINTY correctionlib for JER
+  

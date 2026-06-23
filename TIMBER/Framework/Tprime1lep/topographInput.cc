@@ -13,24 +13,41 @@ using namespace ROOT::VecOps;
 // -----------------------------------------------------------------------
 // 		fxn for filtering events with bosonish mass
 // -----------------------------------------------------------------------
-bool hasBosonishMfunc(RVec<float> G4L_pt, RVec<float> G4L_eta, RVec<float> G4L_phi, RVec<float> G4L_mass, RVec<int> G4L_ID, RVec<int> G4L_charge) {
+bool hasQuarkoniafunc(RVec<float> G4L_pt, RVec<float> G4L_eta, RVec<float> G4L_phi, RVec<float> G4L_mass, RVec<int> G4L_ID, RVec<int> G4L_charge) {
+  
+  for(int i = 0; i < G4L_ID.size(); i++) {
+    for(int j = i+1; j < G4L_ID.size(); j++) {
+      if (G4L_ID[i] != G4L_ID[j]) continue;
+      if (G4L_charge[i] == G4L_charge[j]) continue;
+      
+      TLorentzVector Lep1, Lep2;
+      Lep1.SetPtEtaPhiM(G4L_pt[i], G4L_eta[i], G4L_phi[i], G4L_mass[i]);
+      Lep2.SetPtEtaPhiM(G4L_pt[j], G4L_eta[j], G4L_phi[j], G4L_mass[j]);
+      
+      if ((Lep1 + Lep2).M() < 12) return 1;
+    }
+  }
+  return 0;	
+}
 
-	for(int i = 0; i < G4L_ID.size(); i++) {
-		for(int j = i+1; j < G4L_ID.size(); j++) {
-			if (G4L_ID[i] != G4L_ID[j]) continue;
-			if (G4L_charge[i] == G4L_charge[j]) continue;
-
-			TLorentzVector Lep1, Lep2;
-			Lep1.SetPtEtaPhiM(G4L_pt[i], G4L_eta[i], G4L_phi[i], G4L_mass[i]);
-			Lep2.SetPtEtaPhiM(G4L_pt[j], G4L_eta[j], G4L_phi[j], G4L_mass[j]);
-		
-			if ((Lep1 + Lep2).M() < 12) return 1;
-			else if ((Lep1 + Lep2).M() > 85 && (Lep1 + Lep2).M() < 97) return 1;
-			//else if (G4L_ID[i] == 15 && (Lep1 + Lep2).M() > 115 && (Lep1 + Lep2).M() < 135) return 1; //taking out
-
-		}
-	}
-	return 0;	
+RVec<int> hasZfunc(RVec<float> G4L_pt, RVec<float> G4L_eta, RVec<float> G4L_phi, RVec<float> G4L_mass, RVec<int> G4L_ID, RVec<int> G4L_charge) {
+  RVec<int> output(G4L_pt.size(),0);
+  for(int i = 0; i < G4L_ID.size(); i++) {
+    for(int j = i+1; j < G4L_ID.size(); j++) {
+      if (G4L_ID[i] != G4L_ID[j]) continue;
+      if (G4L_charge[i] == G4L_charge[j]) continue;
+      
+      TLorentzVector Lep1, Lep2;
+      Lep1.SetPtEtaPhiM(G4L_pt[i], G4L_eta[i], G4L_phi[i], G4L_mass[i]);
+      Lep2.SetPtEtaPhiM(G4L_pt[j], G4L_eta[j], G4L_phi[j], G4L_mass[j]);
+      
+      if ((Lep1 + Lep2).M() > 85 && (Lep1 + Lep2).M() < 97){
+	output.at(i) = 1;
+	output.at(j) = 1;
+      }
+    }
+  }
+  return output;
 }
 
 // ------------------------------------------------------------------------
