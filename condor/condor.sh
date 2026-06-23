@@ -35,9 +35,6 @@ cd CMSSW_13_2_10
 eval `scramv1 runtime -sh`
 cd ../
 source timber-env/bin/activate
-echo "PATH = " $PATH
-echo "BOOSTPATH = " $BOOSTPATH
-ls $BOOSTPATH
 cd TIMBER/
 
 # Run analyzer_RDF files through two C files

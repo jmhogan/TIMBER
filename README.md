@@ -46,7 +46,7 @@ else
   echo "BOOSTPATH already on LD_LIBRARY_PATH"
 fi
 
-pip3 install --no-binary=correctionlib --upgrade correctionlib --quiet
+pip3 install --no-binary=correctionlib correctionlib==2.8.0 --quiet
 EOT
 ```
 
