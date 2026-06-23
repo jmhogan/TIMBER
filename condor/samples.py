@@ -1024,5 +1024,5 @@ samples_mc_standard = {
 }           
 
 samples_mc_test = {
-    "BpBp_M1200_2024": BpBp_M1200_2024
+    "TpTp_M1700_2024": TpTp_M1700_2024
 }

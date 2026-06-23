@@ -490,6 +490,9 @@ def analyze(jesvar):
   tagVars.Add("gcFatJet_GPTWM_T", "reorder(FatJet_globalParT3_withMassTopvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPTWM_W", "reorder(FatJet_globalParT3_withMassWvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPTWM_Z", "reorder(FatJet_globalParT3_withMassZvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_ToQCD", "reorder((FatJet_globalParT3_withMassTopvsQCD/(1 - FatJet_globalParT3_withMassTopvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_WoQCD", "reorder((FatJet_globalParT3_withMassWvsQCD/(1 - FatJet_globalParT3_withMassWvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_ZoQCD", "reorder((FatJet_globalParT3_withMassZvsQCD/(1 - FatJet_globalParT3_withMassZvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_T", "reorder((FatJet_globalParT3_TopbWqq + FatJet_globalParT3_TopbWtauhv)[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_W", "reorder((FatJet_globalParT3_Xqq + FatJet_globalParT3_Xcs)[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_ZH", "reorder((FatJet_globalParT3_Xbb + FatJet_globalParT3_Xcc + FatJet_globalParT3_Xqq + FatJet_globalParT3_XWW4q)[goodcleanFatJets == true], gcFatJet_ptargsort)")
@@ -499,6 +502,8 @@ def analyze(jesvar):
   tagVars.Add("gcFatJet_GPTWM_T", "reorder(FatJet_globalParT3_withMassTopvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPTWM_W", "reorder(FatJet_globalParT3_withMassWvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPTWM_Z", "reorder(FatJet_globalParT3_withMassZvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+
+  tagVars.Add("mySubJet_btag", "SubJet_btagUParTAK4B")
   
   if isMC:
     tagVars.Add("gcFatJet_truth", "fatjet_matching(region, nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status, GenPart_statusFlags, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, gcFatJet_hadronFlavour)")
