@@ -443,6 +443,11 @@ def analyze(jesvar):
   jetVars.Add("gcFatJet_subJetIdx1", "reorder(FatJet_subJetIdx1[goodcleanFatJets == true], gcFatJet_ptargsort)")
   jetVars.Add("gcFatJet_subJetIdx2", "reorder(FatJet_subJetIdx2[goodcleanFatJets == true], gcFatJet_ptargsort)")  
   jetVars.Add("gcFatJet_vetomap", "jetvetofunc(jetvetocorr, gcFatJet_eta, gcFatJet_phi)")
+  jetVars.Add("gcJet_P4", "fVectorConstructor(gcJet_pt,gcJet_eta,gcJet_phi,gcJet_mass)")
+  jetVars.Add("gcFatJet_P4", "fVectorConstructor(gcFatJet_pt,gcFatJet_eta,gcFatJet_phi,gcFatJet_mass)")
+  jetVars.Add("gcJet_UParT", "reorder(Jet_btagUParTAK4B[goodcleanJets == true],gcJet_ptargsort)")
+  jetVars.Add("gcJet_UParTM", "gcJet_UParT > BTagM")
+  jetVars.Add("NJets_UParTM", "Sum(gcJet_UParTM)")
 
   if isMC:
     jetVars.Add("gcJet_hflav", "reorder(Jet_hadronFlavour[goodcleanJets == true],gcJet_ptargsort)")
