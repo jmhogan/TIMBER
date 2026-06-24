@@ -130,6 +130,20 @@ ROOT.gInterpreter.ProcessLine('#include "TString.h"')
 # Enable using 4 threads
 ROOT.ROOT.EnableImplicitMT(num_threads)
 
+handler_name1 = 'Tprime_handler_W.cc'
+handler_name2 = 'Tprime_handler_t.cc'
+class_name1 = 'Tprime_RestFrames_Container_W'
+class_name2 = 'Tprime_RestFrames_Container_t'
+
+# Enable using 4 threads
+ROOT.ROOT.EnableImplicitMT(num_threads)
+
+# load rest frames handlers
+load_restframes(num_threads, handler_name1, class_name1, 'W_rfc')
+load_restframes(num_threads, handler_name2, class_name2, 't_rfc')
+
+CompileCpp('bin/restframes/helper.cc')
+
 # load rest frames handler NEED TO UPDATE FOR CURRENT
 #handler_name = 'Tprime_handler_W.cc'
 #class_name = 'Tprime_RestFrames_Container_W'
@@ -538,15 +552,52 @@ def analyze(jesvar):
 
 
   # # ------------------ Results ------------------
-  # # rframeVars = VarGroup('restFrameVars')
-  # # rframeVars.Add('VLQ_mass', 'rfc.compute_mass(rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, MET_pt, MET_phi)')
-  # # rframeVars.Add('VLQ_mass_T', 'VLQ_mass[0]')
-  # # rframeVars.Add('VLQ_mass_Tbar', 'VLQ_mass[1]')
-  # # rframeVars.Add('VLQ_mass_T_r', 'VLQ_mass[2]')
-  # # rframeVars.Add('VLQ_mass_Tbar_r', 'VLQ_mass[3]')
-  # # rframeVars.Add('VLQ_mass_ratio', 'VLQ_mass_T/VLQ_mass_Tbar')
-  # # rframeVars.Add('VLQ_mass_avg', '(VLQ_mass_T+VLQ_mass_Tbar)*0.5')
+  ##### MAYBE NOT WORKING!!!!! #####
   
+  rframeVars = VarGroup('restFrameVars')
+
+  rframeVars.Add("Isolated_AK4","standalone_Jet(gcJet_eta, gcJet_phi, gcFatJet_eta, gcFatJet_phi)")
+  
+  rframeVars.Add('RJR_doubles', 'processDecayTree(&W_rfc, &t_rfc, rdfslot_, lepton_pt, lepton_eta, lepton_phi, lepton_mass, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, corrMET_pt, corrMET_phi, gcJet_pt, gcJet_eta, gcJet_phi, gcJet_mass, gcJet_BTagM, Isolated_AK4)')
+  #rframeVars.Add('RJR_vecs', 'returnVectors(&W_rfc, &t_rfc, rdfslot_, gcJet_BTagM, Isolated_AK4)')
+
+  rframeVars.Add("R_TTbar_Mass", 'RJR_doubles[0]')
+  rframeVars.Add("R_TTbar_CosAngle", 'RJR_doubles[1]')
+  rframeVars.Add("R_TTbar_DeltaPhiAngle", 'RJR_doubles[2]')
+  #rframeVars.Add("R_TTbar_4VectLAB", 'RJR_vecs[0]')
+  
+  rframeVars.Add("R_VLQ1_Mass", 'RJR_doubles[3]')
+  rframeVars.Add("R_VLQ1_CosAngle", 'RJR_doubles[4]')
+  rframeVars.Add("R_VLQ1_DeltaPhiAngle", 'RJR_doubles[5]')
+  #rframeVars.Add("R_VLQ1_4VectLAB", 'RJR_vecs[1]')
+  #rframeVars.Add("R_VLQ1_4VectTTbar", 'RJR_vecs[2]')
+
+  rframeVars.Add("R_VLQ2_Mass", 'RJR_doubles[6]')
+  rframeVars.Add("R_VLQ2_CosAngle", 'RJR_doubles[7]')
+  rframeVars.Add("R_VLQ2_DeltaPhiAngle", 'RJR_doubles[8]')
+  #rframeVars.Add("R_VLQ2_4VectLAB", 'RJR_vecs[3]')
+  #rframeVars.Add("R_VLQ2_4VectTTbar", 'RJR_vecs[4]')
+
+  rframeVars.Add("R_W_Mass", 'RJR_doubles[8]')
+  rframeVars.Add("R_W_CosAngle", 'RJR_doubles[9]')
+  rframeVars.Add("R_W_DeltaPhiAngle", 'RJR_doubles[10]')
+  #rframeVars.Add("R_W_4VectLAB", 'RJR_vecs[5]')
+  #rframeVars.Add("R_W_4VectTTbar", 'RJR_vecs[6]')
+  #rframeVars.Add("R_W_4VectT", 'RJR_vecs[7]')
+
+  rframeVars.Add("R_J0_Mass", 'RJR_doubles[11]')
+  rframeVars.Add("R_J0_CosAngle", 'RJR_doubles[12]')
+  rframeVars.Add("R_J0_DeltaPhiAngle", 'RJR_doubles[14]')
+  #rframeVars.Add("R_J0_4VectLAB", 'RJR_vecs[8]')
+  #rframeVars.Add("R_J0_4VectTTbar", 'RJR_vecs[9]')
+  #rframeVars.Add("R_J0_4VectT", 'RJR_vecs[10]')
+  
+  rframeVars.Add("R_TTbar_DeltaPhiVisible","RJR_doubles[15]")
+  rframeVars.Add("R_TTbar_DeltaPhiDecayVisible","RJR_doubles[16]")
+  rframeVars.Add("R_TTbar_PhiBoostVisible","RJR_doubles[17]")
+  rframeVars.Add("R_TTbar_VisibleShape","RJR_doubles[18]")
+
+  rframeVars.Add("R_treeMODE", 'RJR_doubles[19]')  
   
   # # -------------------------------------
 
@@ -568,7 +619,7 @@ def analyze(jesvar):
   newNode = a.ActiveNode.Apply(jVars)
   a.SetActiveNode(newNode)
   
-  a.Apply([jCuts, metVars, metCuts, tagVars])  #, rframeVars
+  a.Apply([metVars, metCuts, gcjetVars, jCuts, jetVars, tagVars, rframeVars])
   
   allColumns = a.GetColumnNames()
   columns = [] #allColumns
@@ -593,17 +644,12 @@ def analyze(jesvar):
      if col.startswith("nOther") or col.startswith("nPS") or col.startswith("nPhoton"): continue
      if col.startswith("nSV") or col.startswith("nSub") or col.startswith("nTau") or col.startswith("nTrig"): continue
      if col.startswith("nboosted"): continue
-     if col == "tauBUG": continue
-     if col == "Matching": continue
-     if col == "ObjectList": continue
-     if col == "manual": continue
-     if col.startswith("BeamSpot"): continue
-     if col.startswith("Lepton"): continue
-     if col.startswith("iLepton"): continue
-     if col.startswith("MET"): continue
-     if col.startswith("RawPuppiMET"): continue
+     if col == "tauBUG" or col == "Matching" or col == "ObjectList" or col == "manual": continue
+     if col.startswith("BeamSpot") or col.startswith("Lepton") or col.startswith("iLepton"): continue
+     if col.startswith("MET") or col.startswith("RawPuppiMET"): continue
+     if col.startswith("RJR_"): continue
      if col.startswith("gcFatJet_tags"): continue
-      
+
      columns.append(col)
 
   finalFile = "RDF_" + sample + era + "_" + year + "_" + str(testNum1) + ".root"
