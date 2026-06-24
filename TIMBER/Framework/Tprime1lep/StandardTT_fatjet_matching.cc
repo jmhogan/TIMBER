@@ -390,18 +390,18 @@ auto jet_tagging(RVec<float> gcFatJet_PNWM_T, RVec<float> gcFatJet_PNWM_W, RVec<
         GPTtag.push_back(5);
       }else{GPTtag.push_back(0);}
     }
-    //KEEP EDITING THIS FOR GPTWM
-    std::vector<float> GPTWMscores = {gcFatJet_GPTWM_T[i], gcFatJet_GPTWM_W[i], gcFatJet_GPTWM_Z[i], gcFatJet_GPT_QCD[i]};
+    //Still need to add abc
+    std::vector<float> GPTWMscores = {gcFatJet_GPTWM_T[i] * 0.5, gcFatJet_GPTWM_W[i] * 1.85, gcFatJet_GPTWM_Z[i] * 2.8};
     max_addr = std::max_element(GPTWMscores.begin(), GPTWMscores.end());
     max_index = std::distance(GPTWMscores.begin(), max_addr);
 
-    if(max_index == 0) GPTWMtag.push_back(6);
-    if(max_index == 1) GPTWMtag.push_back(24);
-    if(max_index == 2){
+    if(max_index == 0 && GPTWMscores[0] > 1) GPTWMtag.push_back(6);
+    if(max_index == 1 && GPTWMscores[1] > 1) GPTWMtag.push_back(24);
+    if(max_index == 2 && GPTWMscores[2] > 1){
       if(gcFatJet_GPT_regressedMass[i] < 105) GPTWMtag.push_back(23);
       if(gcFatJet_GPT_regressedMass[i] > 105) GPTWMtag.push_back(25);
     }
-    if(max_index == 3){
+    else{
       int subjetIdx1 = gcFatJet_subJetIdx1[i];
       int subjetIdx2 = gcFatJet_subJetIdx2[i];
       if((subjetIdx1 >= 0 &&  SubJet_btagUParTAK4B[subjetIdx1] >= UparTmed) || (subjetIdx2 >= 0 &&  SubJet_btagUParTAK4B[subjetIdx2] >= UparTmed)) 
