@@ -4,20 +4,26 @@ from array import array
 
 callAlgoEff = False
 callMassEff = True
-algo_files = ["RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root"]
-mass_files = ["RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root"]
-ptbins = array('d',[200,380,470,560,650,740,1280,1640,2000])
+dir_str = "root://cmseos.fnal.gov//store/user/lpchtop/TTBB_Jun2026_Run3/"
+sample_files = ["RDF_TprimeTprime_Par-M-1200_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root","RDF_TprimeTprime_Par-M-1300_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root","RDF_TprimeTprime_Par-M-1400_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root","RDF_TprimeTprime_Par-M-1600_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root","RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root","RDF_TprimeTprime_Par-M-1800_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root","RDF_TprimeTprime_Par-M-1900_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root","RDF_TprimeTprime_Par-M-2000_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root","RDF_TprimeTprime_Par-M-2100_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root","RDF_TprimeTprime_Par-M-2200_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root"]
+
+test_files = ["RDF_TprimeTprime_Par-M-1200_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root","RDF_TprimeTprime_Par-M-1300_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root"]
+
+files = [dir_str + x for x in sample_files]
+
+ptbins = array('d',[200,380,470,560,650,740,1000,1280,1640,2000])
 nbins = len(ptbins) - 1
 print(nbins)
 
-def algoEff(file_str, ptbins,nbins):
+def algoEff(file_str,ptbins,nbins):
+    print(f"opening {file_str}")
     inFile = TFile.Open(file_str)
     t = inFile.Get("Events_Nominal")
 
     pattern = r"RDF_([TB]).*?Par-M-(\d+)"
     mass = re.search(pattern, file_str)
-    mass_name = f"{mass.group(1)}_1.{mass.group(2)[1]}TeV"
-
+    mass_name = f"{mass.group(1)}_{mass.group(2)[0]}p{mass.group(2)[1]}TeV"
+    
     print(mass_name)
     
     for matched in {"matched","mismatched"}:
@@ -32,7 +38,7 @@ def algoEff(file_str, ptbins,nbins):
                 ID = 25
 
             axis_str = ";" + part + "jet pt GeV;N(tagged " + matched + " jets)/N(" + matched + " jets)"
-            truth = TH1D("truth",axis_str,nbins,ptbins)
+            truth = TH1D(f"truth_{part}_{matched}",axis_str,nbins,ptbins)
             PNWM = TH1D(f"{part}_{matched}_PNWM",axis_str,nbins,ptbins)
             GPT = TH1D(f"{part}_{matched}_GPT",axis_str,nbins,ptbins)
             GPTWM = TH1D(f"{part}_{matched}_GPTWM",axis_str,nbins,ptbins)
@@ -126,11 +132,12 @@ def algoEff(file_str, ptbins,nbins):
 
 def massEff(file_strs,ptbins,nbins):
     mass_branches = []
-    for file_str in file_strs: #RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root
+    for i,file_str in enumerate(file_strs): #RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root
+        print(f"opening {file_str}")
         pattern = r"RDF_([TB]).*?Par-M-(\d+)"
         mass = re.search(pattern, file_str)
-        mass_name = f"{mass.group(1)}_1.{mass.group(2)[1]}TeV"
-        
+        mass_name = f"{mass.group(1)}_{mass.group(2)[0]}p{mass.group(2)[1]}TeV"
+        print(f"processing {mass_name}")
         inFile = TFile.Open(file_str)
         t = inFile.Get("Events_Nominal")
         
@@ -146,7 +153,7 @@ def massEff(file_strs,ptbins,nbins):
                     ID = 25
 
                 axis_str = ";" + part + "jet pt GeV;N(tagged " + matched + " jets)/N(" + matched + " jets)"
-                truth = TH1D("truth",axis_str,nbins,ptbins)
+                truth = TH1D(f"truth_{part}_{matched}_{mass_name}",axis_str,nbins,ptbins)
                 PNWM = TH1D(f"{part}_{matched}_PNWM_{mass_name}", axis_str,nbins,ptbins)
                 GPT = TH1D(f"{part}_{matched}_GPT_{mass_name}", axis_str,nbins,ptbins)
                 GPTWM = TH1D(f"{part}_{matched}_GPTWM_{mass_name}", axis_str,nbins,ptbins)
@@ -189,23 +196,30 @@ def massEff(file_strs,ptbins,nbins):
                 GPT.Divide(GPT, truth, 1, 1, "B")
                 GPTWM.Divide(GPTWM, truth, 1, 1, "B")
 
-                histFile = TFile.Open(f"massEff/{part}_{matched}_PNWM_massEff.root", "recreate")
+                if i == 0:
+                    mode = "recreate"
+                else:
+                    mode = "update"
+                    
+                histFile = TFile.Open(f"massEff/{part}_{matched}_PNWM_massEff.root", mode)
                 PNWM.Write()
                 histFile.Write()
                 histFile.Close()
                 PNWM.Reset()
                 
-                histFile = TFile.Open(f"massEff/{part}_{matched}_GPT_massEff.root", "recreate")
+                histFile = TFile.Open(f"massEff/{part}_{matched}_GPT_massEff.root", mode)
                 GPT.Write()
                 histFile.Write()
                 histFile.Close()
                 GPT.Reset()
                 
-                histFile = TFile.Open(f"massEff/{part}_{matched}_GPTWM_massEff.root", "recreate")
+                histFile = TFile.Open(f"massEff/{part}_{matched}_GPTWM_massEff.root", mode)
                 GPTWM.Write()
                 histFile.Write()
                 histFile.Close()
                 GPTWM.Reset()
+
+                truth.Reset()
                 
         mass_branches.append(mass_name)
     
@@ -217,10 +231,11 @@ def massEff(file_strs,ptbins,nbins):
                 gStyle.SetOptStat(0)
                 canv1.SetLeftMargin(0.15)
                 gStyle.SetPalette(kRainBow)
-                
+
+                print("opening tagger file, branches below")
                 tagger_file = TFile.Open(f"massEff/{part}_{matched}_{tagger}_massEff.root")
                 tagger_file.ls()
-                
+                print(f"mass_branches: {mass_branches}")
                 for i,mass_name in enumerate(mass_branches):
                     print(f"{part}_{matched}_{tagger}_{mass_name}")
                     mass_hist = tagger_file.Get(f"{part}_{matched}_{tagger}_{mass_name}")
@@ -230,6 +245,7 @@ def massEff(file_strs,ptbins,nbins):
                     mass_hist.SetMarkerStyle(20)
                     mass_hist.SetMarkerColor(color)
                     mass_hist.SetLineColor(color)
+                    mass_hist.GetYaxis().SetRangeUser(0,1)
                     
                     if i == 0:
                         mass_hist.Draw("pe")    
@@ -248,7 +264,7 @@ def massEff(file_strs,ptbins,nbins):
             
 
 if callAlgoEff:
-    for file in algo_files:
-        algoEff(file,ptbins,nbins)
+    for f in files:
+        algoEff(f,ptbins,nbins)
 if callMassEff:
-    massEff(mass_files,ptbins,nbins)
+    massEff(files,ptbins,nbins)
