@@ -123,7 +123,7 @@ if runanalyzer:
         filesPerJob = int(max(1,round(num/jobsPerSample)))
         
         os.system('eos root://cmseos.fnal.gov/ mkdir -p '+outDir+'/')
-        os.system('mkdir -p '+condorDir+'/'+prefix)
+        os.system('mkdir -p '+condorDir+prefix)
         
         # Redefining fileName so it is accessed from the directory above for analyzer_RDF.h
         fileName = "condor/"+textlist

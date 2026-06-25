@@ -1024,6 +1024,7 @@ samples_mc_standard = {
 }           
 
 samples_mc_test = {
+    "TpTp_M1200_2024": TpTp_M1200_2024 ,
     "TpTp_M1300_2024": TpTp_M1300_2024 ,
     "TpTp_M1400_2024": TpTp_M1400_2024 ,
     "TpTp_M1600_2024": TpTp_M1600_2024 ,
