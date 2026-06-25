@@ -391,7 +391,7 @@ auto jet_tagging(RVec<float> gcFatJet_PNWM_T, RVec<float> gcFatJet_PNWM_W, RVec<
       }else{GPTtag.push_back(0);}
     }
     //Still need to add abc
-    std::vector<float> GPTWMscores = {gcFatJet_GPTWM_T[i] * 0.5, gcFatJet_GPTWM_W[i] * 1.85, gcFatJet_GPTWM_Z[i] * 2.8};
+    std::vector<float> GPTWMscores = {gcFatJet_GPTWM_T[i], gcFatJet_GPTWM_W[i], gcFatJet_GPTWM_Z[i]};
     max_addr = std::max_element(GPTWMscores.begin(), GPTWMscores.end());
     max_index = std::distance(GPTWMscores.begin(), max_addr);
 
