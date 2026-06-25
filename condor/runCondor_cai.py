@@ -26,10 +26,10 @@ if len(sys.argv) >= 4:
     prefix = sys.argv[3] # 'singleTb'
     textlist = prefix + "NanoList.txt"
     
-relbase = '/uscms/home/hlarson/nobackup/run3VLQ/'
+relbase = '/uscms/home/cai/nobackup/run3VLQ/'
 outDir='/store/user/lpchtop/TTBB_Jun2026_Run3/'
-condorDir='/uscms/home/hlarson/nobackup/run3VLQ/condor_Jun2026_Run3/' # recommend this be outside git area!
-tarfile = '/uscms/home/hlarson/nobackup/rdfjobs.tar' 
+condorDir='/uscms/home/cai/nobackup/run3VLQ/condor_Jun2026_Run3/' # recommend this be outside git area!
+tarfile = '/uscms/home/cai/nobackup/rdfjobs.tar' 
 
 runDir=os.getcwd()
 cTime=datetime.datetime.now()
@@ -123,7 +123,7 @@ if runanalyzer:
         filesPerJob = int(max(1,round(num/jobsPerSample)))
         
         os.system('eos root://cmseos.fnal.gov/ mkdir -p '+outDir+'/')
-        os.system('mkdir -p '+condorDir+'/'+prefix)
+        os.system('mkdir -p '+condorDir+prefix)
         
         # Redefining fileName so it is accessed from the directory above for analyzer_RDF.h
         fileName = "condor/"+textlist

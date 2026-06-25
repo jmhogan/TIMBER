@@ -1,9 +1,14 @@
-import os, sys, math
+import os, sys, math, re
 from ROOT import TFile, TTree, TH1D, TH2D, TCanvas, gStyle, gPad
 
 readFile = True
 if readFile:
-    inFile = TFile.Open("RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root")
+    file_str = "RDF_TprimeTprime_Par-M-1700_TuneCP5_13p6TeV_amcatnlo-pythia8_2024_0.root"
+    inFile = TFile.Open(file_str)
+
+    pattern = r"RDF_([TB]).*?Par-M-(\d+)"
+    mass = re.search(pattern, file_str)
+    name = f"{mass.group(1)}{mass.group(2)}GeV"
 
     truth = TH2D("jet_truth",";tagger ID;true ID",6,0,6,6,0,6) #need 6 instead
     PNWM = TH2D("jet_PNWMid",";PNWM ID;true ID",6,0,6,6,0,6)
@@ -121,16 +126,20 @@ for ibin in range(1,GPT.GetNbinsY()+1):
     GPT.GetYaxis().SetBinLabel(ibin,ylabels[ibin-1])
     PNWM.GetYaxis().SetBinLabel(ibin,ylabels[ibin-1])
     GPTWM.GetYaxis().SetBinLabel(ibin,ylabels[ibin-1])
+
+PNWM.SetTitle(f"{name}_PNWM")
+GPT.SetTitle(f"{name}_GPT")
+GPTWM.SetTitle(f"{name}_GPTWM")
     
 gStyle.SetOptStat(0)
 gStyle.SetPaintTextFormat("1.2f")
 canv1.SetLeftMargin(0.15)
     
 PNWM.Draw("colz texte")
-canv1.SaveAs("jet_tags_1200_PNWM.png")
+canv1.SaveAs(f"{name}_PNWM.png")
 
 GPT.Draw("colz texte")
-canv1.SaveAs("jet_tags_1200_GPT.png")
+canv1.SaveAs(f"{name}_GPT.png")
 
 GPTWM.Draw("colz texte")
-canv1.SaveAs("jet_tags_1200_GPTWM.png")
+canv1.SaveAs(f"{name}_GPTWM.png")
