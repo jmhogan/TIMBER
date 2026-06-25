@@ -528,7 +528,7 @@ def analyze(jesvar):
   if isMC:
     tagVars.Add("gcFatJet_truth", "fatjet_matching(region, nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status, GenPart_statusFlags, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, gcFatJet_hadronFlavour)")
   
-  tagVars.Add("gcFatJet_tags", "jet_tagging(gcFatJet_PNWM_T, gcFatJet_PNWM_W, gcFatJet_PNWM_Z, gcFatJet_PNWM_H, gcFatJet_PNWM_QCD, gcFatJet_GPT_T, gcFatJet_GPT_W, gcFatJet_GPT_ZH, gcFatJet_GPT_QCD, gcFatJet_GPT_regressedMass, gcFatJet_GPTWM_T, gcFatJet_GPTWM_W, gcFatJet_GPTWM_Z, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, SubJet_btagUParTAK4B, gcFatJet_truth, BTagM,gcJet_P4,gcFatJet_P4,gcJet_UParTM)")
+  tagVars.Add("gcFatJet_tags", "jet_tagging(gcFatJet_PNWM_T, gcFatJet_PNWM_W, gcFatJet_PNWM_Z, gcFatJet_PNWM_H, gcFatJet_PNWM_QCD, gcFatJet_GPT_T, gcFatJet_GPT_W, gcFatJet_GPT_ZH, gcFatJet_GPT_QCD, gcFatJet_GPT_regressedMass, gcFatJet_GPTWM_T, gcFatJet_GPTWM_W, gcFatJet_GPTWM_Z, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, SubJet_btagUParTAK4B, gcFatJet_truth, BTagM,gcJet_P4,gcFatJet_P4,gcJet_UParTM, gcFatJet_GPTWM_ToQCD, gcFatJet_GPTWM_WoQCD, gcFatJet_GPTWM_ZoQCD)")
   tagVars.Add("gcFatJet_PNWMtags", "gcFatJet_tags[0]")
   tagVars.Add("gcFatJet_GPTtags", "gcFatJet_tags[1]")
   tagVars.Add("gcFatJet_GPTWMtags", "gcFatJet_tags[2]")
