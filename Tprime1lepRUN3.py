@@ -36,9 +36,10 @@ print(f"TestNum 1: {start} and TestNum 2: {end}")
 #file_name = 'trimmed_input_'+inputFiles.replace('.txt','')+'_'+str(testNum1)+'.txt'
 #listFiles = open(file_name, 'w')
   #if (listFiles.is_open())
+
 filelist = []
 for i, line in enumerate(lines): #, start=1):
-  if i in [start, end]:
+  if i in range(start, end+1):
     #listFiles.write(line)    
     #print(line)
     filelist.append(line.strip())
@@ -201,14 +202,13 @@ def analyze(jesvar):
 
   # ------------------ correctionsLib corrections ------------------
 
-  BTagM = {'2022':0.245,'2022EE':0.2605,'2023':0.1917,'2023BPix':0.1919, '2024':0.1272, '2025':0.1272} #PNet for 22-23BPix, UParT for 2024-2025
+  BTagM = {'2022':0.245,'2022EE':0.2605,'2023':0.1917,'2023BPix':0.1919, '2024':0.1272, '2025':0.1272} #PNet for 22-23BPix, UParT for 2024-2025 should seperate in the future
   yrstr = {'2022':"Run3-22CDSep23-Summer22-NanoAODv12",'2022EE':"Run3-22EFGSep23-Summer22EE-NanoAODv12",'2023':"Run3-23CSep23-Summer23-NanoAODv12",'2023BPix':"Run3-23DSep23-Summer23BPix-NanoAODv12",'2024':"Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15",'2025':"Run3-25Prompt-Summer24-NanoAODv15"}
   jmetags = {'2022':'2026-06-05','2022EE':'2026-06-05','2023':'2026-06-05','2023BPix':'2026-06-05','2024':'2026-06-05', '2025':'2026-06-05'} 
   btvtags = {'2022':'2025-08-20','2022EE':'2025-08-20','2023':'2025-08-20','2023BPix':'2025-08-20','2024':'2026-03-10','2025':'2026-05-27'}
   egmtags = {'2022':'2025-12-15','2022EE':'2025-12-15','2023':'2025-12-15','2023BPix':'2025-12-15','2024':'2025-12-15','2025':'2026-05-06'}
   muotags = {'2022':'2026-04-28','2022EE':'2026-04-28','2023':'2026-04-28','2023BPix':'2026-04-28','2024':'2026-04-28','2025':'2026-04-28'}
-  tautags = {'2022':'2025-12-25','2022EE':'2025-12-25','2023':'2025-12-25','2023BPix':'2025-12-25','2024':'2026-01-14','2025':'dev'}
-  lumtags = {'2022':'2024-01-31','2022EE':'2024-01-31','2023':'2024-01-31','2023BPix':'2024-01-31','2024':'2026-04-15','2025':'2026-06-05'}
+  lumtags = {'2022':'2024-01-31','2022EE':'2024-01-31','2023':'2024-01-31','2023BPix':'2024-01-31','2024':'2026-04-15','2025':'latest'}      
 
   jmeyrstr = {'2022':yrstr['2022'],'2022EE':yrstr['2022EE'],'2023':yrstr['2023'],'2023BPix':yrstr['2023BPix'],'2024':yrstr['2024'],'2025':yrstr['2024']} # yes, really use 24 for 25
   jecyr = {'2022':"Summer22_22Sep2023",'2022EE':"Summer22EE_22Sep2023",'2023':"Summer23Prompt23",'2023BPix':"Summer23BPixPrompt23",'2024':"Summer24Prompt24", '2025':"Summer24Prompt24"}
@@ -217,21 +217,21 @@ def analyze(jesvar):
   if not isMC: #is DATA
     jmeyrstr['2025'] = 'Run3-25Prompt-Winter25-NanoAODv15'
     jecyr['2025'] = "Winter25Prompt25"
-    jetvetoname['2025'] = "Winter25Prompt25_RunCDEFG_V1"    
-  
+    jetvetoname['2025'] = "Winter25Prompt25_RunCDEFG_V1" 
+
   jecver = {'2022':"V4",'2022EE':"V4",'2023':"V4",'2023BPix':"V4",'2024':"V3",'2025':"V3"}   
   puname = {'2022':"Collisions2022_355100_357900_eraBCD_GoldenJson",'2022EE':"Collisions2022_359022_362760_eraEFG_GoldenJson",'2023':"Collisions2023_366403_369802_eraBC_GoldenJson",'2023BPix':"Collisions2023_369803_370790_eraD_GoldenJson",'2024':"Collisions24_BCDEFGHI_goldenJSON",'2025':"Collisions25_goldenJSON"}  
-  puweights = {'2022':"puWeights",'2022EE':'puWeights','2023':'puWeights','2023BPix':'puWeights','2024':"puWeights_BCDEFGHI",'2025':"puWeights_2025pp_Golden_Summer24_25ns_69200ub"}
+  puweights = {'2022':"puWeights",'2022EE':'puWeights','2023':'puWeights','2023BPix':'puWeights','2024':"puWeights_BCDEFGHI",'2025':"puWeights_2025pp_Golden_Summer24_25ns_69200ub"}  
   elecyr = {'2022':"2022Re-recoBCD",'2022EE':"2022Re-recoE+PromptFG",'2023':"2023PromptC",'2023BPix':"2023PromptD",'2024':"2024Prompt",'2025':"2025Prompt"}
   muonisoname = {'2022':'NUM_TightPFIso_DEN_MediumID','2022EE':'NUM_TightPFIso_DEN_MediumID','2023':'NUM_TightPFIso_DEN_MediumID','2023BPix':'NUM_TightPFIso_DEN_MediumID','2024':'NUM_TightMiniIso_DEN_MediumID','2025':'NUM_TightMiniIso_DEN_MediumID'} # CHECKME WHICH EXIST IN 22 AND 23??????
   METyr = {'2022':"2022",'2022EE':"2022EE",'2023':"2023",'2023BPix':"2023BPix",'2024':"2024",'2025':"2025"}                            
   METsimpleyr = {'2022':"2022",'2022EE':"2022",'2023':"2023",'2023BPix':"2023",'2024':"2024",'2025':"2025"} 
   btagname = {'2022':"particleNet_comb",'2022EE':"particleNet_comb",'2023':"deepJet_comb",'2023BPix':"deepJet_comb",'2024':"UParTAK4_comb",'2025':"UParTAK4_comb"}
   lightwps = {'2022':"particleNet_light", '2022EE':"particleNet_light",'2023':"particleNet_light",'2023BPix':"particleNet_light",'2024':"UParTAK4_light"} #Needs 2025
+
   btageffsdict = pnet_loose # this is wrong, but not for long
   if year == '2024' or year == '2025':
     btageffsdict = upart_med
-
   
   year_hack='2023'
   ROOT.gInterpreter.Declare("""
@@ -245,7 +245,6 @@ def analyze(jesvar):
   string egmtag = \""""+egmtags[year]+"""\";
   string muotag = \""""+muotags[year]+"""\";
   string muonisoname = \""""+muonisoname[year]+"""\";
-  string tautag = \""""+tautags[year]+"""\";
   string lumtag = \""""+lumtags[year]+"""\"; 
   string puname = \""""+puname[year]+"""\";
   string puweight = \""""+puweights[year]+"""\";
@@ -260,36 +259,33 @@ def analyze(jesvar):
   std::vector<std::vector<float>> btageffs = """ + to_cpp_vec2d(btageffsdict[year]) + """;
   """)
   
+
   ROOT.gInterpreter.Declare("""
   auto pileupcorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/LUM/"+yrstr+"/"+lumtag+"/"+puweight+".json.gz");
   auto btagcorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/BTV/"+yrstr+"/"+btvtag+"/btagging.json.gz");
   auto electroncorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/EGM/"+yrstr+"/"+egmtag+"/electron.json.gz");
   auto muoncorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/MUO/"+yrstr+"/"+muotag+"/muon_Z.json.gz");
-  auto taucorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/TAU/"+yrstr+"/"+tautag+"/tau.json.gz");
   auto jetvetocorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+jmeyrstr+"/"+jmetag+"/jetvetomaps.json.gz");
   auto jetidcorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+jmeyrstr+"/"+jmetag+"/jetid.json.gz");
 
+  auto pileupcorr = pileupcorrset->at(puname);
   auto jetidAK4Tcorr = jetidcorrset->at("AK4PUPPI_Tight");
   auto jetidAK4TLcorr = jetidcorrset->at("AK4PUPPI_TightLeptonVeto");
   auto jetidAK8Tcorr = jetidcorrset->at("AK8PUPPI_Tight");
   auto jetidAK8TLcorr = jetidcorrset->at("AK8PUPPI_TightLeptonVeto");
-  auto jetvetocorr = jetvetocorrset->at(jetvetoname);
-  auto pileupcorr = pileupcorrset->at(puname);
   auto btagwpbccorr = btagcorrset->at(btagname);
   auto btagwplcorr = btagcorrset->at(lightwp);
+  auto jetvetocorr = jetvetocorrset->at(jetvetoname);
   auto electroncorr = electroncorrset->at("Electron-ID-SF");
   auto muonidcorr = muoncorrset->at("NUM_MediumID_DEN_TrackerMuons");
-  auto muonisocorr = muoncorrset->at(muonisoname); 
-  auto tauidVSecorr = taucorrset->at("DeepTau2018v2p5VSe"); 
-  auto tauidVSmucorr = taucorrset->at("DeepTau2018v2p5VSmu");
-  auto tauidVSjetcorr = taucorrset->at("DeepTau2018v2p5VSjet");
+  auto muonisocorr = muoncorrset->at(muonisoname);
   """)
 
   if year != '2024' and year != '2025':
     ROOT.gInterpreter.Declare("""
     auto METcorrset = correction::CorrectionSet::from_file("/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/"+yrstr+"/"+jmetag+"/met_xyCorrections_"+METsimpleyr+"_"+METyr+".json.gz");
     auto METcorr = METcorrset->at("met_xy_corrections");
-  """)
+    """)
 
   if not isMC:
     ROOT.gInterpreter.Declare("""
@@ -299,7 +295,6 @@ def analyze(jesvar):
     auto ak4corrL1 = ak4corrset->at(jecyr+"_"+jecver+"_DATA_L1FastJet_AK4PFPuppi");
     auto ak8corr = ak8corrset->compound().at(jecyr+"_"+jecver+"_DATA_L1L2L3Res_AK8PFPuppi");
     """)
-    print('made it')    
   else:
     print(jeryr[year]+"_JRV1_MC_PtResolution_AK4PFPuppi")
     ROOT.gInterpreter.Declare("""
@@ -314,7 +309,9 @@ def analyze(jesvar):
     auto ak4jer = ak4corrset->at(jeryr+"_MC_ScaleFactor_AK4PFPuppi");
     auto ak8corr = ak8corrset->compound().at(jecyr+"_"+jecver+"_MC_L1L2L3Res_AK8PFPuppi");
     auto ak8corrUnc = ak8corrset->at(jecyr+"_"+jecver+"_MC_Total_AK8PFPuppi");
-    """)    
+    """) 
+
+    
     
   # ------------------ Flag Cuts ------------------
   flagCuts = CutGroup('FlagCuts')
@@ -329,7 +326,7 @@ def analyze(jesvar):
     gjsonCuts.Add("Data passes Golden JSON", "passesJSON == 1") 
   else:
     gjsonVars.Add("PileupWeights", "pufunc(pileupcorr, Pileup_nTrueInt)")
-
+    
   # ------------------ LEPTON Definitions ------------------
   lVars = VarGroup('LeptonVars')
   
@@ -373,7 +370,8 @@ def analyze(jesvar):
   lVars.Add("lepton_phi","assignleps[2]")
   lVars.Add("lepton_mass","assignleps[3]")
   lVars.Add("lepton_miniIso","assignleps[4]")
-  
+  lVars.Add("lepton_ID","isMu ? 13 : 11")
+
   # ------------------ JET Cleaning and JERC ------------------
   jVars = VarGroup('JetCleaningVars')
   
@@ -384,7 +382,7 @@ def analyze(jesvar):
   jVars.Add("Jet_jetId","jetidfunc(jetidAK4Tcorr,jetidAK4TLcorr,Jet_eta,Jet_chHEF,Jet_neHEF,Jet_chEmEF,Jet_neEmEF,Jet_muEF,Jet_chMultiplicity,Jet_neMultiplicity)")
   jVars.Add("FatJet_jetId","fatjetidfunc(jetidAK8Tcorr,jetidAK8TLcorr,FatJet_eta,FatJet_chHEF,FatJet_neHEF,FatJet_chEmEF,FatJet_neEmEF,FatJet_muEF,FatJet_chMultiplicity,FatJet_neMultiplicity)")
   
-  if isMC:          #TODO fix dummy comments?
+  if isMC:          #TODO fix dummy comments
     jVars.Add("GenJet_P4","fVectorConstructor(GenJet_pt,GenJet_eta,GenJet_phi,GenJet_mass)")
     jVars.Add("cleanedJets", "cleanJetsMC(debug,year,jesvar,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,GenJet_P4,Jet_genJetIdx,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,Rho_fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call
     jVars.Add("cleanMets", "cleanJetsMC(debug,year,jesvar,ak4corr,ak4corrL1,ak4corrUnc,ak4ptres,ak4jer,ak8corr,ak8corrUnc,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,GenJet_P4,Jet_genJetIdx,SMuon_P4,SMuon_jetIdx,SElectron_P4,SElectron_jetIdx,Rho_fixedGridRhoFastjetAll,RawPuppiMET_pt,RawPuppiMET_phi)") # lepton args are unused in this call
@@ -428,7 +426,7 @@ def analyze(jesvar):
   jCuts = CutGroup('JetCuts')  
   jCuts.Add('Pass HT > 510', 'gcJet_HT > 510')
   jCuts.Add('3 AK8s Pass', 'NFatJets > 2')      # need to ensure three jets exist
-
+ 
   # ------------------ Jet pt ordering, counting, lepton association ------------------
   jetVars = VarGroup('JetVars')
   jetVars.Add("gcJet_pt_unsort", "cleanJet_pt[goodcleanJets == true]")
@@ -444,6 +442,7 @@ def analyze(jesvar):
     jetVars.Add("gcJet_BTag", "reorder(Jet_btagUParTAK4B[goodcleanJets == true],gcJet_ptargsort)")
   jetVars.Add("gcJet_BTagM", "gcJet_BTag > BTagM") 
   jetVars.Add("NJets_BTagM", "Sum(gcJet_BTagM)")
+  jetVars.Add("gcJet_P4", "fVectorConstructor(gcJet_pt,gcJet_eta,gcJet_phi,gcJet_mass)")
 
   jetVars.Add("gcFatJet_pt_unsort", "FatJet_pt[goodcleanFatJets == true]")
   jetVars.Add("gcFatJet_ptargsort","ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(gcFatJet_pt_unsort))")
@@ -455,13 +454,15 @@ def analyze(jesvar):
   jetVars.Add("gcFatJet_subJetIdx1", "reorder(FatJet_subJetIdx1[goodcleanFatJets == true], gcFatJet_ptargsort)")
   jetVars.Add("gcFatJet_subJetIdx2", "reorder(FatJet_subJetIdx2[goodcleanFatJets == true], gcFatJet_ptargsort)")  
   jetVars.Add("gcFatJet_vetomap", "jetvetofunc(jetvetocorr, gcFatJet_eta, gcFatJet_phi)")
+  jetVars.Add("gcFatJet_P4", "fVectorConstructor(gcFatJet_pt,gcFatJet_eta,gcFatJet_phi,gcFatJet_mass)")
 
   if isMC:
     jetVars.Add("gcJet_hflav", "reorder(Jet_hadronFlavour[goodcleanJets == true],gcJet_ptargsort)")
     jetVars.Add("gcFatJet_hadronFlavour", "reorder(FatJet_hadronFlavour[goodcleanFatJets == true], gcFatJet_ptargsort)")
     jetVars.Add("btagWeights",'btagshapefunc("M",year,jesvar,btagwpbccorr,btagwplcorr,btagptbins,btageffs,BTagM,gcJet_pt,gcJet_eta,gcJet_BTag,gcJet_hflav)')
+ #### WORK ON THESE! Ethan can compute the efficiencies we need.
 
-  # ------------------ AK8 Jet tagging ------------------
+  # ------------------ Fatjet tagging and truth ---------------
   tagVars = VarGroup("tagVars")
 
   tagVars.Add("gcFatJet_PNWM_T", "reorder(((FatJet_particleNetWithMass_TvsQCD * FatJet_particleNetWithMass_QCD) / (1.0 - FatJet_particleNetWithMass_TvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
@@ -471,21 +472,78 @@ def analyze(jesvar):
   tagVars.Add("gcFatJet_PNWM_Hbb", "reorder(((FatJet_particleNetWithMass_HbbvsQCD * FatJet_particleNetWithMass_QCD) / (1.0 - FatJet_particleNetWithMass_HbbvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_PNWM_Hcc", "reorder(((FatJet_particleNetWithMass_HccvsQCD * FatJet_particleNetWithMass_QCD) / (1.0 - FatJet_particleNetWithMass_HccvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_PNWM_H", "gcFatJet_PNWM_Hcc + gcFatJet_PNWM_Hbb + gcFatJet_PNWM_H4q")
+  tagVars.Add("gcFatJet_PNWM_ToQCD", "reorder(((FatJet_particleNetWithMass_TvsQCD) / (1.0 - FatJet_particleNetWithMass_TvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_PNWM_WoQCD", "reorder(((FatJet_particleNetWithMass_WvsQCD) / (1.0 - FatJet_particleNetWithMass_WvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_PNWM_ZoQCD", "reorder(((FatJet_particleNetWithMass_ZvsQCD) / (1.0 - FatJet_particleNetWithMass_ZvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_PNWM_H4qoQCD", "reorder(((FatJet_particleNetWithMass_H4qvsQCD) / (1.0 - FatJet_particleNetWithMass_H4qvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_PNWM_HbboQCD", "reorder(((FatJet_particleNetWithMass_HbbvsQCD) / (1.0 - FatJet_particleNetWithMass_HbbvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_PNWM_HccoQCD", "reorder(((FatJet_particleNetWithMass_HccvsQCD) / (1.0 - FatJet_particleNetWithMass_HccvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_PNWM_HoQCD", "gcFatJet_PNWM_HccoQCD + gcFatJet_PNWM_HbboQCD + gcFatJet_PNWM_H4qoQCD")
+  tagVars.Add("gcFatJet_PNWM_newQCD", "1.0 / (1.0 + gcFatJet_PNWM_ToQCD + gcFatJet_PNWM_WoQCD + gcFatJet_PNWM_ZoQCD + gcFatJet_PNWM_HoQCD)")
   tagVars.Add("gcFatJet_PNWM_QCD", "reorder(FatJet_particleNetWithMass_QCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_PNWM_regressedMass", "reorder((FatJet_mass * FatJet_particleNet_massCorr)[goodcleanFatJets == true], gcFatJet_ptargsort)")
 
+  tagVars.Add("gcFatJet_GPTWM_T", "reorder(FatJet_globalParT3_withMassTopvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_W", "reorder(FatJet_globalParT3_withMassWvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_Z", "reorder(FatJet_globalParT3_withMassZvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_ToQCD", "reorder((FatJet_globalParT3_withMassTopvsQCD/(1 - FatJet_globalParT3_withMassTopvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_WoQCD", "reorder((FatJet_globalParT3_withMassWvsQCD/(1 - FatJet_globalParT3_withMassWvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_ZoQCD", "reorder((FatJet_globalParT3_withMassZvsQCD/(1 - FatJet_globalParT3_withMassZvsQCD))[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_T", "reorder((FatJet_globalParT3_TopbWqq + FatJet_globalParT3_TopbWtauhv)[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_W", "reorder((FatJet_globalParT3_Xqq + FatJet_globalParT3_Xcs)[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_ZH", "reorder((FatJet_globalParT3_Xbb + FatJet_globalParT3_Xcc + FatJet_globalParT3_Xqq + FatJet_globalParT3_XWW4q)[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_QCD", "reorder(FatJet_globalParT3_QCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
   tagVars.Add("gcFatJet_GPT_regressedMass", "reorder((FatJet_globalParT3_massCorrX2p * FatJet_mass * (1 - FatJet_rawFactor))[goodcleanFatJets == true], gcFatJet_ptargsort)")
 
+  tagVars.Add("gcFatJet_GPTWM_T", "reorder(FatJet_globalParT3_withMassTopvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_W", "reorder(FatJet_globalParT3_withMassWvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+  tagVars.Add("gcFatJet_GPTWM_Z", "reorder(FatJet_globalParT3_withMassZvsQCD[goodcleanFatJets == true], gcFatJet_ptargsort)")
+
+  tagVars.Add("mySubJet_btag", "SubJet_btagUParTAK4B")
+  
   if isMC:
     tagVars.Add("gcFatJet_truth", "fatjet_matching(region, nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status, GenPart_statusFlags, gcFatJet_pt, gcFatJet_eta, gcFatJet_phi, gcFatJet_mass, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, gcFatJet_hadronFlavour)")
   
-  tagVars.Add("gcFatJet_tags", "jet_tagging(gcFatJet_PNWM_T, gcFatJet_PNWM_W, gcFatJet_PNWM_Z, gcFatJet_PNWM_H, gcFatJet_PNWM_QCD, gcFatJet_GPT_T, gcFatJet_GPT_W, gcFatJet_GPT_ZH, gcFatJet_GPT_QCD, gcFatJet_GPT_regressedMass, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, SubJet_btagUParTAK4B, gcFatJet_truth, BTagM)")
-
+  tagVars.Add("gcFatJet_tags", "jet_tagging(gcFatJet_PNWM_T, gcFatJet_PNWM_W, gcFatJet_PNWM_Z, gcFatJet_PNWM_H, gcFatJet_PNWM_QCD, gcFatJet_GPT_T, gcFatJet_GPT_W, gcFatJet_GPT_ZH, gcFatJet_GPT_QCD, gcFatJet_GPT_regressedMass, gcFatJet_GPTWM_T, gcFatJet_GPTWM_W, gcFatJet_GPTWM_Z, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, SubJet_btagUParTAK4B, gcFatJet_truth, BTagM,gcJet_P4,gcFatJet_P4,gcJet_BTagM, gcFatJet_GPTWM_ToQCD, gcFatJet_GPTWM_WoQCD, gcFatJet_GPTWM_ZoQCD)")
+  tagVars.Add("gcFatJet_PNWMtags", "gcFatJet_tags[0]")
+  tagVars.Add("gcFatJet_GPTtags", "gcFatJet_tags[1]")
+  tagVars.Add("gcFatJet_GPTWMtags", "gcFatJet_tags[2]")
+  
   if isSig:
     tagVars.Add("decayFinds", "decayModeSelection(nGenPart, GenPart_pdgId, GenPart_mass, GenPart_pt, GenPart_phi, GenPart_eta, GenPart_genPartIdxMother, GenPart_status)")
+  #WORK ON THIS MORE -- need to just be isolated from the 3 highest-pt fat jets, not any of them...
+  #jVars.Add("Isolated_AK4","standalone_Jet(gcJet_eta, gcJet_phi, gcFatJet_eta, gcFatJet_phi)")
+
+  # ------------------ Add scale factors and MC jet-based calcs ------------------
+  lepSFs = VarGroup('Lepton Scale Factors')
+  
+  if isMC:
+    lepSFs.Add('elrecoSF', 'elrecofunc(electroncorr,elecyr,lepton_pt,lepton_eta,lepton_phi,lepton_ID)')
+    lepSFs.Add('elidSF', 'elidfunc(electroncorr,elecyr,"wp80iso",elecidWP,lepton_pt,lepton_eta,lepton_phi,lepton_ID)')
+    lepSFs.Add('muonidSF', 'muidfunc(muonidcorr,lepton_pt,lepton_eta,lepton_ID)')
+    lepSFs.Add('muonisoSF', 'muisofunc(muonisocorr,lepton_pt,lepton_eta,lepton_ID)')
+   
+#    jVars.Add("leptonRecoSF", "recofunc(electroncorr, muonidcorr, yrstr, lepton_pt, lepton_eta, isEl)") ## this is not right, but we'll figure out what corrections we need later
+#    jVars.Add("leptonIDSF", "idfunc(muonidcorr,elid_pts,elid_etas,elecidsfs,elecidsfuncs,yrstr, lepton_pt, lepton_eta, isEl)") #at(0) 
+#    jVars.Add("leptonIsoSF", "isofunc(muiso_pts,muiso_etas,muonisosfs,muonisosfunc,elid_pts,elid_etas,elecisosfs,elecisosfunc, lepton_pt, lepton_eta, isEl)")
+#    jVars.Add("leptonHLTSF", "hltfunc(muonhltcorr,elhlt_pts,elhlt_etas,elechltsfs,elechltuncs,yrstr, lepton_pt, lepton_eta, isEl)")
+
+
+  # ------------------ W and t reconstruction -----------------
+  # ------------------ DOES NOT WORK RN -----------------
+  # recoVars = VarGroup("recoVars")
+
+  # recoVars.Add("lepton_lv", "TLorentzVector v; v.SetPtEtaPhiM(lepton_pt, lepton_eta, lepton_phi, lepton_mass); return v;")
+  # recoVars.Add("W_lv", "WReco(corrMET_pt, corrMET_phi, lepton_lv)")
+  # recoVars.Add("minMlj", "minMleppJet_calc(gcJet_pt, gcJet_eta, gcJet_phi, gcJet_mass, lepton_lv, SubJet_btagUParTAK4B)") #Not sure abt the last arg
+  # recoVars.Add("dRWl", "W_lv.DeltaR(lepton_lv)")
+  # recoVars.Add("minMleppJet", "minMlj[0]")
+  # recoVars.Add("minMlj_idx", "minMlj[1]")
+  # recoVars.Add("NJets", "minMlj[2]") # Need a better name/need to better understand this variable
+  # recoVars.Add("lepton_source", "minMleppJet > 150 ? 0 : 1")
+  # recoVars.Add("t_five", "tReco(lepton_source, gcJet_pt, gcJet_eta, gcJet_phi, gcJet_mass, W_lv, minMleppJet, MinMlj_idx)")
+  # recoVars.Add("t_lv", "TLorentzVector top; top.SetPtEtaPhiM(t_five[0], t_five[1], t_five[2], t_five[3]); return top;")
+  
 
   # # ------------------ Results ------------------
   ##### MAYBE NOT WORKING!!!!! #####
@@ -528,8 +586,7 @@ def analyze(jesvar):
   
   # # -------------------------------------
 
-  nodeToPlot = a.Apply([flagCuts, gjsonVars, gjsonCuts, lVars, lCuts]) 
-
+  nodeToPlot = a.Apply([flagCuts, gjsonVars, gjsonCuts, lVars, lCuts])
   # # We want the BW decays that go to l + nu
   # ## These will be meaningless for non-signal, but shouldn't crash...
   # #a.Define("decayMODE", "decayModeSelection(region, nGenPart,GenPart_pdgId,GenPart_mass,GenPart_pt,GenPart_phi,GenPart_eta,GenPart_genPartIdxMother,GenPart_status)")	
@@ -547,7 +604,7 @@ def analyze(jesvar):
   a.SetActiveNode(newNode)
   
   a.Apply([metVars, metCuts, gcjetVars, jCuts, jetVars, tagVars, rframeVars])
-  
+
   allColumns = a.GetColumnNames()
   columns = [] #allColumns
   for col in allColumns:
@@ -575,6 +632,7 @@ def analyze(jesvar):
      if col.startswith("BeamSpot") or col.startswith("Lepton") or col.startswith("iLepton"): continue
      if col.startswith("MET") or col.startswith("RawPuppiMET"): continue
      if col.startswith("RJR_"): continue
+     if col.startswith("gcFatJet_tags"): continue
 
      columns.append(col)
 
@@ -591,7 +649,6 @@ def analyze(jesvar):
   if jesvar == "Nominal":
     print("Cut statistics:")
     rep = a.DataFrame.Report()
-    print("DataFrame.Report exists")
     rep.Print()
 
   print("--------- Analysis End ---------")
