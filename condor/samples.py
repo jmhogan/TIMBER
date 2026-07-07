@@ -1092,5 +1092,14 @@ samples_pfdata = {
 }
 
 samples_mc_test = {
-    "BpBp_M1200_2024": BpBp_M1200_2024
+    "TpTp_M1200_2024": TpTp_M1200_2024 ,
+    "TpTp_M1300_2024": TpTp_M1300_2024 ,
+    "TpTp_M1400_2024": TpTp_M1400_2024 ,
+    "TpTp_M1600_2024": TpTp_M1600_2024 ,
+    "TpTp_M1700_2024": TpTp_M1700_2024 ,
+    "TpTp_M1800_2024": TpTp_M1800_2024 ,
+    "TpTp_M1900_2024": TpTp_M1900_2024 ,
+    "TpTp_M2000_2024": TpTp_M2000_2024 ,
+    "TpTp_M2100_2024": TpTp_M2100_2024 ,
+    "TpTp_M2200_2024": TpTp_M2200_2024 ,
 }
