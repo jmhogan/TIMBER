@@ -369,7 +369,7 @@ def analyze(jesvar):
   tightVars.Add("lepPassesTight","isMuon ? LooseMu_isTight[0] : LooseEl_isTight[0]")
   a.Apply(tightVars)
 
-  pt_bins  = [10, 15, 20, 25, 30, 40, 50, 70, 100, 200.0, 9999.0]
+  pt_bins  = [10.0, 20.0, 30.0, 40.0, 50.0, 70.0, 100.0, 200.0, 9999.0]
   etabinsmu = [0.0, 0.9, 1.2, 2.1, 2.4]
   etabinsel = [-2.5, -2.0, -1.566, -1.444, -0.8, 0.0, 0.8, 1.444, 1.566, 2.0, 2.5]
 
