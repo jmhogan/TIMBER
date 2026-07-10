@@ -1324,6 +1324,74 @@ samples_mc_standard = {
     "TZQB2024"      : TZQB2024 
 }           
 
+samples_pfmc = {
+    "TTToSemiLeptonic2022":     TTToSemiLeptonic2022,
+    "TTToSemiLeptonic2022ext":  TTToSemiLeptonic2022ext,
+    "TTToSemiLeptonic2022EE":   TTToSemiLeptonic2022EE,
+    "TTToSemiLeptonic2022EEext":TTToSemiLeptonic2022EEext,
+    "TTToSemiLeptonic2023":     TTToSemiLeptonic2023,
+    "TTToSemiLeptonic2023BPix": TTToSemiLeptonic2023BPix,
+    "DYPT402022":     DYPT402022,
+    "DYPT402022EE":   DYPT402022EE,
+    "DYPT402023":     DYPT402023,
+    "DYPT402023BPix": DYPT402023BPix,
+    "DYPT1002022":    DYPT1002022,
+    "DYPT1002022EE":  DYPT1002022EE,
+    "DYPT1002023":    DYPT1002023,
+    "DYPT1002023BPix":DYPT1002023BPix,
+    "DYPT2002022":    DYPT2002022,
+    "DYPT2002022EE":  DYPT2002022EE,
+    "DYPT2002023":    DYPT2002023,
+    "DYPT2002023BPix":DYPT2002023BPix,
+    "DYPT4002022":    DYPT4002022,
+    "DYPT4002022EE":  DYPT4002022EE,
+    "DYPT4002023":    DYPT4002023,
+    "DYPT4002023BPix":DYPT4002023BPix,
+    "DYPT6002022":    DYPT6002022,
+    "DYPT6002022EE":  DYPT6002022EE,
+    "DYPT6002023":    DYPT6002023,
+    "DYPT6002023BPix":DYPT6002023BPix,
+    # Add 2024 MC in here for the same samples
+}    
+
+samples_pfdata = {
+    "SingleElecRun2022C":      SingleElecRun2022C,
+    "SingleElecRun2022D":      SingleElecRun2022D,
+    "SingleElecRun2022EEE":    SingleElecRun2022EEE,
+    "SingleElecRun2022EEF":    SingleElecRun2022EEF,
+    "SingleElecRun2022EEG":    SingleElecRun2022EEG,
+    "SingleElecRun2023C01":    SingleElecRun2023C01,
+    "SingleElecRun2023C02":    SingleElecRun2023C02,
+    "SingleElecRun2023C03":    SingleElecRun2023C03,
+    "SingleElecRun2023C04":    SingleElecRun2023C04,
+    "SingleElecRun2023C11":    SingleElecRun2023C11,
+    "SingleElecRun2023C12":    SingleElecRun2023C12,
+    "SingleElecRun2023C13":    SingleElecRun2023C13,
+    "SingleElecRun2023C14":    SingleElecRun2023C14,
+    "SingleElecRun2023BPixD01":SingleElecRun2023BPixD01,
+    "SingleElecRun2023BPixD02":SingleElecRun2023BPixD02,
+    "SingleElecRun2023BPixD11":SingleElecRun2023BPixD11,
+    "SingleElecRun2023BPixD12":SingleElecRun2023BPixD12,
+    "SingleMuonRun2022C":      SingleMuonRun2022C,
+    "SingleMuonRun2022D":      SingleMuonRun2022D,
+    "SingleMuonRun2022EEE":    SingleMuonRun2022EEE,
+    "SingleMuonRun2022EEF":    SingleMuonRun2022EEF,
+    "SingleMuonRun2022EEG":    SingleMuonRun2022EEG,
+    "SingleMuonRun2023C01":    SingleMuonRun2023C01,
+    "SingleMuonRun2023C02":    SingleMuonRun2023C02,
+    "SingleMuonRun2023C03":    SingleMuonRun2023C03,
+    "SingleMuonRun2023C04":    SingleMuonRun2023C04,
+    "SingleMuonRun2023C11":    SingleMuonRun2023C11,
+    "SingleMuonRun2023C12":    SingleMuonRun2023C12,
+    "SingleMuonRun2023C13":    SingleMuonRun2023C13,
+    "SingleMuonRun2023C14":    SingleMuonRun2023C14,
+    "SingleMuonRun2023BPixD01":SingleMuonRun2023BPixD01,
+    "SingleMuonRun2023BPixD02":SingleMuonRun2023BPixD02,
+    "SingleMuonRun2023BPixD11":SingleMuonRun2023BPixD11,
+    "SingleMuonRun2023BPixD12":SingleMuonRun2023BPixD12,
+    # Add 2024 and 2025 data in here
+}
+
 samples_mc_test = {
     "BpBp_M1200_2024": BpBp_M1200_2024
 }
