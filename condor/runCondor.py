@@ -10,7 +10,7 @@ exec(open("/uscms_data/d3/jmanagan/EOSSafeUtils.py").read()) # this is a python2
 start_time = time.time()
 
 # --- Sample Dictionary ---
-sample_dic = samples_mc_standard
+sample_dic = samples_mc_standard #all the signal and background
 #sample_dic = samples_data # This is the name of the list (using list of class objects to keep ordering)
 
 # --- Size of Condor Job ---
@@ -23,10 +23,10 @@ runanalyzer = False
 if len(sys.argv) >= 2: makelists = bool(eval(sys.argv[1]))
 if len(sys.argv) >= 3: runanalyzer = bool(eval(sys.argv[2]))
 taronly = False
-    
-relbase = '/uscms/home/jmanagan/nobackup/TTBBto2TB4Tau/'
-outDir='/store/user/lpchtop/BBto2b4tau_May2026_Run3/'
-condorDir='/uscms/home/jmanagan/nobackup/TTBBto2TB4Tau/condor_May2026_Run3/' # recommend this be outside git area!
+   
+relbase = '/uscms/home/jmanagan/nobackup/TTBBRun3/'
+outDir='/store/user/lpchtop/BBto2b4tau_Jun2026_Run3/'
+condorDir='/uscms/home/jmanagan/nobackup/TTBBRun3/condor_exotic_Jun2026_Run3/' # recommend this be outside git area!
 tarfile = '/uscms/home/jmanagan/nobackup/rdfjobs.tar' 
 
 runDir=os.getcwd()
@@ -74,8 +74,9 @@ if runanalyzer:
         print ('*********** tar already exists! I ASSUME YOU WANT TO MAKE A NEW ONE! *************')
         os.system('rm '+tarfile)
     os.chdir(relbase)
-    print ('tar --exclude="TIMBER/.git" --exclude="CMSSW*/tmp/" --exclude="vlq-BtoTW-RDF" --exclude="condor*Run3" --exclude="vlq-TTBBto2tb4tau-SLA" --exclude="TIMBER/*.root" --exclude="TIMBER/docs" --exclude="TIMBER/*/*.root" -zcf '+tarfile+' ./*')
-    os.system('tar --exclude="TIMBER/.git" --exclude="CMSSW*/tmp/" --exclude="vlq-BtoTW-RDF" --exclude="condor*Run3" --exclude="vlq-TTBBto2tb4tau-SLA" --exclude="TIMBER/*.root" --exclude="TIMBER/docs" --exclude="TIMBER/*/*.root" -zcf '+tarfile+' ./*')
+
+    print ('tar --exclude="CMSSW_15_0_2/" --exclude="*Effs/" --exclude="TIMBER/.git" --exclude="CMSSW*/tmp/" --exclude="vlq-BtoTW-RDF" --exclude="condor*Run3" --exclude="vlq-TTBBto2tb4tau-SLA" --exclude="TIMBER/*.root" --exclude="TIMBER/docs" --exclude="TIMBER/*/*.root" -zcf '+tarfile+' ./*')
+    os.system('tar --exclude="CMSSW_15_0_2/" --exclude="*Effs/" --exclude="TIMBER/.git" --exclude="CMSSW*/tmp/" --exclude="vlq-BtoTW-RDF" --exclude="condor*Run3" --exclude="vlq-TTBBto2tb4tau-SLA" --exclude="TIMBER/*.root" --exclude="TIMBER/docs" --exclude="TIMBER/*/*.root" -zcf '+tarfile+' ./*')
     os.chdir(runDir)
     if taronly:
         exit(0) #stop after the tar
@@ -124,8 +125,10 @@ if runanalyzer:
         
         os.system('eos root://cmseos.fnal.gov/ mkdir -p '+outDir+'/')
         os.system('mkdir -p '+condorDir+'/'+prefix)
-        if sample_dic == samples_data:
+        if sample_dic == samples_data_exotic:
             os.system('mkdir -p '+condorDir+'/Nonprompt'+prefix)
+        elif sample_dic == samples_mc_standard and '2024' in prefix:
+            os.system('mkdir -p '+condorDir+'/'+prefix.replace('2024','2025'))            
         
         # Redefining fileName so it is accessed from the directory above for analyzer_RDF.h
         fileName = "condor/"+textlist
@@ -161,7 +164,7 @@ Queue 1"""%dict)
             print ( str(count) + " jobs submitted!!!")
             count += 1
 
-            if sample_dic == samples_data:
+            if sample_dic == samples_data_exotic:
                 
                 jdfName=condorDir+'Nonprompt'+prefix+'/Nonprompt%(PREFIX)s_%(TESTNUM1)s.job'%dict
                 print ("jdfname: ",jdfName)
@@ -188,6 +191,33 @@ Queue 1"""%dict)
                 print ( str(count) + " jobs submitted!!!")
                 count += 1
 
+            elif samples_dic = samples_mc_standard and '2024' in prefix:
+                jdfName = jdfName.replace('2024','2025')
+                print ("jdfname: ",jdfName)
+                jdf=open(jdfName,'w')
+                jdf.write(
+                    """use_x509userproxy = true
+universe = vanilla
+Executable = %(RUNDIR)s/condorTTBB.sh
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
+Transfer_Input_Files = %(TARBALL)s
+Output = %(PREFIX)s_%(TESTNUM1)s.out
+Error = %(PREFIX)s_%(TESTNUM1)s.err
+Log = %(PREFIX)s_%(TESTNUM1)s.log
+Notification = Never
+Arguments = %(FILENAME)s %(OUTPUTDIR)s %(TESTNUM1)s %(TESTNUM2)s 2025 
+
+Queue 1"""%dict)
+                jdf.close()
+                os.chdir('%s/'%(condorDir+'/'+prefix.replace('2024','2025')))
+                os.system('condor_submit '+prefix.replace('2024','2025')+'_'+str(oldNum)+'.job')
+                os.system('sleep 0.5')                                
+                os.chdir('%s'%(runDir))
+                print ( str(count) + " jobs submitted!!!")
+                count += 1
+
+
             
         #Formatting line 101
                 
@@ -195,7 +225,6 @@ Queue 1"""%dict)
     #    os.system('mv ' + prefix + ' Output/')
 
 print("--- %s minutes ---" % (round(time.time() - start_time, 2)/60))
-
 
 
 

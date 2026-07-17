@@ -77,7 +77,7 @@ if not isMC:
   process = tokens[9] # was 7
   era = runera[-1] # last char
   print(process)
-  ver = process[process.find('_'):process.find('_')+2]
+  ver = process[process.find('_')+1:process.find('_')+3]
 del tokens
 
 jecera = ''

@@ -696,7 +696,7 @@ sample_test = {
     "SingleElecRun2022C":      SingleElecRun2022C,
 }
 
-samples_data = {
+samples_data_exotic = {
     "SingleElecRun2022C":      SingleElecRun2022C,      
     "SingleElecRun2022D":      SingleElecRun2022D,      
     "SingleElecRun2022EEE":    SingleElecRun2022EEE,    
@@ -753,6 +753,43 @@ samples_data = {
     "TauRun2023C4":    TauRun2023C4,
     "TauRun2023BPixD1":TauRun2023BPixD1,
     "TauRun2023BPixD2":TauRun2023BPixD2,
+}
+
+samples_data_standard = {
+    "SingleElecRun2022C":      SingleElecRun2022C,      
+    "SingleElecRun2022D":      SingleElecRun2022D,      
+    "SingleElecRun2022EEE":    SingleElecRun2022EEE,    
+    "SingleElecRun2022EEF":    SingleElecRun2022EEF,    
+    "SingleElecRun2022EEG":    SingleElecRun2022EEG,    
+    "SingleElecRun2023C01":    SingleElecRun2023C01,    
+    "SingleElecRun2023C02":    SingleElecRun2023C02,    
+    "SingleElecRun2023C03":    SingleElecRun2023C03,    
+    "SingleElecRun2023C04":    SingleElecRun2023C04,    
+    "SingleElecRun2023C11":    SingleElecRun2023C11,    
+    "SingleElecRun2023C12":    SingleElecRun2023C12,    
+    "SingleElecRun2023C13":    SingleElecRun2023C13,    
+    "SingleElecRun2023C14":    SingleElecRun2023C14,    
+    "SingleElecRun2023BPixD01":SingleElecRun2023BPixD01,
+    "SingleElecRun2023BPixD02":SingleElecRun2023BPixD02,
+    "SingleElecRun2023BPixD11":SingleElecRun2023BPixD11,
+    "SingleElecRun2023BPixD12":SingleElecRun2023BPixD12,
+    "SingleMuonRun2022C":      SingleMuonRun2022C,      
+    "SingleMuonRun2022D":      SingleMuonRun2022D,      
+    "SingleMuonRun2022EEE":    SingleMuonRun2022EEE,    
+    "SingleMuonRun2022EEF":    SingleMuonRun2022EEF,    
+    "SingleMuonRun2022EEG":    SingleMuonRun2022EEG,    
+    "SingleMuonRun2023C01":    SingleMuonRun2023C01,    
+    "SingleMuonRun2023C02":    SingleMuonRun2023C02,    
+    "SingleMuonRun2023C03":    SingleMuonRun2023C03,    
+    "SingleMuonRun2023C04":    SingleMuonRun2023C04,    
+    "SingleMuonRun2023C11":    SingleMuonRun2023C11,    
+    "SingleMuonRun2023C12":    SingleMuonRun2023C12,    
+    "SingleMuonRun2023C13":    SingleMuonRun2023C13,    
+    "SingleMuonRun2023C14":    SingleMuonRun2023C14,    
+    "SingleMuonRun2023BPixD01":SingleMuonRun2023BPixD01,
+    "SingleMuonRun2023BPixD02":SingleMuonRun2023BPixD02,
+    "SingleMuonRun2023BPixD11":SingleMuonRun2023BPixD11,
+    "SingleMuonRun2023BPixD12":SingleMuonRun2023BPixD12,
 }
 
 samples_nonprompt = {
