@@ -124,6 +124,8 @@ if runanalyzer:
         
         os.system('eos root://cmseos.fnal.gov/ mkdir -p '+outDir+'/')
         os.system('mkdir -p '+condorDir+'/'+prefix)
+        if sample_dic == samples_mc_standard and '2024' in prefix:
+            os.system('mkdir -p '+condorDir+'/'+prefix.replace('2024','2025'))            
         
         # Redefining fileName so it is accessed from the directory above for analyzer_RDF.h
         fileName = "condor/"+textlist
@@ -158,7 +160,32 @@ Queue 1"""%dict)
             os.chdir('%s'%(runDir))
             print ( str(count) + " jobs submitted!!!")
             count += 1
-        
+
+            if samples_dic = samples_mc_standard and '2024' in prefix:
+                jdfName = jdfName.replace('2024','2025')
+                print ("jdfname: ",jdfName)
+                jdf=open(jdfName,'w')
+                jdf.write(
+                    """use_x509userproxy = true
+universe = vanilla
+Executable = %(RUNDIR)s/condorTTBB.sh
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
+Transfer_Input_Files = %(TARBALL)s
+Output = %(PREFIX)s_%(TESTNUM1)s.out
+Error = %(PREFIX)s_%(TESTNUM1)s.err
+Log = %(PREFIX)s_%(TESTNUM1)s.log
+Notification = Never
+Arguments = %(FILENAME)s %(OUTPUTDIR)s %(TESTNUM1)s %(TESTNUM2)s 2025 
+
+Queue 1"""%dict)
+                jdf.close()
+                os.chdir('%s/'%(condorDir+'/'+prefix.replace('2024','2025')))
+                os.system('condor_submit '+prefix.replace('2024','2025')+'_'+str(oldNum)+'.job')
+                os.system('sleep 0.5')                                
+                os.chdir('%s'%(runDir))
+                print ( str(count) + " jobs submitted!!!")
+                count += 1
         #Formatting line 101
                 
     #for k,v in sample_dic.items():
