@@ -23,10 +23,17 @@ class lumiMask {
     LumiBlockRange(Run run, LumiBlock firstLumi, LumiBlock lastLumi)
       : m_run(run), m_firstLumi(firstLumi),
       m_lastLumi(lastLumi ? lastLumi : std::numeric_limits<LumiBlock>::max())
-	{}
+        {}
+    
     Run run() const { return m_run; }
     LumiBlock firstLumi() const { return m_firstLumi; }
     LumiBlock lastLumi () const { return m_lastLumi ; }
+
+    // FIX: Operator is now a member of the class, satisfying GCC 12's strict lookup rules.
+    bool operator<(const LumiBlockRange& rh) const {
+      return ( m_run == rh.m_run ) ? ( m_lastLumi < rh.m_firstLumi ) : m_run < rh.m_run;
+    }
+
   private:
     Run m_run;
     LumiBlock m_firstLumi;
@@ -40,15 +47,12 @@ class lumiMask {
   }
 
   bool accept(Run run, LumiBlock lumi) const
-  { return std::binary_search(m_accept.begin(), m_accept.end(), LumiBlockRange(run, lumi, lumi)); }
+  { 
+    return std::binary_search(m_accept.begin(), m_accept.end(), LumiBlockRange(run, lumi, lumi)); 
+  }
 
   static lumiMask fromJSON(const std::string& fileName, lumiMask::Run firstRun=0, lumiMask::Run lastRun=0);
 
  private:
   std::vector<LumiBlockRange> m_accept;
-};
-
-bool operator< ( const lumiMask::LumiBlockRange& lh, const lumiMask::LumiBlockRange& rh )
-{
-  return ( lh.run() == rh.run() ) ? ( lh.lastLumi() < rh.firstLumi() ) : lh.run() < rh.run();
-}
+ };

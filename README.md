@@ -10,8 +10,8 @@ These instructions use python3 and CMSSW. The instructions below have been teste
 source /cvmfs/cms.cern.ch/cmsset_default.sh # this should go in your ~/.bashrc or ~/.bash_profile so it's done automatically when you log in
 mkdir nobackup/BBto2b4tau
 cd nobackup/BBto2b4tau/
-cmsrel CMSSW_13_2_10
-cd CMSSW_13_2_10
+cmsrel CMSSW_14_1_9
+cd CMSSW_14_1_9
 cmsenv
 pip3 install --user --no-binary=correctionlib --upgrade correctionlib
 cd ..
@@ -35,6 +35,8 @@ if [[ "\$SCRAM_ARCH" == "el8_amd64_gcc11" ]]; then
   BOOSTPATH=/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/boost/1.78.0-dfb1dc972d1e1af822bb548909730506/lib
 elif [[ "\$SCRAM_ARCH" == "el9_amd64_gcc11" ]]; then
   BOOSTPATH=/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/boost/1.78.0-c49033d06e1a3bf1beac1c01e1ef27d6/lib
+elif [[ "\$SCRAM_ARCH" == "el9_amd64_gcc12" ]]; then
+  BOOSTPATH=/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/boost/1.80.0-e4b2127ad40e46379cea2f9087beeda8/lib
 else
   BOOSTPATH=/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/boost/1.78.0-0d68c45b1e2660f9d21f29f6d0dbe0a0/lib
 fi
@@ -46,7 +48,6 @@ else
   echo "BOOSTPATH already on LD_LIBRARY_PATH"
 fi
 
-pip3 install --no-binary=correctionlib correctionlib==2.8.0 --quiet
 EOT
 ```
 
@@ -60,7 +61,7 @@ source setup.sh
 
 Tip: Add the lines below to the top of `timber-env/bin/activate` script. With this, one can skip doing `cmsenv` every time after opening a new shell and just activate the environment instead.
 ```
-cd CMSSW_13_2_10
+cd CMSSW_14_1_9
 cmsenv
 cd ..
 ```
