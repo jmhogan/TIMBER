@@ -108,6 +108,7 @@ RVec<float> METphifunc(correction::Correction::Ref& METcorr, string METyr, bool 
 	return phiVec;
 }
 
+
 //Electron Reco Function
 RVec<float> elrecofunc(correction::Correction::Ref& electroncorr, string elecyr, RVec<float> &pt, RVec<float> &eta, RVec<float> &phi, RVec<int> &ID) {
 	RVec<float> el = {1.0, 1.0, 1.0};
@@ -115,76 +116,73 @@ RVec<float> elrecofunc(correction::Correction::Ref& electroncorr, string elecyr,
 	for(int i = 0; i < pt.size(); i++) {
 		float eval_pt = pt[i]; // Create a copy of the pT to safely modify for evaluation
 		if (pt[i] < 20) {
-			if (elecyr == "2025Prompt") {reco = "Reco20to75"; eval_pt = 20.01;}    //2025 does not have RecoBelow20
-			else {reco = "RecoBelow20";}
+		  if (elecyr == "2025Prompt") {reco = "Reco20to75"; eval_pt = 20.01;}    //2025 does not have RecoBelow20
+		  else {reco = "RecoBelow20";}
 		} 
 		else if (pt[i] >= 20 && pt[i] <= 75) {reco = "Reco20to75";} 
 		else if (pt[i] > 75) {reco = "RecoAbove75";}
 		
 		if (ID[i] != 11) {continue;} //skip muons and taus
 		if (i > 3) {continue;} //skip leptons past the first 4 for mass reco
-                
-
-		if (elecyr == "2022Re-recoBCD" || elecyr == "2022Re-recoE+PromptFG" || elecyr == "2024Prompt" || elecyr == "2025Prompt") {
+	
+		if (elecyr == "2022Re-recoBCD" || elecyr == "2022Re-recoE+PromptFG" || elecyr == "2024Prompt"|| elecyr == "2025Prompt") {
 			el[0] *= electroncorr->evaluate({elecyr, "sf", reco, eta[i], eval_pt}); 
 			el[1] *= electroncorr->evaluate({elecyr, "sfup", reco, eta[i], eval_pt}); 
 			el[2] *= electroncorr->evaluate({elecyr, "sfdown", reco, eta[i], eval_pt});
 		}
 		else {
-			el[0] *= electroncorr->evaluate({elecyr, "sf", reco, eta[i], pt[i], phi[i]}); 
-			el[1] *= electroncorr->evaluate({elecyr, "sfup", reco, eta[i], pt[i], phi[i]}); 
-			el[2] *= electroncorr->evaluate({elecyr, "sfdown", reco, eta[i], pt[i], phi[i]});
+			el[0] *= electroncorr->evaluate({elecyr, "sf", reco, eta[i], eval_pt, phi[i]}); 
+			el[1] *= electroncorr->evaluate({elecyr, "sfup", reco, eta[i], eval_pt, phi[i]}); 
+			el[2] *= electroncorr->evaluate({elecyr, "sfdown", reco, eta[i], eval_pt, phi[i]});
 		}
 	}
-
 	
 	return el;	
 }
 
+//Overloaded Electron Reconstruction Function
+RVec<float> elrecofunc(correction::Correction::Ref& electroncorr,string elecyr,float pt,float eta,float phi,int ID) {
+  RVec<float> Vpt = {pt};
+  RVec<float> Veta = {eta};
+  RVec<float> Vphi = {phi};
+  RVec<int> VID = {ID};
+  return elrecofunc(electroncorr,elecyr,Vpt,Veta,Vphi,VID);
+}
+
 
 //Electron ID Function (wp80iso)
-RVec<float> elidfunc(correction::Correction::Ref& electroncorr, string elecyr, RVec<float> &pt, RVec<float> &eta, RVec<float> &phi, RVec<int> &ID) {
+RVec<float> elidfunc(correction::Correction::Ref& electroncorr, string elecyr, string elecidWP, RVec<float> &pt, RVec<float> &eta, RVec<float> &phi, RVec<int> &ID) {
 	RVec<float> el = {1.0, 1.0, 1.0};
 	for(int i = 0; i < pt.size(); i++) {
 		if (ID[i] != 11) {continue;} //skip muons and taus
 		if (i > 3) {continue;} //skip leptons past the first 4 for mass reco
 		
 		if (elecyr == "2022Re-recoBCD" || elecyr == "2022Re-recoE+PromptFG" || elecyr == "2024Prompt"|| elecyr == "2025Prompt") {
-			el[0] *= electroncorr->evaluate({elecyr, "sf", "wp80iso", eta[i], pt[i]}); 
-			el[1] *= electroncorr->evaluate({elecyr, "sfup", "wp80iso", eta[i], pt[i]}); 
-			el[2] *= electroncorr->evaluate({elecyr, "sfdown", "wp80iso", eta[i], pt[i]});
+			el[0] *= electroncorr->evaluate({elecyr, "sf", elecidWP, eta[i], pt[i]}); 
+			el[1] *= electroncorr->evaluate({elecyr, "sfup", elecidWP, eta[i], pt[i]}); 
+			el[2] *= electroncorr->evaluate({elecyr, "sfdown", elecidWP, eta[i], pt[i]});
 		}
 		else {
-			el[0] *= electroncorr->evaluate({elecyr, "sf", "wp80iso", eta[i], pt[i], phi[i]}); 
-			el[1] *= electroncorr->evaluate({elecyr, "sfup", "wp80iso", eta[i], pt[i], phi[i]}); 
-			el[2] *= electroncorr->evaluate({elecyr, "sfdown", "wp80iso", eta[i], pt[i], phi[i]});
-		}
-	}		
-	
-	return el;	
-}
-RVec<float> elidfuncNoIso(correction::Correction::Ref& electroncorr, string elecyr, RVec<float> &pt, RVec<float> &eta, RVec<float> &phi, RVec<int> &ID) {
-	RVec<float> el = {1.0, 1.0, 1.0};
-	for(int i = 0; i < pt.size(); i++) {
-		if (ID[i] != 11) {continue;} //skip muons and taus
-		if (i > 3) {continue;} //skip leptons past the first 4 for mass reco
-		
-		if (elecyr == "2022Re-recoBCD" || elecyr == "2022Re-recoE+PromptFG") {
-			el[0] *= electroncorr->evaluate({elecyr, "sf", "wp80noiso", eta[i], pt[i]}); 
-			el[1] *= electroncorr->evaluate({elecyr, "sfup", "wp80noiso", eta[i], pt[i]}); 
-			el[2] *= electroncorr->evaluate({elecyr, "sfdown", "wp80noiso", eta[i], pt[i]});
-		}
-		else {
-			el[0] *= electroncorr->evaluate({elecyr, "sf", "wp80noiso", eta[i], pt[i], phi[i]}); 
-			el[1] *= electroncorr->evaluate({elecyr, "sfup", "wp80noiso", eta[i], pt[i], phi[i]}); 
-			el[2] *= electroncorr->evaluate({elecyr, "sfdown", "wp80noiso", eta[i], pt[i], phi[i]});
+			el[0] *= electroncorr->evaluate({elecyr, "sf", elecidWP, eta[i], pt[i], phi[i]}); 
+			el[1] *= electroncorr->evaluate({elecyr, "sfup", elecidWP, eta[i], pt[i], phi[i]}); 
+			el[2] *= electroncorr->evaluate({elecyr, "sfdown", elecidWP, eta[i], pt[i], phi[i]});
 		}
 	}		
 	
 	return el;	
 }
 
+//Overloaded Electron ID Function
+RVec<float> elidfunc(correction::Correction::Ref& electroncorr,string elecyr,string elecidWP,float pt,float eta,float phi,int ID) {
+  RVec<float> Vpt = {pt};
+  RVec<float> Veta = {eta};
+  RVec<float> Vphi = {phi};
+  RVec<int> VID = {ID};
+  return elidfunc(electroncorr, elecyr, elecidWP,Vpt,Veta,Vphi,VID);
+}
 
+
+  
 //Muon Id Function 
 RVec<float> muidfunc(correction::Correction::Ref& muonidcorr, RVec<float> &pt, RVec<float> &eta, RVec<int> &ID) {
 	RVec<float> mu = {1.0, 1.0, 1.0};
@@ -199,6 +197,14 @@ RVec<float> muidfunc(correction::Correction::Ref& muonidcorr, RVec<float> &pt, R
 	}
 	
 	return mu;	
+}
+
+//Overloaded Muon Id Function 
+RVec<float> muidfunc(correction::Correction::Ref& muonidcorr,float pt,float eta,int ID) {
+  RVec<float> Vpt = {pt};
+  RVec<float> Veta = {eta};
+  RVec<int> VID = {ID};
+  return muidfunc(muonidcorr,Vpt,Veta,VID);
 }
 
 //Muon Iso Function
@@ -216,6 +222,13 @@ RVec<float> muisofunc(correction::Correction::Ref& muonisocorr, RVec<float> &pt,
 	return mu;	
 }
 
+//Overloaded Muon Iso Function
+RVec<float> muisofunc(correction::Correction::Ref& muonisocorr,float pt,float eta,int ID) {
+  RVec<float> Vpt = {pt};
+  RVec<float> Veta = {eta};
+  RVec<int> VID = {ID};
+  return muisofunc(muonisocorr,Vpt,Veta,VID);
+}
 
 //Tau Id vs e Function (VVLoose)
 RVec<float> tauefunc(correction::Correction::Ref& tauidVSecorr, RVec<float> &eta, RVec<int> &dm, RVec<int> &gmatch, RVec<int> &ID) {
