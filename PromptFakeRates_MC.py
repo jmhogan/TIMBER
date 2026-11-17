@@ -16,6 +16,8 @@ correctionlib.register_pyroot_binding()
 sys.path.append('../../')
 sys.path.append('../../../')
 
+ROOT.gInterpreter.ProcessLine('#pragma GCC diagnostic ignored "-Wdeprecated-declarations"') #Command to ignore certain warning messages
+
 # ------------------ Command Line Arguments and Parsing -------------------
 inputFiles = sys.argv[1] #fileList
 # Are all the files running if 0 and 8?
@@ -105,6 +107,9 @@ print('jecera = ',jecera)
 print('ver = ',ver)
 print('region = ',region)
 print('dataset = ', dataset)
+
+CompileCpp('TIMBER/Framework/Tprime1lep/utilities.cc') # Compile Our vlq c++ code
+
 def analyze(jesvar):
   ROOT.gInterpreter.ProcessLine('string jesvar = "' + jesvar + '"; ')
 
@@ -114,11 +119,12 @@ def analyze(jesvar):
 
 
   tightLooseLabel = VarGroup("TLLabel")
-  tightLooseLabel.Add("elLoose", 'Electron_pt > 10 && abs(Electron_eta) < 2.5 && (Electron_mvaIso_WP90 == 1)')
-  tightLooseLabel.Add("elTight", 'Electron_pt > 10 && abs(Electron_eta) < 2.5 && Electron_mvaIso_WP80 == 1')
-  tightLooseLabel.Add("muLoose", 'Muon_pt >= 15 && abs(Muon_eta) < 2.4 && Muon_looseId == 1 && abs(Muon_dxy) < 0.2 && abs(Muon_dz) < 0.5 && Muon_pfIsoId >= 2')
+  tightLooseLabel.Add("Electron_passIP", "elIP(Electron_dz, Electron_dxy, Electron_eta)")
+  tightLooseLabel.Add("elLoose", 'Electron_pt > 10 && abs(Electron_eta) < 2.5 && (Electron_cutBased >= 2)')
+  tightLooseLabel.Add("elTight", 'Electron_pt > 10 && abs(Electron_eta) < 2.5 && Electron_mvaIso_WP80 == 1 && Electron_passIP == 1')
+  tightLooseLabel.Add("muLoose", 'Muon_pt >= 15 && abs(Muon_eta) < 2.4 && Muon_looseId == 1 && Muon_pfIsoId >= 2')
   tightLooseLabel.Add("muTight", 'Muon_pt >= 15 && abs(Muon_eta) < 2.4 && Muon_mediumId == 1 && abs(Muon_dxy) < 0.2 && abs(Muon_dz) < 0.5 && Muon_pfIsoId >= 3')
-  tightLooseLabel.Add('goodTaumu', 'Tau_pt > 20 && abs(Tau_eta) < 2.5 && abs(Tau_dz) < 0.2 && Tau_idDeepTau2018v2p5VSmu >= 1')
+  tightLooseLabel.Add('goodTaumu', 'Tau_pt > 20 && abs(Tau_eta) < 2.5 && Tau_idDeepTau2018v2p5VSmu >= 1')
   tightLooseLabel.Add('goodTaue', 'goodTaumu == 1 && Tau_idDeepTau2018v2p5VSe >= 2')
   tightLooseLabel.Add('tauLoose', 'goodTaue == 1 && Tau_idDeepTau2018v2p5VSjet >= 2')
   tightLooseLabel.Add('tauTight', 'goodTaue == 1 && Tau_idDeepTau2018v2p5VSjet >= 4')
@@ -127,11 +133,15 @@ def analyze(jesvar):
   promptNPLabel.Add("elPrompt", 'Electron_genPartFlav == 1 || Electron_genPartFlav == 22 || Electron_genPartFlav == 15')
   promptNPLabel.Add("muPrompt", 'Muon_genPartFlav == 1 || Muon_genPartFlav == 15')
   promptNPLabel.Add("tauPrompt", 'Tau_genPartFlav == 5')
-  # 5 = from a b quark, 4 = from a c quark, 3 = from a light quark "or unknown", 0 = "unmatched"
-  # Useful to make histograms of fake rate using only 4s & 5s, and then only 0s & 3s, as well as all together.
   promptNPLabel.Add("elFake", 'Electron_genPartFlav == 3 || Electron_genPartFlav == 4 || Electron_genPartFlav == 5 || Electron_genPartFlav == 0')
+  promptNPLabel.Add("elFake_4and5", 'Electron_genPartFlav == 4 || Electron_genPartFlav == 5')
+  promptNPLabel.Add("elFake_0and3", 'Electron_genPartFlav == 0 || Electron_genPartFlav == 3')
   promptNPLabel.Add("muFake", 'Muon_genPartFlav == 3 || Muon_genPartFlav == 4 || Muon_genPartFlav == 0 || Muon_genPartFlav == 5')
-  promptNPLabel.Add("tauFake", 'Tau_genPartFlav == 0') # not the same info here
+  promptNPLabel.Add("muFake_4and5", 'Muon_genPartFlav == 4 || Muon_genPartFlav == 5')
+  promptNPLabel.Add("muFake_0and3", 'Muon_genPartFlav == 0 || Muon_genPartFlav == 3')
+  promptNPLabel.Add("tauFake", 'Tau_genPartFlav == 0')
+  promptNPLabel.Add("tauFake_4and5", 'Tau_genPartFlav == 4 || Tau_genPartFlav == 5')
+  promptNPLabel.Add("tauFake_0and3", 'Tau_genPartFlav == 0 || Tau_genPartFlav == 3')
 
   histItems = VarGroup("histItems")
   histItems.Add("elDen", "elLoose && elPrompt")
@@ -152,7 +162,16 @@ def analyze(jesvar):
   histItems.Add("tauEtaDen", "abs(Tau_eta[tauDen])")
   histItems.Add("tauPtNum", "Tau_pt[tauNum]")
   histItems.Add("tauEtaNum", "abs(Tau_eta[tauNum])")
-
+  ###
+  histItems.Add("el4and5", "elFake_4and5")
+  histItems.Add("el0and3", "elFake_0and3")
+  histItems.Add("elAllFake", "elFake")
+  histItems.Add("mu4and5", "muFake_4and5")
+  histItems.Add("mu0and3", "muFake_0and3")
+  histItems.Add("muAllFake", "elFake")
+  histItems.Add("tau4and5", "tauFake_4and5")
+  histItems.Add("tau0and3", "tauFake_0and3")
+  histItems.Add("tauAllFake", "tauFake")
 
   fakeTL = VarGroup("FakeTightToLoose")
   fakeTL.Add("elFakeDen", "elLoose && elFake")
@@ -199,24 +218,38 @@ def analyze(jesvar):
   etaarrel = array.array('d', etabinsel)
   etaarrmu = array.array('d', etabinsmutau)
 
-
+  print('about to make histograms...')
   fh_el_den = a.DataFrame.Histo2D(("fh_el_den", "Electron Fake Denominator; pT; eta", len(ptbins)-1, ptarr, len(etabinsel)-1, etaarrel), "elPtFakeDen", "elEtaFakeDen")
+  print('...done with 1')
   fh_el_num = a.DataFrame.Histo2D(("fh_el_num", "Electron Fake Numerator; pT; eta", len(ptbins)-1, ptarr, len(etabinsel)-1, etaarrel), "elPtFakeNum", "elEtaFakeNum")
+  print('...done with 2')
   fh_mu_den = a.DataFrame.Histo2D(("fh_mu_den", "Muon Fake Denominator; pT; eta", len(ptbins)-1, ptarr, len(etabinsmutau)-1, etaarrmu), "muPtFakeDen", "muEtaFakeDen")
+  print('...done with 3')
   fh_mu_num = a.DataFrame.Histo2D(("fh_mu_num", "Muon Fake Numerator; pT; eta", len(ptbins)-1, ptarr, len(etabinsmutau)-1, etaarrmu), "muPtFakeNum", "muEtaFakeNum")
+  print('...done with 4')
   fh_tau_den = a.DataFrame.Histo2D(("fh_tau_den", "Tau Fake Denominator; pT; eta", len(ptbins)-1, ptarr, len(etabinsmutau)-1, etaarrmu), "tauPtFakeDen", "tauEtaFakeDen")
+  print('...done with 5')
   fh_tau_num = a.DataFrame.Histo2D(("fh_tau_num", "Tau Fake Numerator; pT; eta", len(ptbins)-1, ptarr, len(etabinsmutau)-1, etaarrmu), "tauPtFakeNum", "tauEtaFakeNum")
+  print('...done with 6')
   h_el_den = a.DataFrame.Histo2D(("h_el_den", "Prompt Electron Denominator; pT; eta", len(ptbins)-1, ptarr, len(etabinsel)-1, etaarrel), "elPtDen", "elEtaDen")
+  print('...done with 7')
   h_el_num = a.DataFrame.Histo2D(("h_el_num", "Prompt Electron Numerator; pT; eta", len(ptbins)-1, ptarr, len(etabinsel)-1, etaarrel), "elPtNum", "elEtaNum")
+  print('...done with 8')
   h_mu_den = a.DataFrame.Histo2D(("h_mu_den", "Prompt Muon Denominator; pT; eta", len(ptbins)-1, ptarr, len(etabinsmutau)-1, etaarrmu), "muPtDen", "muEtaDen")
+  print('...done with 9')
   h_mu_num = a.DataFrame.Histo2D(("h_mu_num", "Prompt Muon Numerator; pT; eta", len(ptbins)-1, ptarr, len(etabinsmutau)-1, etaarrmu), "muPtNum", "muEtaNum")
+  print('...done with 10')
   h_tau_den = a.DataFrame.Histo2D(("h_tau_den", "Prompt Tau Denominator; pT; eta", len(ptbins)-1, ptarr, len(etabinsmutau)-1, etaarrmu), "tauPtDen", "tauEtaDen")
+  print('...done with 11')
   h_tau_num = a.DataFrame.Histo2D(("h_tau_num", "Prompt Tau Numerator; pT; eta", len(ptbins)-1, ptarr, len(etabinsmutau)-1, etaarrmu), "tauPtNum", "tauEtaNum")
+  print('...done with 12')
 
   finalFile = 'MCPFRate_'+sample + era + "_" + year + "_" + str(testNum1) + ".root"
   outfile = ROOT.TFile.Open(finalFile, "RECREATE")
+  print('Writing histograms to the file')
   for h in [fh_el_den, fh_el_num, fh_mu_den,fh_mu_num,fh_tau_den, fh_tau_num, h_el_den,h_el_num,h_mu_den,h_mu_num,h_tau_den,h_tau_num]:
     h.GetValue().Write()
+    print('...done writing a hist')
   outfile.Close()
 
   print("Done analyzing!")

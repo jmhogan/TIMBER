@@ -8,8 +8,8 @@ if len(sys.argv) > 2:
 
 deletefakes = False
 killdisconnect = False
-splitjobs = False
-nsplit = -1
+splitjobs = True
+nsplit = 2 # or 2, or 3. -1 splits into individual files
 
 def findfiles(path, filtre):
     for root, dirs, files in os.walk(path):
@@ -211,8 +211,6 @@ for rerun in reruns:
 for rerun in resubs.keys():
     folder = rerun.split('/')[-2]
     jobfile = rerun.split('/')[-1]
-
-    #if 'TTWZ2022' in folder: continue # these are somehow NanoAODv11...don't have pNet btagging
 
     if splitjobs:
         if resubs[rerun][0] == resubs[rerun][1]:

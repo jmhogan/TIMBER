@@ -24,13 +24,10 @@ makelists = False
 runanalyzer = False
 if len(sys.argv) >= 2: makelists = bool(eval(sys.argv[1]))
 if len(sys.argv) >= 3: runanalyzer = bool(eval(sys.argv[2]))
-if len(sys.argv) >= 4: 
-    prefix = sys.argv[3] # 'singleTb'
-    textlist = prefix + "NanoList.txt"
     
-relbase = '/uscms/home/jmanagan/nobackup/TTBBto2TB4Tau/'
-outDir='/store/user/lpchtop/BBto2b4tau_May2026_PromptFake/'
-condorDir='/uscms/home/jmanagan/nobackup/TTBBto2TB4Tau/condor_May2026_PromptFake/' # recommend this be outside git area!
+relbase = '/uscms/home/jmanagan/nobackup/TTBBRun3/'
+outDir='/store/user/lpchtop/BBto2b4tau_Aug2026_PromptFake/'
+condorDir='/uscms/home/jmanagan/nobackup/TTBBRun3/condor_Aug2026_PromptFake/' # recommend this be outside git area!
 tarfile = '/uscms/home/jmanagan/nobackup/rdfjobs.tar' 
 
 runDir=os.getcwd()
@@ -78,8 +75,8 @@ if runanalyzer:
         print ('*********** tar already exists! I ASSUME YOU WANT TO MAKE A NEW ONE! *************')
         os.system('rm '+tarfile)
     os.chdir(relbase)
-    print ('tar --exclude="TIMBER/.git" --exclude="CMSSW*/tmp/" --exclude="vlq-BtoTW-RDF" --exclude="condor*Run3" --exclude="vlq-TTBBto2tb4tau-SLA" --exclude="TIMBER/*.root" --exclude="TIMBER/docs" --exclude="TIMBER/*/*.root" -zcf '+tarfile+' ./*')
-    os.system('tar --exclude="TIMBER/.git" --exclude="CMSSW*/tmp/" --exclude="vlq-BtoTW-RDF" --exclude="condor*Run3" --exclude="vlq-TTBBto2tb4tau-SLA" --exclude="TIMBER/*.root" --exclude="TIMBER/docs" --exclude="TIMBER/*/*.root" -zcf '+tarfile+' ./*')
+    print ('tar --exclude="TIMBER/.git" --exclude="CMSSW_15_0_2/" --exclude="CMSSW*/tmp/" --exclude="vlq-BtoTW-RDF" --exclude="condor*Run3" --exclude="condor*PromptFake" --exclude="*Effs/" --exclude="vlq-TTBBtoSM-SLA" --exclude="vlq-TTBBto2tb4tau-SLA" --exclude="TIMBER/*.root" --exclude="TIMBER/docs" --exclude="TIMBER/*/*.root" -zcf '+tarfile+' ./*')
+    os.system('tar --exclude="TIMBER/.git" --exclude="CMSSW_15_0_2/" --exclude="CMSSW*/tmp/" --exclude="vlq-BtoTW-RDF" --exclude="condor*Run3" --exclude="condor*PromptFake" --exclude="*Effs/" --exclude="vlq-TTBBtoSM-SLA" --exclude="vlq-TTBBto2tb4tau-SLA" --exclude="TIMBER/*.root" --exclude="TIMBER/docs" --exclude="TIMBER/*/*.root" -zcf '+tarfile+' ./*')
     os.chdir(runDir)
     #exit(0) #stop after the tar
 
@@ -126,8 +123,8 @@ if runanalyzer:
         
         os.system('eos root://cmseos.fnal.gov/ mkdir -p '+outDir+'/')
         os.system('mkdir -p '+condorDir+'/'+prefix)
-        if sample_dic == samples_data:
-            os.system('mkdir -p '+condorDir+'/Nonprompt'+prefix)
+        #if sample_dic == samples_data:
+        #    os.system('mkdir -p '+condorDir+'/Nonprompt'+prefix)
         
         # Redefining fileName so it is accessed from the directory above for analyzer_RDF.h
         fileName = "condor/"+textlist
