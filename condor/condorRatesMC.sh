@@ -1,8 +1,9 @@
 #!/bin/bash
 
 hostname
-export SCRAM_ARCH=el9_amd64_gcc12
+export SCRAM_ARCH=el9_amd64_gcc11
 echo $SCRAM_ARCH
+export XRD_LOGLEVEL=Debug
 
 # Take in Input Arguments
 infilename=${1}  # Filename is a really long string

@@ -359,101 +359,105 @@ auto SPAfatjet_matching(string sample, unsigned int nGenPart, RVec<int> &GenPart
 
 auto SPADecayModeSelection(unsigned int nGenPart, ROOT::VecOps::RVec<int>& GenPart_pdgId, ROOT::VecOps::RVec<float>& GenPart_mass, ROOT::VecOps::RVec<float>& GenPart_pt, ROOT::VecOps::RVec<float>& GenPart_phi, ROOT::VecOps::RVec<float>& GenPart_eta, ROOT::VecOps::RVec<short>& GenPart_genPartIdxMother, ROOT::VecOps::RVec<int>& GenPart_status, ROOT::VecOps::RVec<short> GenPart_statusFlags, bool isTpTp)
 {
-	int TdecayMode = 0;
-	int BdecayMode = 0;
-	RVec<int> primes;
-	RVec<int> Ws;
-	RVec<int> ts;
+  int TdecayMode = 0;
+  int BdecayMode = 0;
+  RVec<int> primes;
+  RVec<int> Ws;
+  RVec<int> ts;
   bool print = false;
-
-	bool isLastCopy = false;
-
-	// Find the last copy of the VLQs
-	for(int i = 0; i < nGenPart; i++) {
-		isLastCopy = false;
-		if(abs(GenPart_pdgId[i]) == 6000006 || abs(GenPart_pdgId[i]) == 6000007){
-			isLastCopy = (GenPart_statusFlags[i] >> 13) & 1;
-			if(isLastCopy) primes.push_back(i);
-		}
-	}
-
-	RVec<RVec<int>> daughters;
-	int motherIdx;
-	int motherId;
-	int grandmotherId;
-	int id;
-	int nLepW = 0;
-	int nLepT = 0;
-
-	// Find daughters of VLQs and assign leptonic particle
-	for(int i = 0; i < nGenPart; i++) {
-		motherIdx = GenPart_genPartIdxMother[i];
-		motherId = GenPart_pdgId[motherIdx];
-		grandmotherId = GenPart_pdgId[GenPart_genPartIdxMother[motherIdx]];
-
-		if(motherIdx < 0) continue;
-
-		id = GenPart_pdgId[i];
-
-		// If not tZWHb, continue
-		if(abs(id) != 5 && abs(id) != 6 && abs(id) != 23 && abs(id) != 24 && abs(id) != 25) continue;
-
-		if(motherIdx == primes[0]) daughters[0].push_back(i);
-		if(motherIdx == primes[1]) daughters[1].push_back(i);
-	}
-
-	// If the daughters are W or t, get their indices
-	for(int x = 0; x < 2; x++){
-		for(int y = 0; y < 2; y++){
-			if(abs(GenPart_pdgId[daughters[x][y]]) == 24) Ws.push_back(daughters[x][y]);
-			if(abs(GenPart_pdgId[daughters[x][y]]) == 6) ts.push_back(daughters[x][y]);
-		}
-	} 
-
-	int nH = 0;
+  float nupx = -99999.0;
+  float nupy = -99999.0;
+  float nupz = -99999.0;
+  float nueta = -99999.0;
+  
+  bool isLastCopy = false;
+  
+  // Find the last copy of the VLQs
+  for(int i = 0; i < nGenPart; i++) {
+    isLastCopy = false;
+    if(abs(GenPart_pdgId[i]) == 6000006 || abs(GenPart_pdgId[i]) == 6000007){
+      isLastCopy = (GenPart_statusFlags[i] >> 13) & 1;
+      if(isLastCopy) primes.push_back(i);
+    }
+  }
+  
+  RVec<RVec<int>> daughters;
+  int motherIdx;
+  int motherId;
+  int grandmotherId;
+  int id;
+  int nLepW = 0;
+  int nLepT = 0;
+  
+  // Find daughters of VLQs and assign leptonic particle
+  for(int i = 0; i < nGenPart; i++) {
+    motherIdx = GenPart_genPartIdxMother[i];
+    motherId = GenPart_pdgId[motherIdx];
+    grandmotherId = GenPart_pdgId[GenPart_genPartIdxMother[motherIdx]];
+    
+    if(motherIdx < 0) continue;
+    
+    id = GenPart_pdgId[i];
+    
+    // If not tZWHb, continue
+    if(abs(id) != 5 && abs(id) != 6 && abs(id) != 23 && abs(id) != 24 && abs(id) != 25) continue;
+    
+    if(motherIdx == primes[0]) daughters[0].push_back(i);
+    if(motherIdx == primes[1]) daughters[1].push_back(i);
+  }
+  
+  // If the daughters are W or t, get their indices
+  for(int x = 0; x < 2; x++){
+    for(int y = 0; y < 2; y++){
+      if(abs(GenPart_pdgId[daughters[x][y]]) == 24) Ws.push_back(daughters[x][y]);
+      if(abs(GenPart_pdgId[daughters[x][y]]) == 6) ts.push_back(daughters[x][y]);
+    }
+  } 
+  
+  int nH = 0;
   int nt = 0;   
-	int nZ = 0;
+  int nZ = 0;
   int nb = 0;    
-	int nW = 0;
-
-	// Count how many of each decay product we have
-	for(int i = 0; i < 2; i++){
-		for(int j = 0; j < daughters[i].size(); j++){
-			int idx = daughters[i][j];
-			int pdgid = abs(GenPart_pdgId[idx]);
-
-			if(pdgid == 25) nH++;
-			else if(pdgid == 24) nW++;
-			else if(pdgid == 23) nZ++;
-			else if(pdgid == 6) nt++;
-			else if (pdgid == 5) nb++;
-		}
-	}
-	int Tmode = 0;
-	// Assign TTbar decay mode
-	if(abs(GenPart_pdgId[primes[0]]) == 6000006 && abs(GenPart_pdgId[primes[1]]) == 6000006){
-		if(nb == 2 && nW == 2) Tmode = 1;
-		else if(nt == 2 && nZ == 2) Tmode = 2;
-		else if(nt == 2 && nH == 2) Tmode = 3;
-		else if(nt == 2 && nH == 1 && nZ == 1) Tmode = 4;
-		else if(nt == 1 && nZ == 1 && nb == 1 && nW == 1) Tmode = 5;
-		else if(nt == 1 && nH == 1 && nb == 1 && nW == 1) Tmode = 6;
-		else Tmode = -1;
-	}
+  int nW = 0;
+  
+  // Count how many of each decay product we have
+  for(int i = 0; i < 2; i++){
+    for(int j = 0; j < daughters[i].size(); j++){
+      int idx = daughters[i][j];
+      int pdgid = abs(GenPart_pdgId[idx]);
+      
+      if(pdgid == 25) nH++;
+      else if(pdgid == 24) nW++;
+      else if(pdgid == 23) nZ++;
+      else if(pdgid == 6) nt++;
+      else if (pdgid == 5) nb++;
+    }
+  }
+  int Tmode = 0;
+  // Assign TTbar decay mode
+  if(abs(GenPart_pdgId[primes[0]]) == 6000006 && abs(GenPart_pdgId[primes[1]]) == 6000006){
+    if(nb == 2 && nW == 2) Tmode = 1;
+    else if(nt == 2 && nZ == 2) Tmode = 2;
+    else if(nt == 2 && nH == 2) Tmode = 3;
+    else if(nt == 2 && nH == 1 && nZ == 1) Tmode = 4;
+    else if(nt == 1 && nZ == 1 && nb == 1 && nW == 1) Tmode = 5;
+    else if(nt == 1 && nH == 1 && nb == 1 && nW == 1) Tmode = 6;
+    else Tmode = -1;
+  }
   if(print) cout << "The mode is: " << Tmode << endl;
-
-	int Bmode = 0;
-	// Assign BBbar decay mode
-	if(abs(GenPart_pdgId[primes[0]]) == 6000007 && abs(GenPart_pdgId[primes[1]]) == 6000007){
-		if(nt == 2 && nW == 2) Bmode = 1;
-		else if(nb == 2 && nZ == 2) Bmode = 2;
-		else if(nb == 2 && nH == 2) Bmode = 3;
-		else if(nb == 2 && nH == 1 && nZ == 1) Bmode = 4;
-		else if(nb == 1 && nZ == 1 && nt == 1 && nW == 1) Bmode = 5;
-		else if(nb == 1 && nH == 1 && nt == 1 && nW == 1) Bmode = 6;
-		else Bmode = -1;
-	}
-
+  
+  int Bmode = 0;
+  // Assign BBbar decay mode
+  if(abs(GenPart_pdgId[primes[0]]) == 6000007 && abs(GenPart_pdgId[primes[1]]) == 6000007){
+    if(nt == 2 && nW == 2) Bmode = 1;
+    else if(nb == 2 && nZ == 2) Bmode = 2;
+    else if(nb == 2 && nH == 2) Bmode = 3;
+    else if(nb == 2 && nH == 1 && nZ == 1) Bmode = 4;
+    else if(nb == 1 && nZ == 1 && nt == 1 && nW == 1) Bmode = 5;
+    else if(nb == 1 && nH == 1 && nt == 1 && nW == 1) Bmode = 6;
+    else Bmode = -1;
+  }
+  
   // CHECKING FOR LEPTONIC W
   int ogWidx = -1;
   for(int i = 0; i < Ws.size(); i++){ // Looping over the W's we found
@@ -470,6 +474,13 @@ auto SPADecayModeSelection(unsigned int nGenPart, ROOT::VecOps::RVec<int>& GenPa
           ogWidx = Ws[i];
           Tmode += 100;
           Bmode += 100;
+	  int nuid = abs(GenPart_pdgId[j+1]);
+	  if(nuid == 12 || nuid == 14 || nuid == 16){
+	    nupx = GenPart_pt[j+1]*cos(GenPart_phi[j+1]);
+	    nupy = GenPart_pt[j+1]*sin(GenPart_phi[j+1]);
+	    nupz = GenPart_pt[j+1]*sinh(GenPart_eta[j+1]);
+	    nueta = GenPart_eta[j+1];
+	  }
           break;
         }
       }
@@ -512,6 +523,13 @@ auto SPADecayModeSelection(unsigned int nGenPart, ROOT::VecOps::RVec<int>& GenPa
           ogTidx = ts[i];
           Tmode += 1000;
           Bmode += 1000;
+	  int nuid = abs(GenPart_pdgId[j+1]);
+	  if(nuid == 12 || nuid == 14 || nuid == 16){
+	    nupx = GenPart_pt[j+1]*cos(GenPart_phi[j+1]);
+	    nupy = GenPart_pt[j+1]*sin(GenPart_phi[j+1]);
+	    nupz = GenPart_pt[j+1]*sinh(GenPart_eta[j+1]);
+	    nueta = GenPart_eta[j+1];
+	  }
           break;
         }
       }
@@ -532,63 +550,64 @@ auto SPADecayModeSelection(unsigned int nGenPart, ROOT::VecOps::RVec<int>& GenPa
       else if(ogWidx != -1) BleptonicIdx = ogWidx;
   }
 
-	int idx = -1;
-	int lepVLQidx = -1;
-	int lep2idx = -1; // idx of the particle that is paired with the leptonic particle
-	int had1idx = -1;
-	int had2idx = -1;
-
-	if(isTpTp) idx = TleptonicIdx;
-	else idx = BleptonicIdx;
-
-	if(GenPart_genPartIdxMother[idx] != -1) lepVLQidx = GenPart_genPartIdxMother[idx];
-
-	if (lepVLQidx == primes[0]) {
-		int d0 = daughters[0][0];
-		int d1 = daughters[0][1];
-
-		// Check if daughters ARE the leptonic particle
-		if (d0 == ogTidx || d0 == ogWidx) {
-			lep2idx = d1;
-			had1idx = daughters[1][0];
-			had2idx = daughters[1][1];
-		} 
-		// Otherwise check d1
-		else if (d1 == ogTidx || d1 == ogWidx) {
-			lep2idx = d0;
-			had1idx = daughters[1][0];
-			had2idx = daughters[1][1];
-		}
-	}
-
-	if (lepVLQidx == primes[1]) {
-		int d0 = daughters[1][0];
-		int d1 = daughters[1][1];
-
-		// Check if daughters ARE the leptonic particle
-		if (d0 == ogTidx || d0 == ogWidx) {
-			lep2idx = d1;
-			had1idx = daughters[0][0];
-			had2idx = daughters[0][1];
-		} 
-		// Otherwise check d1
-		else if (d1 == ogTidx || d1 == ogWidx) {
-			lep2idx = d0;
-			had1idx = daughters[0][0];
-			had2idx = daughters[0][1];
-		}
-	}
-	
-	//std::cout << "Modes are: " << TdecayMode << ", " << BdecayMode << std::endl;
+  int idx = -1;
+  int lepVLQidx = -1;
+  int lep2idx = -1; // idx of the particle that is paired with the leptonic particle
+  int had1idx = -1;
+  int had2idx = -1;
+  
+  if(isTpTp) idx = TleptonicIdx;
+  else idx = BleptonicIdx;
+  
+  if(GenPart_genPartIdxMother[idx] != -1) lepVLQidx = GenPart_genPartIdxMother[idx];
+  
+  if (lepVLQidx == primes[0]) {
+    int d0 = daughters[0][0];
+    int d1 = daughters[0][1];
+    
+    // Check if daughters ARE the leptonic particle
+    if (d0 == ogTidx || d0 == ogWidx) {
+      lep2idx = d1;
+      had1idx = daughters[1][0];
+      had2idx = daughters[1][1];
+    } 
+    // Otherwise check d1
+    else if (d1 == ogTidx || d1 == ogWidx) {
+      lep2idx = d0;
+      had1idx = daughters[1][0];
+      had2idx = daughters[1][1];
+    }
+  }
+  
+  if (lepVLQidx == primes[1]) {
+    int d0 = daughters[1][0];
+    int d1 = daughters[1][1];
+    
+    // Check if daughters ARE the leptonic particle
+    if (d0 == ogTidx || d0 == ogWidx) {
+      lep2idx = d1;
+      had1idx = daughters[0][0];
+      had2idx = daughters[0][1];
+    } 
+    // Otherwise check d1
+    else if (d1 == ogTidx || d1 == ogWidx) {
+      lep2idx = d0;
+      had1idx = daughters[0][0];
+      had2idx = daughters[0][1];
+    }
+  }
+  
+  //std::cout << "Modes are: " << TdecayMode << ", " << BdecayMode << std::endl;
   //cout << bidx << endl;
-	RVec<int> decayModes;
-	decayModes.push_back(TdecayMode);
-	decayModes.push_back(BdecayMode);
+  RVec<float> decayModes;
+  decayModes.push_back(TdecayMode);
+  decayModes.push_back(BdecayMode);
   decayModes.push_back(TleptonicIdx);
   decayModes.push_back(BleptonicIdx);
-	decayModes.push_back(lep2idx);
-	decayModes.push_back(had1idx);
-	decayModes.push_back(had2idx);
+  decayModes.push_back(lep2idx);
+  decayModes.push_back(had1idx);
+  decayModes.push_back(had2idx);
+
   if((TdecayMode < 1007 && TdecayMode > 1000) || (BdecayMode < 1007 && BdecayMode > 1000)){
     decayModes.push_back(bidx);
   } else decayModes.push_back(-1);
@@ -596,8 +615,12 @@ auto SPADecayModeSelection(unsigned int nGenPart, ROOT::VecOps::RVec<int>& GenPa
     cout << "This event is: " << TdecayMode << endl;
     cout << decayModes[7] << " Leptonic pair is: " << GenPart_pdgId[lep2idx] << " idx is: " << lep2idx << endl;
   }
+  decayModes.push_back(nupx);
+  decayModes.push_back(nupy);
+  decayModes.push_back(nupz);
+  decayModes.push_back(nueta);
   //cout << decayModes[7] << endl;
-	return decayModes;
+  return decayModes;
 }
 
 auto SPAIndexMatcher(RVec<float> gcJet_eta, RVec<float> gcJet_phi, RVec<bool> isBtag, RVec<float> gcFatJet_eta, RVec<float> gcFatJet_phi, RVec<float> GenPart_eta, RVec<float> GenPart_phi, int lep2idx, int had1idx, int had2idx, int bidx)
@@ -629,16 +652,18 @@ auto SPAIndexMatcher(RVec<float> gcJet_eta, RVec<float> gcJet_phi, RVec<bool> is
   }
 
   // LEPTONIC B JET FINDING
+  int nBtag = 0;
   for(int ijet = 0; ijet < gcJet_eta.size(); ijet++){
     if(bidx == -1){
       bAK4idx = -1;
       break;
     }
     if(isBtag[ijet]){
-      if(DeltaR(gcJet_eta[ijet], GenPart_eta[bidx], gcJet_phi[ijet], GenPart_phi[bidx])){
+      if(DeltaR(gcJet_eta[ijet], GenPart_eta[bidx], gcJet_phi[ijet], GenPart_phi[bidx]) < minDRb){
         minDRb = DeltaR(gcJet_eta[ijet], GenPart_eta[bidx], gcJet_phi[ijet], GenPart_phi[bidx]);
-        bAK4idx = ijet;
+        bAK4idx = nBtag;
       }
+      nBtag++;
     }
   }
 

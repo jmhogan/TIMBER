@@ -564,6 +564,10 @@ def analyze(jesvar):
     tagVars.Add("had1idx", "temp_newDecayModes[5]")
     tagVars.Add("had2idx", "temp_newDecayModes[6]")
     tagVars.Add("bidx", "temp_newDecayModes[7]")
+    tagVars.Add("true_nu_px","temp_newDecayModes[8]")
+    tagVars.Add("true_nu_py","temp_newDecayModes[9]")
+    tagVars.Add("true_nu_pz","temp_newDecayModes[10]")
+    tagVars.Add("true_nu_eta","temp_newDecayModes[11]")
     tagVars.Add("GenPart_P4", "fVectorConstructor(GenPart_pt,GenPart_eta,GenPart_phi,GenPart_mass)")
 
     trainCuts = CutGroup("trainCuts")
@@ -585,18 +589,16 @@ def analyze(jesvar):
     tagVars.Add("gcFatJet_lep2idx", "index_assignment[0]")
     tagVars.Add("gcFatJet_had1idx", "index_assignment[1]")
     tagVars.Add("gcFatJet_had2idx", "index_assignment[2]")
-    tagVars.Add("gcJet_bidx", "index_assignment[3]")
+    tagVars.Add("gcBJet_bidx", "index_assignment[3]")
 
     trainCuts.Add("Has 3 matched jets", "index_assignment[0] != -1")
 
     # tagVars.Add("comp_primes", "get_lastcopy_tprimes(GenPart_pdgId, GenPart_statusFlags, GenPart_pt)")
     # tagVars.Add("comp_daughters", "get_tprime_daughters(comp_primes, GenPart_pdgId, GenPart_genPartIdxMother)")
     # tagVars.Add("gcFatJet_comp", "tag_ak8jets_with_genquarks(comp_daughters, GenPart_eta, GenPart_phi, GenPart_pdgId, gcFatJet_P4)")
-  
-  tagVars.Add("gcFatJet_PNWMtags", "jet_tagging(gcFatJet_PNWM_T, gcFatJet_PNWM_W, gcFatJet_PNWM_Z, gcFatJet_PNWM_H, gcFatJet_PNWM_QCD, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, SubJet_btagUParTAK4B, BTagM,gcJet_P4,gcFatJet_P4,gcJet_BTagM)")
 
-  #WORK ON THIS MORE -- need to just be isolated from the 3 highest-pt fat jets, not any of them...
-  #jVars.Add("Isolated_AK4","standalone_Jet(gcJet_eta, gcJet_phi, gcFatJet_eta, gcFatJet_phi)")
+  ## FIXME -- this needs to go back in...
+  #tagVars.Add("gcFatJet_PNWMtags", "jet_tagging(gcFatJet_PNWM_T, gcFatJet_PNWM_W, gcFatJet_PNWM_Z, gcFatJet_PNWM_H, gcFatJet_PNWM_QCD, gcFatJet_subJetIdx1, gcFatJet_subJetIdx2, SubJet_btagUParTAK4B, BTagM,gcJet_P4,gcFatJet_P4,gcJet_BTagM)")
 
   # ------------------ Add scale factors and MC jet-based calcs ------------------
   lepSFs = VarGroup('Lepton Scale Factors')
@@ -653,12 +655,6 @@ def analyze(jesvar):
   else:
     nodeToPlot = a.Apply([flagCuts, gjsonVars, gjsonCuts, lVars, lCuts])
   
-  # # We want the BW decays that go to l + nu
-  # ## These will be meaningless for non-signal, but shouldn't crash...
-  # #a.Define("decayMODE", "decayModeSelection(region, nGenPart,GenPart_pdgId,GenPart_mass,GenPart_pt,GenPart_phi,GenPart_eta,GenPart_genPartIdxMother,GenPart_status)")	
-  # #a.Define("isLeptWdecay", "(decayMODE == 101 || decayMODE == 105 || decayMODE == 106)") 
-  # #a.Define("isLeptTdecay", "(1002 <= decayMODE && decayMODE <= 1007) || decayMODE == 1011 || decayMODE == 1012") 
-
   # # Solution to cleanJets() problem:
   # #       The analyzer .Apply() calls the analyzer .Define().  This .Define() calls self._collectionOrg.CollectionDefCheck(var, newNode).
   # #  This method executes this line: if re.search(r"\b" + re.escape(c+'s') + r"\b", action_str) and (c+'s' not in self._builtCollections):

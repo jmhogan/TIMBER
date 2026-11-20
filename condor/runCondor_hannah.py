@@ -168,8 +168,7 @@ Queue 1"""%dict)
             print ( str(count) + " jobs submitted!!!")
             count += 1
 
-            if run2025:
-                #PREFIX = PREFIX.replace("2024","2025")
+            if run2025:  ## FIXME do the dictionary entries need to have the 2024->2025 swap or can we do it here?
                 jdfName=condorDir+prefix.replace("2024","2025")+'/%(PREFIX)s_%(TESTNUM1)s.job'%dict
                 print ("jdfname: ",jdfName)
                 jdf=open(jdfName,'w')
@@ -188,16 +187,9 @@ Arguments = %(FILENAME)s %(OUTPUTDIR)s %(TESTNUM1)s %(TESTNUM2)s 2025
 
 Queue 1"""%dict)
                 jdf.close()
-                os.chdir('%s/'%(condorDir+prefix.replace("2024","2025")))
+                os.chdir('%s/'%(condorDir+'/'+prefix.replace("2024","2025")))
                 os.system('condor_submit %(PREFIX)s_%(TESTNUM1)s.job'%dict)
-                os.system('sleep 0.5')                                
-                os.chdir('%s'%(runDir))
-                print ( str(count) + " jobs submitted!!!")
-                count += 1
 
-                            
-    #for k,v in sample_dic.items():
-    #    os.system('mv ' + prefix + ' Output/')
 
 print("--- %s minutes ---" % (round(time.time() - start_time, 2)/60))
 

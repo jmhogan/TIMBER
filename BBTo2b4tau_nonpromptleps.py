@@ -15,6 +15,8 @@ correctionlib.register_pyroot_binding()
 sys.path.append('../../')
 sys.path.append('../../../')
 
+ROOT.gInterpreter.ProcessLine('#pragma GCC diagnostic ignored "-Wdeprecated-declarations"') #Command to ignore certain warning messages
+
 # ------------------ Command Line Arguments and Parsing -------------------
 inputFiles = sys.argv[1] #fileList
 # Are all the files running if 0 and 8?
@@ -132,7 +134,7 @@ ROOT.gInterpreter.Declare("""
 def analyze(jesvar):
   ROOT.gInterpreter.ProcessLine('string jesvar = "' + jesvar + '"; ')
 
-  # Create analyzer instance
+  #/TIMBER/Framework/Tprime1lep/topographInput.cc Create analyzer instance
   # is filelist still what you want it be here
   a = analyzer(filelist)
   
@@ -145,6 +147,10 @@ def analyze(jesvar):
     jsonfile = jsonfile + "Cert_Collisions2022_355100_362760_Golden.json"
   elif '2023' in year:
     jsonfile = jsonfile + "Cert_Collisions2023_366442_370790_Golden.json"
+  elif '2024' in year:
+      jsonfile = jsonfile + "Cert_Collisions2024_378981_386951_Golden.json"
+  elif '2025' in year:
+      jsonfile = jsonfile + "Cert_Collisions2025_391658_398903_Golden.json"
   else:
     print(f'ERROR: Can\'t parse the year to assign a golden json file. Expected 2022(EE) or 2023(BPix). Got: {year}\n')
     
@@ -163,7 +169,7 @@ def analyze(jesvar):
   yrstr = {'2022':"Run3-22CDSep23-Summer22-NanoAODv12",'2022EE':"Run3-22EFGSep23-Summer22EE-NanoAODv12",'2023':"Run3-23CSep23-Summer23-NanoAODv12",'2023BPix':"Run3-23DSep23-Summer23BPix-NanoAODv12",'2024':"Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15",'2025':"Run3-25Prompt-Summer24-NanoAODv15"}
   jmetags = {'2022':'2026-06-05','2022EE':'2026-06-05','2023':'2026-06-05','2023BPix':'2026-06-05','2024':'2026-06-05', '2025':'2026-06-05'} 
   jecver = {'2022':"V4",'2022EE':"V4",'2023':"V4",'2023BPix':"V4",'2024':"V3",'2025':"V3"}   
-  jmeyrstr = {'2022':yrstr['2022'],'2022EE':yrstr['2022EE'],'2023':yrstr['2023'],'2023BPix':yrstr['2023BPix'],'2024':yrstr['2024'],'2025':'Run3-25Prompt-Winter25-NanoAODv15'} # yes, really use 24 for 25
+  jmeyrstr = {'2022':yrstr['2022'],'2022EE':yrstr['2022EE'],'2023':yrstr['2023'],'2023BPix':yrstr['2023BPix'],'2024':yrstr['2024'],'2025':yrstr['2024']} # yes, really use 24 for 25
   jecyr = {'2022':"Summer22_22Sep2023",'2022EE':"Summer22EE_22Sep2023",'2023':"Summer23Prompt23",'2023BPix':"Summer23BPixPrompt23",'2024':"Summer24Prompt24", '2025':"Winter25Prompt25"}
   jeryr = {'2022':"Summer22_22Sep2023_JRV2",'2022EE':"Summer22EE_22Sep2023_JRV2",'2023':"Summer23Prompt23_RunCv1234_JRV2",'2023BPix':"Summer23BPixPrompt23_RunD_JRV2",'2024':"Summer24Prompt24_JRV1",'2025':"Summer24Prompt25_JRV1"}
   jetvetoname = {'2022':"Summer22_23Sep2023_RunCD_V1",'2022EE':"Summer22EE_23Sep2023_RunEFG_V1",'2023':"Summer23Prompt23_RunC_V1",'2023BPix':"Summer23BPixPrompt23_RunD_V1",'2024':"Summer24Prompt24_RunBCDEFGHI_V1",'2025':"Winter25Prompt25_RunCDEFG_V1"    }      
@@ -226,7 +232,7 @@ def analyze(jesvar):
 
   # ------------------ Tau selection criteria ----------------
   tVars = VarGroup('TauVars')
-  tVars.Add('goodTaumu', 'Tau_pt > 20 && abs(Tau_eta) < 2.5 && abs(Tau_dz) < 0.2 && Tau_idDeepTau2018v2p5VSmu >= 1')
+  tVars.Add('goodTaumu', 'Tau_pt > 20 && abs(Tau_eta) < 2.5 && Tau_idDeepTau2018v2p5VSmu >= 1')
   tVars.Add('NgoodTaumu', 'Sum(goodTaumu)')
 
   tVars.Add('goodTaue', 'goodTaumu == 1 && Tau_idDeepTau2018v2p5VSe >= 2')
@@ -259,7 +265,7 @@ def analyze(jesvar):
   eandmuVars = VarGroup('ElandMuVars')
 
   #Good Electrons
-  eandmuVars.Add('looseElectrons', 'Electron_pt > 10 && abs(Electron_eta) < 2.5 && (Electron_mvaIso_WP90 == 1)')
+  eandmuVars.Add('looseElectrons', 'Electron_pt > 10 && abs(Electron_eta) < 2.5 && (Electron_cutBased >= 2)')
   eandmuVars.Add('NlooseElecs', 'Sum(looseElectrons)')
   #eandmuVars.Add('goodElectrons', 'Electron_pt > 10 && abs(Electron_eta) < 2.5 && (Electron_mvaIso_WP80 == 1)')
   #eandmuVars.Add('NgoodElecs', 'Sum(goodElectrons)')
@@ -272,6 +278,8 @@ def analyze(jesvar):
   eandmuVars.Add('LooseEl_ID', 'ROOT::VecOps::RVec<int>(NlooseElecs, 11)')
   eandmuVars.Add('LooseEl_isTight','Electron_mvaIso_WP80[looseElectrons == true] == 1')
 
+  eandmuVars.Add('LooseEl_isabnormal', '(Electron_mvaIso_WP80 == 1) != (Electron_cutBased >= 2)')  #Check to make sure each process is working as expected. False is normal/expected behavior, True is something is wrong
+
   # eandmuVars.Add('GoodEl_pt','Electron_pt[goodElectrons == true]')
   # eandmuVars.Add('GoodEl_eta','Electron_eta[goodElectrons == true]')
   # eandmuVars.Add('GoodEl_phi','Electron_phi[goodElectrons == true]')
@@ -281,7 +289,7 @@ def analyze(jesvar):
   # eandmuVars.Add('GoodEl_charge', 'Electron_charge[goodElectrons == true]')
 
   #Good Muons
-  eandmuVars.Add('looseMuons', 'Muon_pt >= 15 && abs(Muon_eta) < 2.4 && Muon_looseId == 1 && abs(Muon_dxy) < 0.2 && abs(Muon_dz) < 0.5 && Muon_pfIsoId >= 2')
+  eandmuVars.Add('looseMuons', 'Muon_pt >= 15 && abs(Muon_eta) < 2.4 && Muon_looseId == 1 && Muon_pfIsoId >= 2')
   eandmuVars.Add('NlooseMuons', 'Sum(looseMuons)')
   #eandmuVars.Add('goodMuons', 'Muon_pt >= 15 && abs(Muon_eta) < 2.4 && Muon_mediumId == 1 && abs(Muon_dxy) < 0.2 && abs(Muon_dz) < 0.5 && Muon_pfIsoId >= 3')
   #eandmuVars.Add('NgoodMuons', 'Sum(goodMuons)')
@@ -292,7 +300,7 @@ def analyze(jesvar):
   eandmuVars.Add('LooseMu_mass', 'Muon_mass[looseMuons == true]')
   eandmuVars.Add('LooseMu_charge', 'Muon_charge[looseMuons == true]')
   eandmuVars.Add('LooseMu_ID', 'ROOT::VecOps::RVec<int>(NlooseMuons, 13)')
-  eandmuVars.Add('LooseMu_isTight','Muon_mediumId[looseMuons == true] == 1 && Muon_pfIsoId[looseMuons == true] >= 3')
+  eandmuVars.Add('LooseMu_isTight','Muon_mediumId[looseMuons == true] == 1 && Muon_pfIsoId[looseMuons == true] >= 3 && Muon_looseId == 1 && abs(Muon_dxy) < 0.2 && abs(Muon_dz) < 0.5')
   
   # eandmuVars.Add('GoodMu_pt','Muon_pt[goodMuons == true]')
   # eandmuVars.Add('GoodMu_eta','Muon_eta[goodMuons == true]')
@@ -356,7 +364,11 @@ def analyze(jesvar):
   #jVars.Add("FatJet_P4", "fVectorConstructor(FatJet_pt,FatJet_eta,FatJet_phi,FatJet_mass)")
   jVars.Add("Jet_EmEF","Jet_neEmEF + Jet_chEmEF")
   jVars.Add("DummyZero","float(0.0)")
-  
+ 
+  if year == '2024' or year == '2025':
+    jVars.Add("Jet_jetId","jetidfunc(jetidAK4Tcorr,jetidAK4TLcorr,Jet_eta,Jet_chHEF,Jet_neHEF,Jet_chEmEF,Jet_neEmEF,Jet_muEF,Jet_chMultiplicity,Jet_neMultiplicity)")
+    jVars.Add("FatJet_jetId","fatjetidfunc(jetidAK8Tcorr,jetidAK8TLcorr,FatJet_eta,FatJet_chHEF,FatJet_neHEF,FatJet_chEmEF,FatJet_neEmEF,FatJet_muEF,FatJet_chMultiplicity,FatJet_neMultiplicity)")
+
   jVars.Add("cleanedJets", "cleanJetsData(run,debug,year,ak4corr,ak4corrL1,ak8corr,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,Jet_P4,Jet_jetId,Rho_fixedGridRhoFastjetAll,DummyZero,DummyZero)") # muon and EM factors unused in this call, args 16-17 are dummies
   jVars.Add("cleanMets", "cleanJetsData(run,debug,year,ak4corr,ak4corrL1,ak8corr,Jet_P4,Jet_rawFactor,Jet_muonSubtrFactor,Jet_area,Jet_EmEF,Jet_jetId,Jet_P4,Jet_jetId,Rho_fixedGridRhoFastjetAll,RawPuppiMET_pt,RawPuppiMET_phi)") # lepton args unused in this call, args 16-17 are dummies
   #jVars.Add("cleanFatJets", "cleanJetsData(debug,year,ak4corr,ak4corrL1,ak8corr,FatJet_P4,FatJet_rawFactor,FatJet_rawFactor,FatJet_area,FatJet_area,FatJet_jetId,FatJet_P4,FatJet_jetId,Rho_fixedGridRhoFastjetAll,DummyZero,DummyZero)") # args 12, 14, 16, 17 are dummies
